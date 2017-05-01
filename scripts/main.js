@@ -52,15 +52,20 @@ NamedNode.prototype.getName= function (){
 	return this.name;
 }
 
-divisions=["pale", "fess", "bend", "bend sinister", "chevron", "saltire", "", "", "", "", "", "", "",""];
-plurals=["paly", "barry", "bendy", "bendy sinister", "chevronny", "gyronny", "quarterly", "chequy", "lozengy", "barry bendy", "paly bendy", "pily", "pily bendy", "pily bendy sinister"]
-tinctures=["Argent", "Or", "Gules", "Azure", "Vert", "Purpure", "Sable", "Tenny", "Sanguine", "Vair", "Countervair", "Potent", "Counterpotent", "Ermine", "Ermines", "Erminois", "Pean"];
-ordinaries=["chief", "pale", "fess", "bend", "bend sinister", "Chevron", "Saltire", "Pall", "Cross", "Pile"];
-subordinaries=["bordure", "inescutcheon", "Orle", "Tressure", "Canton", "Flanches", "Billet", "Lozenge", "Gyron", "Fret"];
-movables=["mullet", "phrygian cap", "fleur-de-lis", "lozenge", "pheon"];
-beasts=["lion", "eagle"];
-attitudes=["statant", "rampant", "couchant", "passant", "salient", "sejant", "cowed"];
-facings=["guardant", "reguardant"];
+divisions = ["pale", "fess", "bend", "bend sinister", "chevron", "saltire", "", "", "", "", "", "", "",""];
+plurals = ["paly", "barry", "bendy", "bendy sinister", "chevronny", "gyronny", "quarterly", "chequy", "lozengy", "barry bendy", "paly bendy", "pily", "pily bendy", "pily bendy sinister"]
+//"undefined" is not a real tincture (duh), but is used as a placeholder. It must be in position 0.
+tinctures = ["undefined", "argent", "or", "gules", "azure", "vert", "purpure", "sable", "tenny", "sanguine", "vair", "countervair", "potent", "counterpotent", "ermine", "ermines", "erminois", "pean"];
+ordinaries = ["chief", "pale", "fess", "bend", "bend sinister", "chevron", "saltire", "pall", "cross", "pile"];
+subordinaries = ["bordure", "inescutcheon", "orle", "tressure", "canton", "flanches", "billet", "lozenge", "gyron", "fret"];
+movables = ["mullet", "phrygian cap", "fleur-de-lis", "lozenge", "pheon"];
+beasts = ["lion", "eagle"];
+attitudes = ["statant", "rampant", "couchant", "passant", "salient", "sejant", "cowed"];
+facings = ["guardant", "reguardant"];
+conjunctions = ["and"];
+prepositions = ["on", "between", "above", "below", "within"];
+linkings=conjunctions+prepositions; 
+numbers=["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
 
 function Division(type,number=2)
 {
@@ -108,7 +113,7 @@ Field.prototype=Object.create(Node.prototype);
 Field.prototype.constructor=Field;
 
 Field.prototype.getName= function (){
-	return tinctures[this.tincture];
+	return tinctureName(this.tincture);
 }
 
 function Ordinary(kind,tincture)
@@ -123,7 +128,10 @@ Ordinary.prototype=Object.create(Node.prototype);
 Ordinary.prototype.constructor=Ordinary;
 
 Ordinary.prototype.getName= function (){
-	return "a "+ordinaries[this.kind]+" "+tinctures[this.tincture];
+	var out = "a "+ordinaries[this.kind]
+	if(this.tincture > 0)
+	{out += " "+tinctureName(this.tincture);}
+	return out;
 }
 
 function Moveable(kind,tincture,number=1)
@@ -146,32 +154,11 @@ Moveable.prototype.getName= function (){
 	}else{
 		out+=this.number.toString()+" ";
 	}
-	out+=movables[this.kind]+" "+tinctures[this.tincture];
+	out+=movables[this.kind];
+	if(this.tincture > 0)
+	{out += " "+tinctureName(this.tincture);}
 	return out;
 }
-
-
-/*
-var root=new NamedNode("field Argent");
-root.append(new NamedNode("phrygian cap Gules"));
-root.append(new NamedNode("bend Azure"));
-root.at(1).append(new NamedNode("mullet (6-point) Or (x3)"));
-root.append(new NamedNode("phrygian cap Gules"));
-*/
-
-/*
-root=new Field(0);
-root.append(new Ordinary(3,3));
-root.subnode[0].append(new Moveable(1,2));
-root.subnode[0].append(new Moveable(0,1,3));
-root.subnode[0].append(new Moveable(1,2));*/
-root=new Division(0);
-root.append(new Field(0))
-root.subnode[0].append(new Moveable(1,2));
-root.append(new Field(2))
-root.subnode[1].append(new Moveable(0,1,3));
-//this works
-document.getElementById("displayPara").innerHTML=root.display();
 
 /*dynamic SVG?
 var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -205,7 +192,9 @@ Buffer.prototype.peek=function()
 }
 
 //mainly for informational purposes
-tokenTypes=["word" , "number", "punctuation"];
+TOK_WORD=0;
+TOK_NUM=1;
+TOK_PUNCT=2;
 
 function Token(value, type)
 {
@@ -219,7 +208,7 @@ function getToken(buf)
 	var punct=" ,;:.";
 	var num="0123456789";
 	var tok="";
-	var type=0;
+	var type=TOK_WORD;
 	//first, get fid of leading spaces
 	while(buf.peek() === " ")
 	{
@@ -232,6 +221,7 @@ function getToken(buf)
 		{
 			tok+=buf.pop();
 		}
+		tok=tok.toLowerCase();
 	//if it begins with a digit, read a string of digits
 	}else if(num.indexOf(buf.peek()) > -1){
 		while (punct.indexOf(buf.peek()) === -1 && buf.peek() !== undefined )
@@ -240,19 +230,19 @@ function getToken(buf)
 		}
 		//store number as a number
 		tok=parseInt(tok,10);
-		type=1
+		type=TOK_NUM;
 	//if it begins with a mark, read a mark
 	}else if(punct.indexOf(buf.peek()) > -1)
 	{
 		tok+=buf.pop();
-		type=2;
+		type=TOK_PUNCT;
 	}
 	//if there was no token, return nothing
 	if(tok==="")
 	{return}
 	//treat the word "a" like the number one
 	if(tok==="a")
-	{return new Token(1,1);}
+	{return new Token(1,TOK_NUM);}
 	return new Token(tok,type);
 }
 
@@ -296,13 +286,30 @@ TokenStream.prototype.rewind=function(i=1)
 	this.pos-=i;
 }
 
+TokenStream.prototype.reset=function(i=1)
+{
+	this.pos=0;
+}
+
+TokenStream.prototype.savePos=function()
+{
+	return this.pos;
+}
+
+TokenStream.prototype.loadPos=function(i)
+{
+	this.pos=i;
+}
+
 //either return a field, or leave the stream semantically unchanged
 function getField(str)
 {
 	var nxt=str.peek();
 	//if the next word is a tincture, we have a field
-	if(nxt.type === 0 && tinctures.indexOf(nxt.value) > -1)
+	if(nxt===undefined)
 	{
+		console.error("Word "+str.pos.toString()+": unexpected end of blazon")
+	}else if(nxt.type === TOK_WORD && tinctures.indexOf(nxt.value) > -1){
 		str.pop();
 		return new Field(tinctures.indexOf(nxt.value));
 	}
@@ -313,52 +320,114 @@ function getDivision(str)
 {
 	var nxt=str.peek();
 	var number=0;
-	var type=0;
-	if(nxt.type === 0 && nxt.value==="per")
+	var type=TOK_WORD;
+	if(nxt===undefined)
 	{
+		console.error("Word "+str.pos.toString()+": unexpected end of blazon")
+	}else if(nxt.type === TOK_WORD && nxt.value==="per"){
 		str.pop();
-		if(str.peek().type === 0 && divisions.indexOf(str.peek().value) > -1)
+		if(str.peek()!==undefined && str.peek().type === TOK_WORD && divisions.indexOf(str.peek().value) > -1)
 		{
 			var tmp=str.pop();
 			type=divisions.indexOf(tmp.value);
-			if(type===5)
+			//if the division is "per saltire" we have four segments, otherwise two (per pale, etc)
+			if(type===divisions.indexOf("saltire"))
 			{
 				number=4;
 			}else{
 				number=2;
 			}
 			return new Division(type,number);
+		}else{
+			console.error("Word "+str.pos.toString()+": no such division")
+			str.rewind()//un-pop the "per" if we haven't found a division
 		}
-		str.rewind()//un-pop the "per" if we haven't returned a division
-	}else if(nxt.type === 0 && nxt.value==="tierced"){
+	}else if(nxt.type === TOK_WORD && nxt.value==="tierced"){
 		str.pop();
-		var tmp=getFieldOrDivision(str);
+		var tmp=getDivision(str);
 		if(tmp !== undefined)
 		{
 			tmp.number=3;
 			return tmp;
+		}else{
+			console.error("Word "+str.pos.toString()+": no such division")
+			str.rewind(); //un-pop "tierced" if no division
 		}
-		str.rewind(); //un-pop "tierced" if no division
-	}else if(str.peek().type === 0 && plurals.indexOf(str.peek().value) > -1){
+	}else if(str.peek()!==undefined && str.peek().type === TOK_WORD && plurals.indexOf(str.peek().value) > -1){
 		type=plurals.indexOf(str.pop().value);
-		if(str.peek().type === 0 && str.peek === "of")//if we have "of X"
+		if(str.peek()!==undefined && str.peek().type === TOK_WORD && str.peek === "of")//if we have "of X"
 		{
 			str.pop();//take "of" off the stack
-			if(str.peek().type===1)
+			if(str.peek()!==undefined && str.peek().type===TOK_NUM)
 			{
 				number=str.pop().value; //we don't pop unless we see a number
-			}else{str.rewind();} //un-pop "of" if we don't see a number
+			}else{
+				console.error("Word "+str.pos.toString()+": not a number")
+				//we return a division anyway if there is no number, disregarding the "of"
+			}
 		}
 		return new Division(type,number);
 	}
 }
 
+function isOrdinary(tok)
+{
+	return (ordinaries.indexOf(tok.value) > -1)
+}
+
+function isTincture(tok)
+{
+	return (tinctures.indexOf(tok.value) > -1)
+}
+
+function isLinking(tok)
+{
+	return (linkings.indexOf(tok.value) > -1)
+}
+
+function getOrdinary(str)
+{
+	var num=0; //not possible, error if this does not change
+	var type; //defults to undefined
+	var tincture=0; //defaults to "specified later"
+	if(str.peek().type===TOK_NUM)
+	{
+		num=str.pop();
+		if( str.peek().type===TOK_WORD && isOrdinary(str.peek()) )
+		{
+			type=ordinaries.indexOf(str.pop().value);
+			while( str.peek()!==undefined && str.peek().type===TOK_WORD && !isLinking(str.peek()) ){
+				var tmp=str.pop();
+				//tincture is optional, but ends the charge if it exists
+				if( isTincture(tmp) )
+				{
+					tincture=tinctures.indexOf(tmp.value);
+					break;
+				}
+			}
+			return new Ordinary(type,tincture);
+		}else{
+			console.error("Word "+str.pos.toString()+": '" +str.peek().value+"' is not an ordinary");
+			str.rewind(); //un-pop the number
+			return;
+		}
+	}else{
+		console.error("Word "+str.pos.toString()+": no number where one was expected");
+	}
+}
+
 //takes a token stream
-function getFieldOrDivision(str)
+function getEscutcheon(str)
 {
 	var tmp=getField(str);
 	if(tmp!==undefined)
 	{
+		if(str.peek().type===TOK_PUNCT)
+		{str.pop();}else{
+			console.error("Word "+str.pos.toString()+": no comma where one was expected");
+		}
+		var crg=getOrdinary(str);
+		tmp.append(crg);
 		return tmp;
 	}
 	tmp=getDivision(str)
@@ -372,7 +441,29 @@ function tokStrFromStr(str)
 {
 	return new TokenStream(new Buffer(str));
 }
-//blaz=new Buffer("Per pale Gules and Azure a bend Argent");
-blaz=new Buffer("Azure a bend Or");
-tokstr=tokStrFromStr("Azure a bend Or");
+
+function parseString(str)
+{
+	tokstr=tokStrFromStr(str);
+	return getEscutcheon(tokstr);
+}
+
+function titleCase(str){
+	return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function tinctureName(i){
+	return titleCase(tinctures[i]);
+}
+
+tokstr=tokStrFromStr("Azure, a bend Or");
 tokstr2=tokStrFromStr("per fess azure and ermine");
+tokstr3=tokStrFromStr("tierced per fess Tenny, Argent and Azure");
+
+root=new Division(0);
+root.append(new Field(1))
+root.subnode[0].append(new Moveable(1,3));
+root.append(new Field(3))
+root.subnode[1].append(new Moveable(0,2,3));
+//this works
+document.getElementById("displayPara").innerHTML=root.display();
