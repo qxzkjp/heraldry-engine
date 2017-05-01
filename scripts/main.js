@@ -390,7 +390,7 @@ function getOrdinary(str)
 	var num=0; //not possible, error if this does not change
 	var type; //defults to undefined
 	var tincture=0; //defaults to "specified later"
-	if(str.peek().type===TOK_NUM)
+	if(str.peek()!==undefined && str.peek().type===TOK_NUM)
 	{
 		num=str.pop();
 		if( str.peek().type===TOK_WORD && isOrdinary(str.peek()) )
@@ -417,24 +417,53 @@ function getOrdinary(str)
 }
 
 //takes a token stream
-function getEscutcheon(str)
+function getFieldOrDivision(str)
 {
 	var tmp=getField(str);
 	if(tmp!==undefined)
 	{
-		if(str.peek().type===TOK_PUNCT)
+		if(str.peek()!==undefined && str.peek().type===TOK_PUNCT)
 		{str.pop();}else{
 			console.error("Word "+str.pos.toString()+": no comma where one was expected");
 		}
-		var crg=getOrdinary(str);
-		tmp.append(crg);
 		return tmp;
 	}
 	tmp=getDivision(str)
 	if(tmp!==undefined)
 	{
+		var subf=getEscutcheon(str);//get first tincture/sub-blazon
+		if(subf!==undefined){
+			tmp.append(subf);
+			//if we have a linking word, look for a second tincture
+			if( str.peek()!==undefined
+			&& str.peek().type===TOK_WORD
+			&& isLinking(str.peek()) ){
+				str.pop();
+				//if the previous sub-blazon was only a tincture, we only get a tincture. Otherwise an entire sub-blazon.
+				if(subf.subnode.length > 0){
+					subf=getEscutcheon(str);
+				}else{
+					subf=getField(str);
+				}
+				if(subf!==undefined){
+					tmp.append(subf);
+				}else{
+					str.rewind(); //un-pop the linking word
+					tmp.append( new Field(0) ); //append a dummy field so the division has two fields
+				}
+			}
+		}
 		return tmp;
 	}
+}
+
+function getEscutcheon(str){
+	var tmp=getFieldOrDivision(str);
+	var crg=getOrdinary(str);
+	if(crg!==undefined){
+		tmp.append(crg);
+	}
+	return tmp;
 }
 
 function tokStrFromStr(str)
@@ -444,8 +473,15 @@ function tokStrFromStr(str)
 
 function parseString(str)
 {
-	tokstr=tokStrFromStr(str);
+	var tokstr=tokStrFromStr(str);
 	return getEscutcheon(tokstr);
+}
+
+function parseStringAndDisplay(str)
+{
+	var tokstr=tokStrFromStr(str);
+	var root=getEscutcheon(tokstr);
+	document.getElementById("displayPara").innerHTML=root.display();
 }
 
 function titleCase(str){
