@@ -59,11 +59,12 @@ tinctures = ["undefined", "argent", "or", "gules", "azure", "vert", "purpure", "
 ordinaries = ["chief", "pale", "fess", "bend", "bend sinister", "chevron", "saltire", "pall", "cross", "pile"];
 subordinaries = ["bordure", "inescutcheon", "orle", "tressure", "canton", "flanches", "billet", "lozenge", "gyron", "fret"];
 movables = ["mullet", "phrygian cap", "fleur-de-lis", "lozenge", "pheon"];
+movplurals = ["mullets", "phrygian caps", "fleurs-de-lis", "lozenges", "pheons"];
 beasts = ["lion", "eagle"];
 attitudes = ["statant", "rampant", "couchant", "passant", "salient", "sejant", "cowed"];
 facings = ["guardant", "reguardant"];
 conjunctions = ["and"];
-prepositions = ["on", "between", "above", "below", "within"];
+prepositions = ["on", "between", "above", "below", "within", "overall"];
 linkings=conjunctions+prepositions; 
 numbers=["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
 
@@ -134,7 +135,25 @@ Ordinary.prototype.getName= function (){
 	return out;
 }
 
-function Moveable(kind,tincture,number=1)
+function Subordinary(kind,tincture)
+{
+	Node.call(this);
+	this.tincture=tincture;
+	this.kind=kind;
+}
+
+//set up inheritance
+Subordinary.prototype=Object.create(Node.prototype);
+Subordinary.prototype.constructor=Subordinary;
+
+Subordinary.prototype.getName= function (){
+	var out = "a "+subordinaries[this.kind]
+	if(this.tincture > 0)
+	{out += " "+tinctureName(this.tincture);}
+	return out;
+}
+
+function Movable(kind,tincture,number=1)
 {
 	Node.call(this);
 	this.tincture=tincture;
@@ -143,18 +162,19 @@ function Moveable(kind,tincture,number=1)
 }
 
 //set up inheritance
-Moveable.prototype=Object.create(Node.prototype);
-Moveable.prototype.constructor=Moveable;
+Movable.prototype=Object.create(Node.prototype);
+Movable.prototype.constructor=Movable;
 
-Moveable.prototype.getName= function (){
+Movable.prototype.getName= function (){
 	var out="";
 	if (this.number===1)
 	{
 		out+="a ";
+		out+=movables[this.kind];
 	}else{
 		out+=this.number.toString()+" ";
+		out+=movplurals[this.kind];
 	}
-	out+=movables[this.kind];
 	if(this.tincture > 0)
 	{out += " "+tinctureName(this.tincture);}
 	return out;
@@ -243,6 +263,10 @@ function getToken(buf)
 	//treat the word "a" like the number one
 	if(tok==="a")
 	{return new Token(1,TOK_NUM);}
+	//treat spelled-out numbers the same as numerals
+	var num=numbers.indexOf(tok);
+	if(num > -1)
+		{return new Token(num,TOK_NUM);}
 	return new Token(tok,type);
 }
 
@@ -372,17 +396,144 @@ function getDivision(str)
 
 function isOrdinary(tok)
 {
-	return (ordinaries.indexOf(tok.value) > -1)
+	if( tok === undefined )
+		{return false}
+	if( tok.type !== TOK_WORD )
+		{return false}
+	if( (ordinaries.indexOf(tok.value) > -1) )
+		{return true;}
+	if( (plurals.indexOf(tok.value) > -1) )
+		{return true;}
+	return false;
+}
+
+function ordinaryIndex(tok)
+{
+	var tmp=ordinaries.indexOf(tok.value);
+	if( tmp > -1 )
+		{return tmp;}
+	var tmp=plurals.indexOf(tok.value);
+	if( tmp > -1 )
+		{return tmp;}
+}
+
+function isMovable(tok)
+{
+	if( tok === undefined )
+		{return false}
+	if( tok.type !== TOK_WORD )
+		{return false}
+	if( (movables.indexOf(tok.value) > -1) )
+		{return true;}
+	if( (movplurals.indexOf(tok.value) > -1) )
+		{return true;}
+	return false;
+}
+
+function movableIndex(tok)
+{
+	var tmp=movables.indexOf(tok.value);
+	if( tmp > -1 )
+		{return tmp;}
+	var tmp=movplurals.indexOf(tok.value);
+	if( tmp > -1 )
+		{return tmp;}
 }
 
 function isTincture(tok)
 {
-	return (tinctures.indexOf(tok.value) > -1)
+	if( tok === undefined )
+		{return false}
+	if( tok.type !== TOK_WORD )
+		{return false}
+	return (tinctures.indexOf(tok.value) > -1);
+}
+
+function tinctureIndex(tok)
+{
+	var tmp=tinctures.indexOf(tok.value);
+	if( tmp > -1 )
+		{return tmp;}
 }
 
 function isLinking(tok)
 {
-	return (linkings.indexOf(tok.value) > -1)
+	if( tok === undefined )
+		{return false}
+	if( tok.type !== TOK_WORD )
+		{return false}
+	return (linkings.indexOf(tok.value) > -1);
+}
+
+function isNumber(tok)
+{
+	if( tok === undefined )
+		{return false}
+	if( tok.type !== TOK_NUM )
+		{return false}
+	return true;
+}
+
+function isWord(tok)
+{
+	if( tok === undefined )
+		{return false}
+	if( tok.type !== TOK_WORD )
+		{return false}
+	return true;
+}
+
+function isThisWord(tok, word)
+{
+	if( tok === undefined )
+		{return false}
+	if( tok.type !== TOK_WORD )
+		{return false}
+	if( tok.value !== word )
+		{return false}
+	return true;
+}
+
+function isPunct(tok)
+{
+	if( tok === undefined )
+		{return false}
+	if( tok.type !== TOK_PUNCT )
+		{return false}
+	return true;
+}
+
+//TODO: implement this function
+function getMovable(str)
+{
+	var num=0; //not possible, error if this does not change
+	var type; //defults to undefined
+	var tincture=0; //defaults to "specified later"
+	//var ret;
+	if( isNumber(str.peek()) ){
+		num=str.pop().value;
+		if( isMovable(str.peek()) )
+		{
+			type=movableIndex(str.pop());
+			while( isWord(str.peek()) && !isLinking(str.peek()) ){
+				var tmp=str.pop();
+				//tincture is optional, but ends the charge if it exists
+				if( isTincture(tmp) )
+				{
+					tincture=tinctureIndex(tmp);
+					break;
+				}
+			}
+			return new Movable(type, tincture, num);
+		}else{
+			str.rewind();//un-pop the number
+			console.error("Word "+str.pos.toString()+": not a movable charge");
+			return;
+		}
+	}else{
+		console.error("Word "+str.pos.toString()+": no number where one was expected");
+		return;
+	}
 }
 
 function getOrdinary(str)
@@ -390,29 +541,87 @@ function getOrdinary(str)
 	var num=0; //not possible, error if this does not change
 	var type; //defults to undefined
 	var tincture=0; //defaults to "specified later"
-	if(str.peek()!==undefined && str.peek().type===TOK_NUM)
+	var ret;
+	if( isNumber(str.peek()) )
 	{
 		num=str.pop();
-		if( str.peek().type===TOK_WORD && isOrdinary(str.peek()) )
+		if( isOrdinary(str.peek()) )
 		{
-			type=ordinaries.indexOf(str.pop().value);
-			while( str.peek()!==undefined && str.peek().type===TOK_WORD && !isLinking(str.peek()) ){
+			type=ordinaryIndex(str.pop());
+			while( isWord(str.peek()) && !isLinking(str.peek()) ){
 				var tmp=str.pop();
 				//tincture is optional, but ends the charge if it exists
 				if( isTincture(tmp) )
 				{
-					tincture=tinctures.indexOf(tmp.value);
+					tincture=tinctureIndex(tmp);
 					break;
 				}
 			}
-			return new Ordinary(type,tincture);
+			ret = new Ordinary(type,tincture);
+			//if we see a linking word
+			if( isLinking( str.peek() ) )
+			{
+				var lwrd = str.pop();
+				var crg=getMovable(str);
+				var scrg;
+				if( crg===undefined ){
+					str.rewind();//un-pop the linking word
+				}else if( isThisWord(lwrd, "between") ){
+					//check for a second charge for it to be between
+					if( isThisWord(str.peek(), "and") ){
+						str.pop();
+						var scrg=getMovable(str);
+						if( scrg===undefined )
+						{
+							str.rewind(); //un-pop conjunction
+						}
+					}
+					
+					//blank spot for charges on the ordinary itself
+					ret.append( new Node() );
+					
+					//if the ordinary is amidst one group of charges, split the group in half as  evenly as possible
+					if(scrg===undefined){
+						var hlf=Math.floor(crg.number/2);
+						var gtr=crg.number-hlf;
+						//place larger half above/dexter of the ordinary, lesser half below/sinister
+						ret.append( new Movable(crg.kind, crg.tincture, gtr) );
+						ret.append( new Movable(crg.kind, crg.tincture, hlf) );
+					}else{ //otherwise just place it beteeen the two groups of charges
+						ret.append( crg );
+						ret.append( scrg );
+					}
+
+				}else{
+					str.rewind(); //un-pop linking word
+					console.error("Word "+str.pos.toString()+": preposition not implemented");
+				}
+				
+			}
+			return ret;
 		}else{
 			console.error("Word "+str.pos.toString()+": '" +str.peek().value+"' is not an ordinary");
 			str.rewind(); //un-pop the number
 			return;
 		}
+	}else if( isThisWord(str.peek(), "on") ){
+		str.pop();
+		ret=getOrdinary(str);
+		if( ret===undefined ){
+			str.rewind();//un-pop the "on"
+			return;
+		}
+		//charge on the ordinary itself goes in first subnode always
+		var mov=getMovable(str);
+		if(mov!==undefined){
+			ret.subnode[0]=mov;
+			return ret;
+		}else{
+			console.error("Word "+str.pos.toString()+": no movable charge where one was expected");
+		}
 	}else{
 		console.error("Word "+str.pos.toString()+": no number where one was expected");
+		return;
 	}
 }
 
@@ -422,7 +631,7 @@ function getFieldOrDivision(str)
 	var tmp=getField(str);
 	if(tmp!==undefined)
 	{
-		if(str.peek()!==undefined && str.peek().type===TOK_PUNCT)
+		if( isPunct(str.peek()) )
 		{str.pop();}else{
 			console.error("Word "+str.pos.toString()+": no comma where one was expected");
 		}
@@ -435,9 +644,7 @@ function getFieldOrDivision(str)
 		if(subf!==undefined){
 			tmp.append(subf);
 			//if we have a linking word, look for a second tincture
-			if( str.peek()!==undefined
-			&& str.peek().type===TOK_WORD
-			&& isLinking(str.peek()) ){
+			if( isLinking(str.peek()) ){
 				str.pop();
 				//if the previous sub-blazon was only a tincture, we only get a tincture. Otherwise an entire sub-blazon.
 				if(subf.subnode.length > 0){
@@ -496,10 +703,11 @@ tokstr=tokStrFromStr("Azure, a bend Or");
 tokstr2=tokStrFromStr("per fess azure and ermine");
 tokstr3=tokStrFromStr("tierced per fess Tenny, Argent and Azure");
 
-root=new Division(0);
-root.append(new Field(1))
-root.subnode[0].append(new Moveable(1,3));
-root.append(new Field(3))
-root.subnode[1].append(new Moveable(0,2,3));
+root=new Field(14);
+root.append(new Ordinary(1,4));
+root.subnode[0].append(new Node());
+root.subnode[0].subnode[0].append(new NamedNode("the words \"Syntax Test\" Argent"));
+root.subnode[0].subnode[0].append(new Subordinary(0,2));
+root.subnode[0].subnode[0].subnode[1].append(new NamedNode("a console Sable"));
 //this works
 document.getElementById("displayPara").innerHTML=root.display();

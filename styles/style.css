@@ -1,12 +1,19 @@
 html {
   font-size: 10px;
   font-family: 'Open Sans', sans-serif;
+  background-image: url("../images/ermine.png");
+  background-color:  #FFFFFF;
+  background-size: 50px;
+  height: 100%;
 }
 
-
-h1 {
-  font-size: 60px;
-  text-align: center;
+body {
+  width: 600px;
+  height: 100%;
+  margin: 0 auto;
+  background-color: #0000FF;
+  padding: 0 20px 20px 20px;
+  /*border: 5px solid black;*/
 }
 
 p, li {
@@ -18,29 +25,19 @@ p, li {
 .console
 {
 	background-color: #000000;
-	border: 6px solid #666666;
+	border: 6px solid #CFB53B;
 	line-height: 1;
 	font-family: monospace;
 	color: #00FF00
 }
 
-html {
-  background-color: #00539F;
-}
-
-body {
-  width: 600px;
-  margin: 0 auto;
-  background-color: #FF9500;
-  padding: 0 20px 20px 20px;
-  border: 5px solid black;
-}
-
 h1 {
   margin: 0;
   padding: 20px 0;  
-  color: #00539F;
+  color: #FFFFFF;
   text-shadow: 3px 3px 1px black;
+  font-size: 60px;
+  text-align: center;
 }
 
 img {
