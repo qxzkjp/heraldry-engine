@@ -1,3 +1,10 @@
+/*******************************************************
+**PROTOTYPES (NODES)                                  **
+**prototypes for named and unnamed nodes in a simple  **
+**non-binary tree structure. includes naming and      **
+**display functions.                                  **
+********************************************************/
+
 function Node()
 {
 	this.subnode= [];
@@ -52,6 +59,10 @@ NamedNode.prototype.getName= function (){
 	return this.name;
 }
 
+/********************************************************
+** TOKEN LISTS                                         **
+** Lists of all the possible tokens of different types **
+*********************************************************/
 divisions = ["pale", "fess", "bend", "bend sinister", "chevron", "saltire", "", "", "", "", "", "", "",""];
 plurals = ["paly", "barry", "bendy", "bendy sinister", "chevronny", "gyronny", "quarterly", "chequy", "lozengy", "barry bendy", "paly bendy", "pily", "pily bendy", "pily bendy sinister"]
 //"undefined" is not a real tincture (duh), but is used as a placeholder. It must be in position 0.
@@ -65,8 +76,15 @@ attitudes = ["statant", "rampant", "couchant", "passant", "salient", "sejant", "
 facings = ["guardant", "reguardant"];
 conjunctions = ["and"];
 prepositions = ["on", "between", "above", "below", "within", "overall"];
-linkings=conjunctions+prepositions; 
 numbers=["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
+
+
+/*******************************************************
+**PROTOTYPES (CHARGES ETC.)                           **
+**prototypes for all of the objects used in heraldry: **
+**charges (ordinary and moveable), divisions, fields  **
+**all inheriting from the Node prototype              **
+********************************************************/
 
 function Division(type,number=2)
 {
@@ -180,14 +198,16 @@ Movable.prototype.getName= function (){
 	return out;
 }
 
-/*dynamic SVG?
-var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-svg.setAttribute('style', 'border: 1px solid black');
-svg.setAttribute('width', '600');
-svg.setAttribute('height', '250');
-svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
-document.body.appendChild(svg);
-*/
+/**********************************
+**TOKEN AND BUFFER FUNCTIONS     **
+**Simple string buffer and token **
+**generation therefrom           **
+***********************************/
+
+//mainly for informational purposes
+TOK_WORD=0;
+TOK_NUM=1;
+TOK_PUNCT=2;
 
 function Buffer(buf="")
 {
@@ -210,11 +230,6 @@ Buffer.prototype.peek=function()
 		return this.buf[this.pos]
 	}
 }
-
-//mainly for informational purposes
-TOK_WORD=0;
-TOK_NUM=1;
-TOK_PUNCT=2;
 
 function Token(value, type)
 {
@@ -270,6 +285,11 @@ function getToken(buf)
 	return new Token(tok,type);
 }
 
+/**************************************
+**TOKEN STREAM FUNCTIONS             **
+**everything to do with token streams**
+***************************************/
+
 function TokenStream(buf)
 {
 	this.buf=buf;
@@ -310,7 +330,7 @@ TokenStream.prototype.rewind=function(i=1)
 	this.pos-=i;
 }
 
-TokenStream.prototype.reset=function(i=1)
+TokenStream.prototype.reset=function()
 {
 	this.pos=0;
 }
@@ -325,73 +345,45 @@ TokenStream.prototype.loadPos=function(i)
 	this.pos=i;
 }
 
-//either return a field, or leave the stream semantically unchanged
-function getField(str)
+/*******************************
+**IS-FUNCTIONS                **
+**check if a token matches a  **
+**particular semantic category**
+********************************/
+
+function isSingleDivision(tok)
 {
-	var nxt=str.peek();
-	//if the next word is a tincture, we have a field
-	if(nxt===undefined)
-	{
-		console.error("Word "+str.pos.toString()+": unexpected end of blazon")
-	}else if(nxt.type === TOK_WORD && tinctures.indexOf(nxt.value) > -1){
-		str.pop();
-		return new Field(tinctures.indexOf(nxt.value));
-	}
+	if( tok === undefined )
+		{return false}
+	if( tok.type !== TOK_WORD )
+		{return false}
+	if( (divisions.indexOf(tok.value) > -1) )
+		{return true;}
+	return false;
 }
 
-//either return a division, or leave the stream semantically unchanged
-function getDivision(str)
+function isPluralDivision(tok)
 {
-	var nxt=str.peek();
-	var number=0;
-	var type=TOK_WORD;
-	if(nxt===undefined)
-	{
-		console.error("Word "+str.pos.toString()+": unexpected end of blazon")
-	}else if(nxt.type === TOK_WORD && nxt.value==="per"){
-		str.pop();
-		if(str.peek()!==undefined && str.peek().type === TOK_WORD && divisions.indexOf(str.peek().value) > -1)
-		{
-			var tmp=str.pop();
-			type=divisions.indexOf(tmp.value);
-			//if the division is "per saltire" we have four segments, otherwise two (per pale, etc)
-			if(type===divisions.indexOf("saltire"))
-			{
-				number=4;
-			}else{
-				number=2;
-			}
-			return new Division(type,number);
-		}else{
-			console.error("Word "+str.pos.toString()+": no such division")
-			str.rewind()//un-pop the "per" if we haven't found a division
-		}
-	}else if(nxt.type === TOK_WORD && nxt.value==="tierced"){
-		str.pop();
-		var tmp=getDivision(str);
-		if(tmp !== undefined)
-		{
-			tmp.number=3;
-			return tmp;
-		}else{
-			console.error("Word "+str.pos.toString()+": no such division")
-			str.rewind(); //un-pop "tierced" if no division
-		}
-	}else if(str.peek()!==undefined && str.peek().type === TOK_WORD && plurals.indexOf(str.peek().value) > -1){
-		type=plurals.indexOf(str.pop().value);
-		if(str.peek()!==undefined && str.peek().type === TOK_WORD && str.peek === "of")//if we have "of X"
-		{
-			str.pop();//take "of" off the stack
-			if(str.peek()!==undefined && str.peek().type===TOK_NUM)
-			{
-				number=str.pop().value; //we don't pop unless we see a number
-			}else{
-				console.error("Word "+str.pos.toString()+": not a number")
-				//we return a division anyway if there is no number, disregarding the "of"
-			}
-		}
-		return new Division(type,number);
-	}
+	if( tok === undefined )
+		{return false}
+	if( tok.type !== TOK_WORD )
+		{return false}
+	if( (plurals.indexOf(tok.value) > -1) )
+		{return true;}
+	return false;
+}
+
+function isDivision(tok)
+{
+	if( tok === undefined )
+		{return false}
+	if( tok.type !== TOK_WORD )
+		{return false}
+	if( (divisions.indexOf(tok.value) > -1) )
+		{return true;}
+	if( (plurals.indexOf(tok.value) > -1) )
+		{return true;}
+	return false;
 }
 
 function isOrdinary(tok)
@@ -456,13 +448,22 @@ function tinctureIndex(tok)
 		{return tmp;}
 }
 
+function tinctureName(i){
+	return titleCase(tinctures[i]);
+}
+
+//a linking word is a conjunction or preposition
 function isLinking(tok)
 {
 	if( tok === undefined )
 		{return false}
 	if( tok.type !== TOK_WORD )
 		{return false}
-	return (linkings.indexOf(tok.value) > -1);
+	if ( conjunctions.indexOf(tok.value) > -1 )
+		{return true}
+	if ( prepositions.indexOf(tok.value) > -1 )
+		{return true}
+	return false;
 }
 
 function isNumber(tok)
@@ -503,7 +504,88 @@ function isPunct(tok)
 	return true;
 }
 
-//TODO: implement this function
+/**********************************************************
+**PARSING FUNCTIONS                                      **
+**functions to attempt to read a semantic construct      **
+**of a given type (movable, ordinary, etc.) from a       **
+**token string. On success they return a node            **
+**representing the parsed object and move the token      **
+**stream forward to after the object. On failure,        **
+**they return undefined and leave the string unchanged   **
+**semantically (internal state of the string may change) **
+***********************************************************/
+
+//either return a field, or leave the stream semantically unchanged
+function getField(str)
+{
+	var nxt=str.peek();
+	//if the next word is a tincture, we have a field
+	if(nxt===undefined)
+	{
+		console.error("Word "+str.pos.toString()+": unexpected end of blazon")
+	}else if(nxt.type === TOK_WORD && tinctures.indexOf(nxt.value) > -1){
+		str.pop();
+		return new Field(tinctures.indexOf(nxt.value));
+	}
+}
+
+//either return a division, or leave the stream semantically unchanged
+function getDivision(str)
+{
+	var nxt=str.peek();
+	var number=0;
+	var type=TOK_WORD;
+	var pos=str.savePos();
+	if(nxt===undefined)
+	{
+		console.error("Word "+str.pos.toString()+": unexpected end of blazon")
+	}else if( isThisWord(nxt, "per") ){
+		str.pop();
+		if( isSingleDivision(str.peek()) )
+		{
+			var tmp=str.pop();
+			type=divisions.indexOf(tmp.value);
+			//if the division is "per saltire" we have four segments, otherwise two (per pale, etc)
+			if(type===divisions.indexOf("saltire"))
+			{
+				number=4;
+			}else{
+				number=2;
+			}
+			return new Division(type,number);
+		}else{
+			console.error("Word "+str.pos.toString()+": no such division")
+			str.rewind()//un-pop the "per" if we haven't found a division
+		}
+	}else if( isThisWord(nxt, "tierced") ){
+		str.pop();
+		var tmp=getDivision(str);
+		if(tmp !== undefined)
+		{
+			tmp.number=3;
+			return tmp;
+		}else{
+			console.error("Word "+str.pos.toString()+": no such division")
+			str.rewind(); //un-pop "tierced" if no division
+		}
+	}else if( isPluralDivision(str.peek()) ){
+		type=plurals.indexOf(str.pop().value);
+		if( isThisWord(str.peek(), "of") )//if we have "of X"
+		{
+			str.pop();//take "of" off the stack
+			if( isNumber(str.peek()) )
+			{
+				number=str.pop().value; //we don't pop unless we see a number
+			}else{
+				console.error("Word "+str.pos.toString()+": not a number")
+				//we return a division anyway if there is no number, disregarding the "of"
+				//default number is 0, which means "an arbitrary amount"
+			}
+		}
+		return new Division(type,number);
+	}
+}
+
 function getMovable(str)
 {
 	var num=0; //not possible, error if this does not change
@@ -526,14 +608,16 @@ function getMovable(str)
 			}
 			return new Movable(type, tincture, num);
 		}else{
+			if ( str.peek() === undefined){
+				console.error("Word "+str.pos.toString()+": unexpected end of blazon");
+			}
 			str.rewind();//un-pop the number
-			console.error("Word "+str.pos.toString()+": not a movable charge");
 			return;
 		}
-	}else{
-		console.error("Word "+str.pos.toString()+": no number where one was expected");
-		return;
+	}else if ( str.peek() === undefined){
+		console.error("Word "+str.pos.toString()+": unexpected end of blazon");
 	}
+	return;
 }
 
 function getOrdinary(str)
@@ -600,7 +684,7 @@ function getOrdinary(str)
 			}
 			return ret;
 		}else{
-			console.error("Word "+str.pos.toString()+": '" +str.peek().value+"' is not an ordinary");
+			//console.error("Word "+str.pos.toString()+": '" +str.peek().value+"' is not an ordinary");
 			str.rewind(); //un-pop the number
 			return;
 		}
@@ -620,20 +704,22 @@ function getOrdinary(str)
 			console.error("Word "+str.pos.toString()+": no movable charge where one was expected");
 		}
 	}else{
-		console.error("Word "+str.pos.toString()+": no number where one was expected");
+		//console.error("Word "+str.pos.toString()+": no number where one was expected");
 		return;
 	}
 }
 
 //takes a token stream
-function getFieldOrDivision(str)
+function getFieldOrDivision(str, bare=false)
 {
+	var pos=str.savePos();
+	
 	var tmp=getField(str);
 	if(tmp!==undefined)
 	{
 		if( isPunct(str.peek()) )
 		{str.pop();}else{
-			console.error("Word "+str.pos.toString()+": no comma where one was expected");
+			//console.error("Word "+str.pos.toString()+": no comma where one was expected");
 		}
 		return tmp;
 	}
@@ -642,11 +728,17 @@ function getFieldOrDivision(str)
 	{
 		var subf=getEscutcheon(str);//get first tincture/sub-blazon
 		if(subf!==undefined){
+			//if we're parsing a bare division and find a sub-escutcheon, abort
+			if(bare===true && subf.subnode.length!==0){
+				str.loadPos(pos);
+				return;
+			}
 			tmp.append(subf);
 			//if we have a linking word, look for a second tincture
 			if( isLinking(str.peek()) ){
 				str.pop();
 				//if the previous sub-blazon was only a tincture, we only get a tincture. Otherwise an entire sub-blazon.
+				//note that if bare===true then the previous sub-blazon was a bare tincture or we'd have aborted
 				if(subf.subnode.length > 0){
 					subf=getEscutcheon(str);
 				}else{
@@ -655,10 +747,19 @@ function getFieldOrDivision(str)
 				if(subf!==undefined){
 					tmp.append(subf);
 				}else{
-					str.rewind(); //un-pop the linking word
-					tmp.append( new Field(0) ); //append a dummy field so the division has two fields
+					//if we can't parse two fields, reset the token stream and abort
+					str.loadPos(pos);
+					return;
 				}
+			}else{
+				//if there is no linking word, reset the token stream and abort
+				str.loadPos(pos);
+				return;
 			}
+		}else{
+			//if there is no valid tincture, reset the token stream and abort
+			str.loadPos(pos);
+			return;
 		}
 		return tmp;
 	}
@@ -672,6 +773,18 @@ function getEscutcheon(str){
 	}
 	return tmp;
 }
+
+/*****************
+**MISC FUNCTIONS**
+******************/
+
+function titleCase(str){
+	return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/******************
+**DEBUG FUNCTIONS**
+*******************/
 
 function tokStrFromStr(str)
 {
@@ -690,18 +803,6 @@ function parseStringAndDisplay(str)
 	var root=getEscutcheon(tokstr);
 	document.getElementById("displayPara").innerHTML=root.display();
 }
-
-function titleCase(str){
-	return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function tinctureName(i){
-	return titleCase(tinctures[i]);
-}
-
-tokstr=tokStrFromStr("Azure, a bend Or");
-tokstr2=tokStrFromStr("per fess azure and ermine");
-tokstr3=tokStrFromStr("tierced per fess Tenny, Argent and Azure");
 
 root=new Field(14);
 root.append(new Ordinary(1,4));
