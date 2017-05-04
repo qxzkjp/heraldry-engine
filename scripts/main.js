@@ -68,16 +68,68 @@ plurals = ["paly", "barry", "bendy", "bendy sinister", "chevronny", "gyronny", "
 //"undefined" is not a real tincture (duh), but is used as a placeholder. It must be in position 0.
 tinctures = ["undefined", "argent", "or", "gules", "azure", "vert", "purpure", "sable", "tenny", "sanguine", "vair", "countervair", "potent", "counterpotent", "ermine", "ermines", "erminois", "pean"];
 ordinaries = ["chief", "pale", "fess", "bend", "bend sinister", "chevron", "saltire", "pall", "cross", "pile"];
+ordplurals = ["chiefs", "pales", "fesses", "bends", "bends sinister", "chevrons", "saltires", "palls", "crosses", "piles"];
 subordinaries = ["bordure", "inescutcheon", "orle", "tressure", "canton", "flanches", "billet", "lozenge", "gyron", "fret"];
-movables = ["mullet", "phrygian cap", "fleur-de-lis", "lozenge", "pheon"];
-movplurals = ["mullets", "phrygian caps", "fleurs-de-lis", "lozenges", "pheons"];
+subplurals = ["bordures", "inescutcheons", "orles", "tressures", "cantons", "flanches", "billets", "lozenges", "gyrons", "frets"];
+
+//chevron is immovable, while "chevrons" is moveable: stange hack, but it might work
+immovables = ["chief", "pale", "fess", "bend", "bend sinister", "chevron", "saltire", "pall", "cross", "pile", "bordure", "orle", "tressure", "canton", "flanches", "gyron", "fret"];
+implurals = ["", "pallets", "bars", "bendlets", "bendlets sinister", "chevronels", "", "", "", "pile", "", "", "", "", "", "", ""];
+
+movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge"];
+movplurals = ["mullets", "phrygian caps", "fleurs-de-lis", "pheons", "chevrons", "inescutcheons", "billets", "lozenges"];
+
 beasts = ["lion", "eagle"];
 attitudes = ["statant", "rampant", "couchant", "passant", "salient", "sejant", "cowed"];
 facings = ["guardant", "reguardant"];
+
 conjunctions = ["and"];
-prepositions = ["on", "between", "above", "below", "within", "overall"];
+prepositions = ["on", "in", "between", "above", "below", "within", "overall"];
 numbers=["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
 
+orientations=["palewise", "fesswise", "bendwise"]
+orientmods=["sinister", "reversed", "inverted"]
+arrangements=["addorsed", "confronte", "combatant", "respectant", "saltire", "pale", "fess", "bend"]
+
+//the cardinal directions, going anticlockwise in 45deg jumps
+var ORIENT_PALE=0;
+var ORIENT_BEND=1;
+var ORIENT_FESS=2;
+var ORIENT_SINISTER_INV=3;
+var ORIENT_PALE_INV_REV=4;
+var ORIENT_BEND_INV_REV=5;
+var ORIENT_FESS_INV_REV=6;
+var ORIENT_SINISTER_REV=7;
+
+//the cardinal directions for a mirrrored charge
+var ORIENT_PALE_REV=0;
+var ORIENT_BEND_REV=1;
+var ORIENT_FESS_INV=2;
+var ORIENT_SINISTER_INV_REV=3;
+var ORIENT_PALE_INV=4;
+var ORIENT_BEND_INV=5;
+var ORIENT_FESS_REV=6;
+var ORIENT_SINISTER=7;
+
+//definitions of whether an orientation is mirrored or not
+
+var PALE_REV_MIRRORED=true;
+var BEND_REV_MIRRORED=true;
+var FESS_INV_MIRRORED=true;
+var SINISTER_INV_REV_MIRRORED=true;
+var PALE_INV_MIRRORED=true;
+var BEND_INV_MIRRORED=true;
+var FESS_REV_MIRRORED=true;
+var SINISTER_MIRRORED=true;
+
+var PALE_MIRRORED=true;
+var BEND_MIRRORED=true;
+var FESS_MIRRORED=true;
+var SINISTER_INV_MIRRORED=true;
+var PALE_INV_REV_MIRRORED=true;
+var BEND_INV_REV_MIRRORED=true;
+var FESS_INV_REV_MIRRORED=true;
+var SINISTER_REV_MIRRORED=true;
 
 /*******************************************************
 **PROTOTYPES (CHARGES ETC.)                           **
@@ -150,6 +202,47 @@ Ordinary.prototype.getName= function (){
 	var out = "a "+ordinaries[this.kind]
 	if(this.tincture > 0)
 	{out += " "+tinctureName(this.tincture);}
+	return out;
+}
+
+TYPE_IMMOVABLE = 0;
+TYPE_MOVABLE = 1;
+
+function Charge(type, index, tincture, number = 1)
+{
+	Node.call(this);
+	this.type = type;
+	this.index = index;
+	this.number = number;
+	this.append( tincture );
+}
+
+//set up inheritance
+Charge.prototype=Object.create(Node.prototype);
+Charge.prototype.constructor=Charge;
+
+Charge.prototype.getName= function (){
+	var out="";
+	var list;
+	var plist;
+	if(this.type===TYPE_IMMOVABLE){
+		list=immovables;
+		plist=implurals;
+	}else if(this.type===TYPE_MOVABLE){
+		list=movables;
+		plist=movplurals;
+	}else{
+		console.error("Display error: unknown charge category");
+		return;
+	}
+	if (this.number===1)
+	{
+		out+="a ";
+		out+=list[this.index];
+	}else{
+		out+=this.number.toString()+" ";
+		out+=plist[this.index];
+	}
 	return out;
 }
 
@@ -353,9 +446,7 @@ TokenStream.prototype.loadPos=function(i)
 
 function isSingleDivision(tok)
 {
-	if( tok === undefined )
-		{return false}
-	if( tok.type !== TOK_WORD )
+	if( !isWord(tok) )
 		{return false}
 	if( (divisions.indexOf(tok.value) > -1) )
 		{return true;}
@@ -364,9 +455,7 @@ function isSingleDivision(tok)
 
 function isPluralDivision(tok)
 {
-	if( tok === undefined )
-		{return false}
-	if( tok.type !== TOK_WORD )
+	if( !isWord(tok) )
 		{return false}
 	if( (plurals.indexOf(tok.value) > -1) )
 		{return true;}
@@ -375,9 +464,7 @@ function isPluralDivision(tok)
 
 function isDivision(tok)
 {
-	if( tok === undefined )
-		{return false}
-	if( tok.type !== TOK_WORD )
+	if( !isWord(tok) )
 		{return false}
 	if( (divisions.indexOf(tok.value) > -1) )
 		{return true;}
@@ -388,9 +475,7 @@ function isDivision(tok)
 
 function isOrdinary(tok)
 {
-	if( tok === undefined )
-		{return false}
-	if( tok.type !== TOK_WORD )
+	if( !isWord(tok) )
 		{return false}
 	if( (ordinaries.indexOf(tok.value) > -1) )
 		{return true;}
@@ -411,9 +496,7 @@ function ordinaryIndex(tok)
 
 function isMovable(tok)
 {
-	if( tok === undefined )
-		{return false}
-	if( tok.type !== TOK_WORD )
+	if( !isWord(tok) )
 		{return false}
 	if( (movables.indexOf(tok.value) > -1) )
 		{return true;}
@@ -430,6 +513,59 @@ function movableIndex(tok)
 	var tmp=movplurals.indexOf(tok.value);
 	if( tmp > -1 )
 		{return tmp;}
+}
+
+function isCharge(tok)
+{
+	if( !isWord(tok) )
+		{return false}
+	if( (immovables.indexOf(tok.value) > -1) )
+		{return true;}
+	if( (implurals.indexOf(tok.value) > -1) )
+		{return true;}
+	if( (movables.indexOf(tok.value) > -1) )
+		{return true;}
+	if( (movplurals.indexOf(tok.value) > -1) )
+		{return true;}
+	return false;
+}
+
+function isImmovable(tok)
+{
+	if( !isWord(tok) )
+		{return false}
+	if( (immovables.indexOf(tok.value) > -1) )
+		{return true;}
+	if( (implurals.indexOf(tok.value) > -1) )
+		{return true;}
+	return false;
+}
+
+function immovableIndex(tok)
+{
+	var tmp=immovables.indexOf(tok.value);
+	if( tmp > -1 )
+		{return tmp;}
+	var tmp=implurals.indexOf(tok.value);
+	if( tmp > -1 )
+		{return tmp;}
+}
+
+function isCharge(tok)
+{
+	if( tok === undefined )
+		{return false}
+	if( tok.type !== TOK_WORD )
+		{return false}
+	if( (ordinaries.indexOf(tok.value) > -1) )
+		{return true;}
+	if( (subordinaries.indexOf(tok.value) > -1) )
+		{return true;}
+	if( (movables.indexOf(tok.value) > -1) )
+		{return true;}
+	if( (movplurals.indexOf(tok.value) > -1) )
+		{return true;}
+	return false;
 }
 
 function isTincture(tok)
@@ -520,12 +656,11 @@ function getField(str)
 {
 	var nxt=str.peek();
 	//if the next word is a tincture, we have a field
-	if(nxt===undefined)
-	{
-		console.error("Word "+str.pos.toString()+": unexpected end of blazon")
-	}else if(nxt.type === TOK_WORD && tinctures.indexOf(nxt.value) > -1){
+	if( isTincture(nxt) ){
 		str.pop();
-		return new Field(tinctures.indexOf(nxt.value));
+		return new Field( tinctureIndex(nxt) );
+	}else if(nxt===undefined){
+		console.error("Word "+str.pos.toString()+": unexpected end of blazon")
 	}
 }
 
@@ -586,65 +721,48 @@ function getDivision(str)
 	}
 }
 
-function getMovable(str)
+function getCharge(str)
 {
-	var num=0; //not possible, error if this does not change
+	var number=0; //not possible, error if this does not change
 	var type; //defults to undefined
-	var tincture=0; //defaults to "specified later"
-	//var ret;
-	if( isNumber(str.peek()) ){
-		num=str.pop().value;
-		if( isMovable(str.peek()) )
-		{
-			type=movableIndex(str.pop());
-			while( isWord(str.peek()) && !isLinking(str.peek()) ){
-				var tmp=str.pop();
-				//tincture is optional, but ends the charge if it exists
-				if( isTincture(tmp) )
-				{
-					tincture=tinctureIndex(tmp);
-					break;
-				}
-			}
-			return new Movable(type, tincture, num);
-		}else{
-			if ( str.peek() === undefined){
-				console.error("Word "+str.pos.toString()+": unexpected end of blazon");
-			}
-			str.rewind();//un-pop the number
-			return;
-		}
-	}else if ( str.peek() === undefined){
-		console.error("Word "+str.pos.toString()+": unexpected end of blazon");
-	}
-	return;
-}
-
-function getOrdinary(str)
-{
-	var num=0; //not possible, error if this does not change
-	var type; //defults to undefined
-	var tincture=0; //defaults to "specified later"
+	var index;
+	var tincture=new Field(0); //defaults to "specified later"
 	var ret;
-	if( isNumber(str.peek()) )
-	{
-		num=str.pop();
-		if( isOrdinary(str.peek()) )
-		{
-			type=ordinaryIndex(str.pop());
-			while( isWord(str.peek()) && !isLinking(str.peek()) ){
-				var tmp=str.pop();
-				//tincture is optional, but ends the charge if it exists
-				if( isTincture(tmp) )
+	var pos=str.savePos(); //save our place in the token stream so we can exit without changing anything
+	if( isNumber(str.peek()) ){
+		number=str.pop().value;
+		if( isCharge(str.peek()) ){
+			var tmp=str.pop();
+			if( isImmovable(tmp) ){
+				type=TYPE_IMMOVABLE;
+				index=immovableIndex(tmp);
+			}else if ( isMovable(tmp) ){
+				type=TYPE_MOVABLE;
+				index=movableIndex(tmp);
+			}else{
+				console.error("Parsing error: '"+tmp.value+"' is a charge but niether movable nor immovable");
+				str.loadPos(pos);
+				return;
+			}
+			while( isWord(str.peek()) ){
+				//if we see a linking word, end the charge
+				if( isLinking(str.peek()) ){
+					break;
+				}
+				//checmk for a colouring
+				var tmp=getFieldOrDivision(str,true);
+				//colouring is optional, but ends the charge if it exists
+				if( tmp!==undefined )
 				{
-					tincture=tinctureIndex(tmp);
+					tincture=tmp;
 					break;
 				}
 			}
-			ret = new Ordinary(type,tincture);
+			ret = new Charge(type, index, tincture, number);
 			//if we see a linking word
 			if( isLinking( str.peek() ) )
 			{
+				var linkpos=str.savePos();
 				var lwrd = str.pop();
 				var crg=getMovable(str);
 				var scrg;
@@ -657,27 +775,26 @@ function getOrdinary(str)
 						var scrg=getMovable(str);
 						if( scrg===undefined )
 						{
-							str.rewind(); //un-pop conjunction
+							str.pop();//un-pop the conjunction
 						}
 					}
-					
-					//blank spot for charges on the ordinary itself
-					ret.append( new Node() );
 					
 					//if the ordinary is amidst one group of charges, split the group in half as  evenly as possible
 					if(scrg===undefined){
 						var hlf=Math.floor(crg.number/2);
 						var gtr=crg.number-hlf;
 						//place larger half above/dexter of the ordinary, lesser half below/sinister
-						ret.append( new Movable(crg.kind, crg.tincture, gtr) );
-						ret.append( new Movable(crg.kind, crg.tincture, hlf) );
+						ret.append( new Charge(TYPE_MOVABLE, crg.index, crg.subnode[0], gtr) );
+						ret.append( new Charge(TYPE_MOVABLE, crg.index, crg.subnode[0], hlf) );
 					}else{ //otherwise just place it beteeen the two groups of charges
 						ret.append( crg );
 						ret.append( scrg );
 					}
 
+				}else if( isThisWord(lwrd, "and") ){
+					str.loadPos(linkpos); //rewind to the word "and", deal with second charge later
 				}else{
-					str.rewind(); //un-pop linking word
+					str.loadPos(linkpos); //rewind to linking word
 					console.error("Word "+str.pos.toString()+": preposition not implemented");
 				}
 				
@@ -690,15 +807,15 @@ function getOrdinary(str)
 		}
 	}else if( isThisWord(str.peek(), "on") ){
 		str.pop();
-		ret=getOrdinary(str);
+		ret=getCharge(str);
 		if( ret===undefined ){
 			str.rewind();//un-pop the "on"
 			return;
 		}
-		//charge on the ordinary itself goes in first subnode always
+		//charge on the ordinary itself becomes a subnode of its tincture
 		var mov=getMovable(str);
 		if(mov!==undefined){
-			ret.subnode[0]=mov;
+			ret.subnode[0].append(mov);
 			return ret;
 		}else{
 			console.error("Word "+str.pos.toString()+": no movable charge where one was expected");
@@ -707,6 +824,28 @@ function getOrdinary(str)
 		//console.error("Word "+str.pos.toString()+": no number where one was expected");
 		return;
 	}
+}
+
+function getMovable(str)
+{
+	pos=str.savePos();
+	crg=getCharge(str);
+	if( crg===undefined || crg.type!==TYPE_MOVABLE ){
+		str.loadPos(pos);
+		return;
+	}
+	return crg;
+}
+
+function getImmovable(str)
+{
+	pos=str.savePos();
+	crg=getCharge(str);
+	if( crg===undefined || crg.type!==TYPE_IMMOVABLE ){
+		str.loadPos(pos);
+		return;
+	}
+	return crg;
 }
 
 //takes a token stream
@@ -767,7 +906,7 @@ function getFieldOrDivision(str, bare=false)
 
 function getEscutcheon(str){
 	var tmp=getFieldOrDivision(str);
-	var crg=getOrdinary(str);
+	var crg=getCharge(str);
 	if(crg!==undefined){
 		tmp.append(crg);
 	}
@@ -801,6 +940,10 @@ function parseStringAndDisplay(str)
 {
 	var tokstr=tokStrFromStr(str);
 	var root=getEscutcheon(tokstr);
+	document.getElementById("displayPara").innerHTML=root.display();
+}
+
+function displayTree(root){
 	document.getElementById("displayPara").innerHTML=root.display();
 }
 
