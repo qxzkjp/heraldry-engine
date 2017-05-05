@@ -59,25 +59,95 @@ NamedNode.prototype.getName= function (){
 	return this.name;
 }
 
+/*********************************************************************
+**MAP FUNCTIONS                                                     **
+**functions for setting up, accessing and modifying token tree-maps **
+**to look up a token called "abc xyz" you would call:               **
+**map.get("abc").get("xyz").get("")                                 **
+**********************************************************************/
+
+function addToMap(map, name, value)
+{
+	var wrds=name.split(" ");
+	var tmp=map;
+	for (var j=0; j<wrds.length; ++j){
+		if(tmp.get(wrds[j]) === undefined){
+			tmp.set(wrds[j], new Map);
+		}
+		tmp=tmp.get(wrds[j]);
+	}
+	tmp.set("", value);
+}
+
+function getFromMap(map, name)
+{
+	var wrds=name.split(" ");
+	var tmp=map;
+	var ret;
+	for (var j=0; j<wrds.length; ++j){
+		nxt=tmp.get(wrds[j]);
+		if(nxt!==undefined){
+			tmp=tmp.get(wrds[j]);
+		}else{
+			return;
+		}
+	}
+	return tmp.get("");
+}
+
+function setupMap(arr){
+	var ret=new Map();
+	for (var i=0; i<arr.length; ++i){
+		if(arr[i]!==""){
+			addToMap(ret, arr[i], i);
+		}
+	}
+	return ret;
+}
+
+function appendMap(mapbase, mapapp, type, flag)
+{
+	for( var [key, value] of mapapp )
+	{
+		if(typeof value === "number"){
+			if(mapbase.get(key)===undefined){
+				mapbase.set(key, []);
+			}
+			if( type!==undefined && flag!==undefined){
+				mapbase.get(key)[type]=[value, flag];
+			}else{
+				mapbase.get(key)=value;
+			}
+		}else{
+			if(mapbase.get(key)===undefined){
+				mapbase.set(key, new Map);
+			}
+			appendMap(mapbase.get(key), value, type, flag);
+		}
+	}
+}
+
+function addSynonym(map, name, syn){
+	var value = getFromMap(map, name);
+	addToMap(map, syn, value);
+}
+
 /********************************************************
 ** TOKEN LISTS                                         **
 ** Lists of all the possible tokens of different types **
 *********************************************************/
-divisions = ["pale", "fess", "bend", "bend sinister", "chevron", "saltire", "", "", "", "", "", "", "",""];
+divisions = ["per pale", "per fess", "per bend", "per bend sinister", "per chevron", "per saltire", "", "", "", "", "", "", "",""];
 plurals = ["paly", "barry", "bendy", "bendy sinister", "chevronny", "gyronny", "quarterly", "chequy", "lozengy", "barry bendy", "paly bendy", "pily", "pily bendy", "pily bendy sinister"]
+
 //"undefined" is not a real tincture (duh), but is used as a placeholder. It must be in position 0.
 tinctures = ["undefined", "argent", "or", "gules", "azure", "vert", "purpure", "sable", "tenny", "sanguine", "vair", "countervair", "potent", "counterpotent", "ermine", "ermines", "erminois", "pean"];
-ordinaries = ["chief", "pale", "fess", "bend", "bend sinister", "chevron", "saltire", "pall", "cross", "pile"];
-ordplurals = ["chiefs", "pales", "fesses", "bends", "bends sinister", "chevrons", "saltires", "palls", "crosses", "piles"];
-subordinaries = ["bordure", "inescutcheon", "orle", "tressure", "canton", "flanches", "billet", "lozenge", "gyron", "fret"];
-subplurals = ["bordures", "inescutcheons", "orles", "tressures", "cantons", "flanches", "billets", "lozenges", "gyrons", "frets"];
 
-//chevron is immovable, while "chevrons" is moveable: stange hack, but it might work
+//chevron is immovable, while "chevrons" is moveable: strange hack, but it might work
 immovables = ["chief", "pale", "fess", "bend", "bend sinister", "chevron", "saltire", "pall", "cross", "pile", "bordure", "orle", "tressure", "canton", "flanches", "gyron", "fret"];
 implurals = ["", "pallets", "bars", "bendlets", "bendlets sinister", "chevronels", "", "", "", "pile", "", "", "", "", "", "", ""];
 
-movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge"];
-movplurals = ["mullets", "phrygian caps", "fleurs-de-lis", "pheons", "chevrons", "inescutcheons", "billets", "lozenges"];
+movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge", "key", "phrygian cap with bells on"];
+movplurals = ["mullets", "phrygian caps", "fleurs-de-lis", "pheons", "chevrons", "inescutcheons", "billets", "lozenges", "keys", "phrygian caps with bells on"];
 
 beasts = ["lion", "eagle"];
 attitudes = ["statant", "rampant", "couchant", "passant", "salient", "sejant", "cowed"];
@@ -89,7 +159,7 @@ numbers=["zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
 
 orientations=["palewise", "fesswise", "bendwise"]
 orientmods=["sinister", "reversed", "inverted"]
-arrangements=["addorsed", "confronte", "combatant", "respectant", "saltire", "pale", "fess", "bend"]
+arrangements=["addorsed", "confronte", "saltire", "pale", "fess", "bend"]
 
 //the cardinal directions, going anticlockwise in 45deg jumps
 var ORIENT_PALE=0;
@@ -131,6 +201,45 @@ var BEND_INV_REV_MIRRORED=true;
 var FESS_INV_REV_MIRRORED=true;
 var SINISTER_REV_MIRRORED=true;
 
+//type constants for charges
+TYPE_IMMOVABLE = 0;
+TYPE_MOVABLE = 1;
+
+
+//set up token maps
+divisionsMap = new Map();
+appendMap(divisionsMap, setupMap(divisions), 0, false);
+appendMap(divisionsMap, setupMap(plurals), 0, true);
+
+immovableMap = setupMap(immovables);
+impluralMap = setupMap(implurals);
+
+movableMap = setupMap(movables);
+movpluralMap = setupMap(movplurals);
+
+orientationsMap = setupMap(orientations);
+omodsMap = setupMap(orientmods);
+arrangementsMap = setupMap(arrangements);
+
+//set up synonyms for certain tokens
+addSynonym(arrangementsMap, "confronte", "confronté");
+addSynonym(arrangementsMap, "confronte", "combatant");
+addSynonym(arrangementsMap, "confronte", "respectant");
+
+addSynonym(movableMap, "fleur-de-lis", "fleur-de-lys");
+addSynonym(movableMap, "fleur-de-lis", "fleur de lis");
+addSynonym(movableMap, "fleur-de-lis", "fleur de lys");
+
+addSynonym(movpluralMap, "fleurs-de-lis", "fleurs-de-lys");
+addSynonym(movpluralMap, "fleurs-de-lis", "fleurs de lis");
+addSynonym(movpluralMap, "fleurs-de-lis", "fleurs de lys");
+
+chargeMap=new Map;
+appendMap(chargeMap, movableMap, TYPE_MOVABLE, false);
+appendMap(chargeMap, movpluralMap, TYPE_MOVABLE, true);
+appendMap(chargeMap, immovableMap, TYPE_IMMOVABLE, false);
+appendMap(chargeMap, impluralMap, TYPE_IMMOVABLE, true);
+
 /*******************************************************
 **PROTOTYPES (CHARGES ETC.)                           **
 **prototypes for all of the objects used in heraldry: **
@@ -141,11 +250,6 @@ var SINISTER_REV_MIRRORED=true;
 function Division(type,number=2)
 {
 	Node.call(this);
-	if(type===5 || type===6) //saltire, quarterly
-	{
-		if(number<=4) //if there's less than or equal four divisions...
-			number=0;//mark it zero (for default/arbitrary)
-	}
 	this.type=type;
 	this.number=number;
 }
@@ -164,7 +268,7 @@ Division.prototype.getName= function (){
 	//we use the singular case for a two or three-field division, or a four-field if it is a saltire
 	if(this.number===2||this.number===3||(this.number===4 && this.type===5))
 	{
-		out+="per " + divisions[this.type];
+		out+=divisions[this.type];
 	}else{//we use the plural otherwise, and output "of X" if the number is not default
 		out+=plurals[this.type]
 		if(this.number!==0)
@@ -186,27 +290,6 @@ Field.prototype.constructor=Field;
 Field.prototype.getName= function (){
 	return tinctureName(this.tincture);
 }
-
-function Ordinary(kind,tincture)
-{
-	Node.call(this);
-	this.tincture=tincture;
-	this.kind=kind;
-}
-
-//set up inheritance
-Ordinary.prototype=Object.create(Node.prototype);
-Ordinary.prototype.constructor=Ordinary;
-
-Ordinary.prototype.getName= function (){
-	var out = "a "+ordinaries[this.kind]
-	if(this.tincture > 0)
-	{out += " "+tinctureName(this.tincture);}
-	return out;
-}
-
-TYPE_IMMOVABLE = 0;
-TYPE_MOVABLE = 1;
 
 function Charge(type, index, tincture, number = 1)
 {
@@ -243,51 +326,6 @@ Charge.prototype.getName= function (){
 		out+=this.number.toString()+" ";
 		out+=plist[this.index];
 	}
-	return out;
-}
-
-function Subordinary(kind,tincture)
-{
-	Node.call(this);
-	this.tincture=tincture;
-	this.kind=kind;
-}
-
-//set up inheritance
-Subordinary.prototype=Object.create(Node.prototype);
-Subordinary.prototype.constructor=Subordinary;
-
-Subordinary.prototype.getName= function (){
-	var out = "a "+subordinaries[this.kind]
-	if(this.tincture > 0)
-	{out += " "+tinctureName(this.tincture);}
-	return out;
-}
-
-function Movable(kind,tincture,number=1)
-{
-	Node.call(this);
-	this.tincture=tincture;
-	this.kind=kind;
-	this.number=number;
-}
-
-//set up inheritance
-Movable.prototype=Object.create(Node.prototype);
-Movable.prototype.constructor=Movable;
-
-Movable.prototype.getName= function (){
-	var out="";
-	if (this.number===1)
-	{
-		out+="a ";
-		out+=movables[this.kind];
-	}else{
-		out+=this.number.toString()+" ";
-		out+=movplurals[this.kind];
-	}
-	if(this.tincture > 0)
-	{out += " "+tinctureName(this.tincture);}
 	return out;
 }
 
@@ -473,27 +511,6 @@ function isDivision(tok)
 	return false;
 }
 
-function isOrdinary(tok)
-{
-	if( !isWord(tok) )
-		{return false}
-	if( (ordinaries.indexOf(tok.value) > -1) )
-		{return true;}
-	if( (plurals.indexOf(tok.value) > -1) )
-		{return true;}
-	return false;
-}
-
-function ordinaryIndex(tok)
-{
-	var tmp=ordinaries.indexOf(tok.value);
-	if( tmp > -1 )
-		{return tmp;}
-	var tmp=plurals.indexOf(tok.value);
-	if( tmp > -1 )
-		{return tmp;}
-}
-
 function isMovable(tok)
 {
 	if( !isWord(tok) )
@@ -651,6 +668,77 @@ function isPunct(tok)
 **semantically (internal state of the string may change) **
 ***********************************************************/
 
+function getDefinedLength(arr){
+	var count=0;
+	for(var i=0; i<arr.length; ++i)
+	{
+		if(arr[i]!==undefined){
+			++count;
+		}
+	}
+	return count;
+}
+
+function getIndexToReturn(arr,type){
+	//if there is no array, abort
+	if(arr===undefined){
+		return;
+	}
+	//if we've specified a type, return that type's ID, the index and the flag
+	if(type!==undefined && arr[type]!==undefined){
+		return [type].concat(arr[type]);
+	}
+	//if we've not specified a type, and there is no ambiguity, return [type,index,flag]
+	if(type===undefined && getDefinedLength(arr)===1){
+			for( var i=0; i<arr.length; ++i){
+				if(arr[i]!==undefined){
+					return [i].concat(arr[i]);
+				}
+			}
+	}
+	//otherwise, return undefined
+	return;
+}
+
+function tryName(str, map, type){
+	var stack=[];
+	stack.push(map);
+	var stackpos = 0;
+	//var pos = str.savePos();
+	while(str.peek()!==undefined && stack[stackpos].get(str.peek().value)!==undefined){
+		stack.push( stack[stackpos].get(str.pop().value) );
+		++stackpos;
+	}
+
+	//we check if there is non-ambiguous correct-type index to return
+	var ret = getIndexToReturn(stack[stackpos].get(""), type);
+	if( ret!==undefined ){
+		return ret;
+	}
+	//wind back through the stream, looking for a valid name
+	while( stackpos > 0 )
+	{
+		var ret = getIndexToReturn(stack[stackpos].get(""), type);
+		if( ret!==undefined ){
+			return ret;
+		}
+		--stackpos;
+		str.rewind();
+	}
+	//if we made it to the bottom of the stack without finding anything, return undefined
+	return;
+}
+
+function tryChargeName(str, type)
+{
+	return tryName(str, chargeMap, type);
+}
+
+function tryDivisionName(str)
+{
+	return tryName(str, divisionsMap, 0);
+}
+
 //either return a field, or leave the stream semantically unchanged
 function getField(str)
 {
@@ -667,32 +755,15 @@ function getField(str)
 //either return a division, or leave the stream semantically unchanged
 function getDivision(str)
 {
-	var nxt=str.peek();
+	if(str.peek()===undefined)
+	{
+		console.error("Word "+str.pos.toString()+": unexpected end of blazon")
+		return
+	}
 	var number=0;
 	var type=TOK_WORD;
 	var pos=str.savePos();
-	if(nxt===undefined)
-	{
-		console.error("Word "+str.pos.toString()+": unexpected end of blazon")
-	}else if( isThisWord(nxt, "per") ){
-		str.pop();
-		if( isSingleDivision(str.peek()) )
-		{
-			var tmp=str.pop();
-			type=divisions.indexOf(tmp.value);
-			//if the division is "per saltire" we have four segments, otherwise two (per pale, etc)
-			if(type===divisions.indexOf("saltire"))
-			{
-				number=4;
-			}else{
-				number=2;
-			}
-			return new Division(type,number);
-		}else{
-			console.error("Word "+str.pos.toString()+": no such division")
-			str.rewind()//un-pop the "per" if we haven't found a division
-		}
-	}else if( isThisWord(nxt, "tierced") ){
+	if( isThisWord(str.peek(), "tierced") ){
 		str.pop();
 		var tmp=getDivision(str);
 		if(tmp !== undefined)
@@ -702,11 +773,18 @@ function getDivision(str)
 		}else{
 			console.error("Word "+str.pos.toString()+": no such division")
 			str.rewind(); //un-pop "tierced" if no division
+			return;
 		}
-	}else if( isPluralDivision(str.peek()) ){
-		type=plurals.indexOf(str.pop().value);
-		if( isThisWord(str.peek(), "of") )//if we have "of X"
+	}
+	var name=tryDivisionName(str);
+	if( name!==undefined ){
+		type=name[1];
+		if( !name[2] )//if this is a single division
 		{
+			//number defaults to two, saltire as a special case handled later
+			number=2;
+			return new Division(type,number);
+		}else if( isThisWord(str.peek(), "of") ){ //if we have "of X"
 			str.pop();//take "of" off the stack
 			if( isNumber(str.peek()) )
 			{
@@ -721,7 +799,75 @@ function getDivision(str)
 	}
 }
 
-function getCharge(str)
+//takes a token stream
+function getFieldOrDivision(str, bare=false)
+{
+	var pos=str.savePos();
+	
+	var tmp=getField(str);
+	if(tmp!==undefined)
+	{
+		return tmp;
+	}
+	tmp=getDivision(str)
+	if(tmp!==undefined)
+	{
+		var subf=getEscutcheon(str); //get first tincture/sub-blazon
+		if(subf!==undefined){
+			//if we're parsing a bare division and find a sub-escutcheon, abort
+			if(bare===true && subf.subnode.length!==0){
+				str.loadPos(pos);
+				return;
+			}
+			tmp.append(subf);
+			i=2;
+			while(i>0){ //if we have a tierced field, check for *two* more fields
+				//if we have a linking word or punctuation, look for a second/third tincture
+				if( isLinking(str.peek()) || isPunct(str.peek()) ){
+					str.pop();
+					//if the previous sub-blazon was only a tincture, we only get a tincture. Otherwise an entire sub-blazon.
+					//note that if bare===true then the previous sub-blazon was a bare tincture or we'd have aborted
+					if(subf.subnode.length > 0){
+						subf=getEscutcheon(str);
+					}else{
+						subf=getField(str);
+					}
+					if(subf!==undefined){
+						//if this is a tierced shield, the *middle* field comes first, then the dexter
+						if(tmp.number===3 && i===2){
+							tmp.append(tmp.subnode[0]);
+							tmp.subnode[0]=subf;
+						}else{
+							tmp.append(subf);
+						}
+					}else{
+						//if we can't parse enough fields, reset the token stream and abort
+						str.loadPos(pos);
+						return;
+					}
+				}else{
+					//if there is no linking word, reset the token stream and abort
+					str.loadPos(pos);
+					return;
+				}
+				//don't check for a third field if not tierced
+				if(tmp.number===3){
+					i-=1;
+				}else{
+					i=0;
+				}
+			}
+		}else{
+			//if there is no valid tincture, reset the token stream and abort
+			str.loadPos(pos);
+			return;
+		}
+		return tmp;
+	}
+}
+
+//type is optional and should not generally be used explicitly
+function getCharge(str, type)
 {
 	var number=0; //not possible, error if this does not change
 	var type; //defults to undefined
@@ -731,19 +877,10 @@ function getCharge(str)
 	var pos=str.savePos(); //save our place in the token stream so we can exit without changing anything
 	if( isNumber(str.peek()) ){
 		number=str.pop().value;
-		if( isCharge(str.peek()) ){
-			var tmp=str.pop();
-			if( isImmovable(tmp) ){
-				type=TYPE_IMMOVABLE;
-				index=immovableIndex(tmp);
-			}else if ( isMovable(tmp) ){
-				type=TYPE_MOVABLE;
-				index=movableIndex(tmp);
-			}else{
-				console.error("Parsing error: '"+tmp.value+"' is a charge but niether movable nor immovable");
-				str.loadPos(pos);
-				return;
-			}
+		var name = tryChargeName(str, type);
+		if( name!==undefined ){
+			type=name[0];
+			index=name[1];
 			while( isWord(str.peek()) ){
 				//if we see a linking word, end the charge
 				if( isLinking(str.peek()) ){
@@ -757,6 +894,7 @@ function getCharge(str)
 					tincture=tmp;
 					break;
 				}
+				str.pop();//ensure we don't get stuck in an infinite loop
 			}
 			ret = new Charge(type, index, tincture, number);
 			//if we see a linking word
@@ -828,87 +966,27 @@ function getCharge(str)
 
 function getMovable(str)
 {
-	pos=str.savePos();
-	crg=getCharge(str);
-	if( crg===undefined || crg.type!==TYPE_MOVABLE ){
-		str.loadPos(pos);
-		return;
-	}
-	return crg;
+	return getCharge(str, TYPE_MOVABLE);
 }
 
 function getImmovable(str)
 {
-	pos=str.savePos();
-	crg=getCharge(str);
-	if( crg===undefined || crg.type!==TYPE_IMMOVABLE ){
-		str.loadPos(pos);
-		return;
-	}
-	return crg;
-}
-
-//takes a token stream
-function getFieldOrDivision(str, bare=false)
-{
-	var pos=str.savePos();
-	
-	var tmp=getField(str);
-	if(tmp!==undefined)
-	{
-		if( isPunct(str.peek()) )
-		{str.pop();}else{
-			//console.error("Word "+str.pos.toString()+": no comma where one was expected");
-		}
-		return tmp;
-	}
-	tmp=getDivision(str)
-	if(tmp!==undefined)
-	{
-		var subf=getEscutcheon(str);//get first tincture/sub-blazon
-		if(subf!==undefined){
-			//if we're parsing a bare division and find a sub-escutcheon, abort
-			if(bare===true && subf.subnode.length!==0){
-				str.loadPos(pos);
-				return;
-			}
-			tmp.append(subf);
-			//if we have a linking word, look for a second tincture
-			if( isLinking(str.peek()) ){
-				str.pop();
-				//if the previous sub-blazon was only a tincture, we only get a tincture. Otherwise an entire sub-blazon.
-				//note that if bare===true then the previous sub-blazon was a bare tincture or we'd have aborted
-				if(subf.subnode.length > 0){
-					subf=getEscutcheon(str);
-				}else{
-					subf=getField(str);
-				}
-				if(subf!==undefined){
-					tmp.append(subf);
-				}else{
-					//if we can't parse two fields, reset the token stream and abort
-					str.loadPos(pos);
-					return;
-				}
-			}else{
-				//if there is no linking word, reset the token stream and abort
-				str.loadPos(pos);
-				return;
-			}
-		}else{
-			//if there is no valid tincture, reset the token stream and abort
-			str.loadPos(pos);
-			return;
-		}
-		return tmp;
-	}
+	return getCharge(str, TYPE_IMMOVABLE);
 }
 
 function getEscutcheon(str){
 	var tmp=getFieldOrDivision(str);
+	var flag=false;
+	//skip a comma if one is present after the field
+	if( isPunct(str.peek()) ){
+		str.pop();
+		flag=true;
+	}
 	var crg=getCharge(str);
 	if(crg!==undefined){
 		tmp.append(crg);
+	}else if(flag) {
+		str.rewind(); //un-pop the comma if there was no charge and one was popped
 	}
 	return tmp;
 }
@@ -948,10 +1026,10 @@ function displayTree(root){
 }
 
 root=new Field(14);
-root.append(new Ordinary(1,4));
-root.subnode[0].append(new Node());
+root.append(new Charge(0, 1, new Field(4), 1));
+//root.subnode[0].append(new Node());
 root.subnode[0].subnode[0].append(new NamedNode("the words \"Syntax Test\" Argent"));
-root.subnode[0].subnode[0].append(new Subordinary(0,2));
+root.subnode[0].subnode[0].append(new Charge(0, 10, new Field(2), 1));
 root.subnode[0].subnode[0].subnode[1].append(new NamedNode("a console Sable"));
 //this works
 document.getElementById("displayPara").innerHTML=root.display();
