@@ -157,9 +157,12 @@ conjunctions = ["and"];
 prepositions = ["on", "in", "between", "above", "below", "within", "overall"];
 numbers=["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
 
-orientations=["palewise", "fesswise", "bendwise"]
-orientmods=["sinister", "reversed", "inverted"]
+//orientations=["palewise", "fesswise", "bendwise"]
+//orientmods=["sinister", "reversed", "inverted"]
 arrangements=["addorsed", "confronte", "saltire", "pale", "fess", "bend"]
+
+orientations=["palewise", "bendwise", "fesswise", "bendwise sinister inverted", "palewise inverted and reversed", "bendwise inverted and reversed", "fesswise inverted and reversed", "bendwise sinister reversed"];
+mirror_orients=["palewise reversed", "bendwise reversed", "fesswise inverted", "bendwise sinister inverted and reversed", "palewise inverted", "bendwise inverted", "fesswise reversed", "bendwise sinister"];
 
 //the cardinal directions, going anticlockwise in 45deg jumps
 var ORIENT_PALE=0;
@@ -192,14 +195,14 @@ var BEND_INV_MIRRORED=true;
 var FESS_REV_MIRRORED=true;
 var SINISTER_MIRRORED=true;
 
-var PALE_MIRRORED=true;
-var BEND_MIRRORED=true;
-var FESS_MIRRORED=true;
-var SINISTER_INV_MIRRORED=true;
-var PALE_INV_REV_MIRRORED=true;
-var BEND_INV_REV_MIRRORED=true;
-var FESS_INV_REV_MIRRORED=true;
-var SINISTER_REV_MIRRORED=true;
+var PALE_MIRRORED=false;
+var BEND_MIRRORED=false;
+var FESS_MIRRORED=false;
+var SINISTER_INV_MIRRORED=false;
+var PALE_INV_REV_MIRRORED=false;
+var BEND_INV_REV_MIRRORED=false;
+var FESS_INV_REV_MIRRORED=false;
+var SINISTER_REV_MIRRORED=false;
 
 //type constants for charges
 TYPE_IMMOVABLE = 0;
@@ -217,8 +220,8 @@ impluralMap = setupMap(implurals);
 movableMap = setupMap(movables);
 movpluralMap = setupMap(movplurals);
 
-orientationsMap = setupMap(orientations);
-omodsMap = setupMap(orientmods);
+halfOrientMap=setupMap(orientations);
+mirrorOrientMap=setupMap(mirror_orients);
 arrangementsMap = setupMap(arrangements);
 
 //set up synonyms for certain tokens
@@ -234,11 +237,30 @@ addSynonym(movpluralMap, "fleurs-de-lis", "fleurs-de-lys");
 addSynonym(movpluralMap, "fleurs-de-lis", "fleurs de lis");
 addSynonym(movpluralMap, "fleurs-de-lis", "fleurs de lys");
 
+addSynonym(mirrorOrientMap, "fesswise inverted", "inverted");
+addSynonym(mirrorOrientMap, "fesswise reversed", "reversed");
+addSynonym(halfOrientMap, "fesswise inverted and reversed", "inverted and reversed");
+addSynonym(halfOrientMap, "fesswise inverted and reversed", "reversed and inverted");
+
+addSynonym(halfOrientMap, "fesswise inverted and reversed", "fesswise reversed and inverted");
+addSynonym(halfOrientMap, "palewise inverted and reversed", "palewise reversed and inverted");
+addSynonym(halfOrientMap, "bendwise inverted and reversed", "bendwise reversed and inverted");
+addSynonym(mirrorOrientMap, "bendwise sinister inverted and reversed", "bendwise sinister reversed and inverted");
+
+
+
+//combine charge maps
 chargeMap=new Map;
 appendMap(chargeMap, movableMap, TYPE_MOVABLE, false);
 appendMap(chargeMap, movpluralMap, TYPE_MOVABLE, true);
 appendMap(chargeMap, immovableMap, TYPE_IMMOVABLE, false);
 appendMap(chargeMap, impluralMap, TYPE_IMMOVABLE, true);
+
+//combine orientation maps
+orientationsMap = new Map();
+appendMap(orientationsMap, halfOrientMap, 0, false);
+appendMap(orientationsMap, mirrorOrientMap, 0, true);
+
 
 /*******************************************************
 **PROTOTYPES (CHARGES ETC.)                           **
@@ -291,12 +313,14 @@ Field.prototype.getName= function (){
 	return tinctureName(this.tincture);
 }
 
-function Charge(type, index, tincture, number = 1)
+function Charge(type, index, tincture, number = 1, orientation=0, mirrored=false)
 {
 	Node.call(this);
 	this.type = type;
 	this.index = index;
 	this.number = number;
+	this.orientation=orientation;
+	this.mirrored=mirrored;
 	this.append( tincture );
 }
 
@@ -325,6 +349,14 @@ Charge.prototype.getName= function (){
 	}else{
 		out+=this.number.toString()+" ";
 		out+=plist[this.index];
+	}
+	if( this.orientation!==0 || this.mirrored){
+		out+=" ";
+		if(this.mirrored){
+			out+=mirror_orients[this.orientation];
+		}else{
+			out+=orientations[this.orientation];
+		}
 	}
 	return out;
 }
@@ -739,6 +771,11 @@ function tryDivisionName(str)
 	return tryName(str, divisionsMap, 0);
 }
 
+function tryOrientationName(str)
+{
+	return tryName(str, orientationsMap, 0);
+}
+
 //either return a field, or leave the stream semantically unchanged
 function getField(str)
 {
@@ -874,6 +911,8 @@ function getCharge(str, type)
 	var index;
 	var tincture=new Field(0); //defaults to "specified later"
 	var ret;
+	var orientation=0;
+	var mirrored=false;
 	var pos=str.savePos(); //save our place in the token stream so we can exit without changing anything
 	if( isNumber(str.peek()) ){
 		number=str.pop().value;
@@ -882,11 +921,8 @@ function getCharge(str, type)
 			type=name[0];
 			index=name[1];
 			while( isWord(str.peek()) ){
-				//if we see a linking word, end the charge
-				if( isLinking(str.peek()) ){
-					break;
-				}
-				//checmk for a colouring
+				
+				//check for a colouring
 				var tmp=getFieldOrDivision(str,true);
 				//colouring is optional, but ends the charge if it exists
 				if( tmp!==undefined )
@@ -894,9 +930,26 @@ function getCharge(str, type)
 					tincture=tmp;
 					break;
 				}
-				str.pop();//ensure we don't get stuck in an infinite loop
+				var tmp=tryOrientationName(str);
+				//if we read an orientation, apply it and go back to the top
+				if( tmp!==undefined )
+				{
+					if(type===TYPE_IMMOVABLE){
+						console.error("Semantic error: immovable charges cannot be oriented");
+					}else{
+						orientation=tmp[1];
+						mirrored=tmp[2];
+					}
+					continue;
+				}
+				//if we see a linking word, end the charge
+				if( isLinking(str.peek()) ){
+					break;
+				}
+				//if no token was recognised, end the charge
+				break;
 			}
-			ret = new Charge(type, index, tincture, number);
+			ret = new Charge(type, index, tincture, number, orientation, mirrored);
 			//if we see a linking word
 			if( isLinking( str.peek() ) )
 			{
