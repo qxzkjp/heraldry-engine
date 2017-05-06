@@ -99,7 +99,7 @@ function setupMap(arr){
 	var ret=new Map();
 	for (var i=0; i<arr.length; ++i){
 		if(arr[i]!==""){
-			addToMap(ret, arr[i], i);
+			addToMap(ret, arr[i], [i]);
 		}
 	}
 	return ret;
@@ -109,14 +109,14 @@ function appendMap(mapbase, mapapp, type, flag)
 {
 	for( var [key, value] of mapapp )
 	{
-		if(typeof value === "number"){
+		if(value instanceof Array){
 			if(mapbase.get(key)===undefined){
 				mapbase.set(key, []);
 			}
 			if( type!==undefined && flag!==undefined){
 				mapbase.get(key)[type]=[value, flag];
 			}else{
-				mapbase.get(key)=value;
+				mapbase.get(key)=[value];
 			}
 		}else{
 			if(mapbase.get(key)===undefined){
@@ -125,6 +125,46 @@ function appendMap(mapbase, mapapp, type, flag)
 			appendMap(mapbase.get(key), value, type, flag);
 		}
 	}
+}
+
+function mapScale(A, c){
+	var B = new map();
+	for (var [keyA, valueA] of A){
+		if(keyA===""){
+			B.set(keyA, valueA * c);
+		}else{
+			B.set(keyA, mapScale(valueA, c));
+		}
+	}
+	return B;
+}
+
+function mapShift(A, c){
+	var B = new Map();
+	for (var [keyA, valueA] of A){
+		if(keyA===""){
+			B.set(keyA, [valueA[0] + c]);
+		}else{
+			B.set(keyA, mapShift(valueA, c));
+		}
+	}
+	return B;
+}
+
+function mapProduct(A, B, dimB)
+{
+	var C = new Map();
+	for (var [keyA, valueA] of A){
+		if(keyA===""){
+			C.set(keyA, [valueA[0] * (dimB+1)]);
+			for (var [keyB, valueB] of B){
+				C.set(keyB, mapShift(valueB, valueA[0] * (dimB+1) + 1)); //+1 because get("") is already +0
+			}
+		}else{
+			C.set(keyA, mapProduct(A.get(keyA), B, dimB));
+		}
+	}
+	return C;
 }
 
 function addSynonym(map, name, syn){
@@ -149,17 +189,24 @@ implurals = ["", "pallets", "bars", "bendlets", "bendlets sinister", "chevronels
 movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge", "key", "phrygian cap with bells on"];
 movplurals = ["mullets", "phrygian caps", "fleurs-de-lis", "pheons", "chevrons", "inescutcheons", "billets", "lozenges", "keys", "phrygian caps with bells on"];
 
-beasts = ["lion", "eagle"];
-attitudes = ["statant", "rampant", "couchant", "passant", "salient", "sejant", "cowed"];
+beasts = ["lion", "eagle", "bear"];
+beastplurals = ["lions", "eagles", "bears"];
+
+attitudes = ["rampant", "statant", "couchant", "passant", "salient", "sejant", "sejant erect", "cowed", "displayed"];
 facings = ["guardant", "reguardant"];
+directions = ["to dexter", "to sinister", "affronte", "en arriere"];
+//affronté, arrière
+
+//armed=claws, langued=tongue, attired=antlers, unguled=hooves
+beastColours=["armed", "langued", "attired", "unguled"];
 
 conjunctions = ["and"];
-prepositions = ["on", "in", "between", "above", "below", "within", "overall"];
+prepositions = ["on", "between", "above", "below", "within", "overall"];
 numbers=["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
 
 //orientations=["palewise", "fesswise", "bendwise"]
 //orientmods=["sinister", "reversed", "inverted"]
-arrangements=["addorsed", "confronte", "saltire", "pale", "fess", "bend"]
+arrangements=["addorsed", "confronte", "in saltire", "in pale", "in fess", "in bend", "in bend sinister"];
 
 orientations=["palewise", "bendwise", "fesswise", "bendwise sinister inverted", "palewise inverted and reversed", "bendwise inverted and reversed", "fesswise inverted and reversed", "bendwise sinister reversed"];
 mirror_orients=["palewise reversed", "bendwise reversed", "fesswise inverted", "bendwise sinister inverted and reversed", "palewise inverted", "bendwise inverted", "fesswise reversed", "bendwise sinister"];
@@ -207,7 +254,7 @@ var SINISTER_REV_MIRRORED=false;
 //type constants for charges
 TYPE_IMMOVABLE = 0;
 TYPE_MOVABLE = 1;
-
+TYPE_BEAST = 2;
 
 //set up token maps
 divisionsMap = new Map();
@@ -219,6 +266,14 @@ impluralMap = setupMap(implurals);
 
 movableMap = setupMap(movables);
 movpluralMap = setupMap(movplurals);
+
+beastsMap = setupMap(beasts);
+beastpluralsMap = setupMap(beastplurals);
+
+attMap=setupMap(attitudes);
+facMap=setupMap(facings);
+
+directionsMap=setupMap(directions);
 
 halfOrientMap=setupMap(orientations);
 mirrorOrientMap=setupMap(mirror_orients);
@@ -247,6 +302,10 @@ addSynonym(halfOrientMap, "palewise inverted and reversed", "palewise reversed a
 addSynonym(halfOrientMap, "bendwise inverted and reversed", "bendwise reversed and inverted");
 addSynonym(mirrorOrientMap, "bendwise sinister inverted and reversed", "bendwise sinister reversed and inverted");
 
+addSynonym(attMap, "rampant", "forcené");
+addSynonym(attMap, "rampant", "forcene");
+addSynonym(attMap, "sejant erect", "sejant rampant");
+addSynonym(attMap, "sejant erect", "sejant-rampant");
 
 
 //combine charge maps
@@ -255,12 +314,16 @@ appendMap(chargeMap, movableMap, TYPE_MOVABLE, false);
 appendMap(chargeMap, movpluralMap, TYPE_MOVABLE, true);
 appendMap(chargeMap, immovableMap, TYPE_IMMOVABLE, false);
 appendMap(chargeMap, impluralMap, TYPE_IMMOVABLE, true);
+appendMap(chargeMap, beastsMap, TYPE_BEAST, false);
+appendMap(chargeMap, beastpluralsMap, TYPE_BEAST, true);
 
 //combine orientation maps
 orientationsMap = new Map();
 appendMap(orientationsMap, halfOrientMap, 0, false);
 appendMap(orientationsMap, mirrorOrientMap, 0, true);
 
+//combine attitude and sub-attitude maps in a special way
+attitudesMap=mapProduct(attMap, facMap, facings.length);
 
 /*******************************************************
 **PROTOTYPES (CHARGES ETC.)                           **
@@ -327,6 +390,7 @@ function Charge(type, index, tincture, number = 1, orientation=0, mirrored=false
 //set up inheritance
 Charge.prototype=Object.create(Node.prototype);
 Charge.prototype.constructor=Charge;
+//Charge.prototype.append=Node.append;
 
 Charge.prototype.getName= function (){
 	var out="";
@@ -357,6 +421,43 @@ Charge.prototype.getName= function (){
 		}else{
 			out+=orientations[this.orientation];
 		}
+	}
+	return out;
+}
+
+//"orientation" is attitude
+function Beast(index, tincture, number = 1, orientation=0, direction=0)
+{
+	Charge.call(this, TYPE_BEAST, index, tincture, number, orientation);
+	this.direction = direction;
+	
+}
+
+//set up inheritance
+Beast.prototype=Object.create(Charge.prototype);
+Beast.prototype.constructor=Beast;
+
+Beast.prototype.getName= function (){
+	var out="";
+	if (this.number===1)
+	{
+		out+="a ";
+		out+=beasts[this.index];
+	}else{
+		out+=this.number.toString()+" ";
+		out+=beastplurals[this.index];
+	}
+	var N=facings.length+1;
+	var att = Math.floor(this.orientation/N);
+	var fac = this.orientation % N;
+	if(att !== 0){
+		out += " " + attitudes[att];
+	}
+	if(fac !== 0){
+		out += " " + facings[fac - 1];
+	}
+	if(this.direction !== 0){
+		out += " " + directions[this.direction];
 	}
 	return out;
 }
@@ -737,9 +838,26 @@ function tryName(str, map, type){
 	stack.push(map);
 	var stackpos = 0;
 	//var pos = str.savePos();
-	while(str.peek()!==undefined && stack[stackpos].get(str.peek().value)!==undefined){
-		stack.push( stack[stackpos].get(str.pop().value) );
-		++stackpos;
+	while(true){
+		var tmp;
+		if(str.peek()!==undefined){
+			//if we've popped a number, turn it into a word
+			if(str.peek().type===TOK_NUM){
+				tmp=numbers[str.peek().value];
+			}else{
+				tmp=str.peek().value;
+			}
+		}else{
+			break;
+		}
+		//if the next word is in the tree, climb down and continue looping
+		if( stack[stackpos].get(tmp)!==undefined ){
+			str.pop();
+			stack.push( stack[stackpos].get(tmp) );
+			++stackpos;
+		}else{
+			break;
+		}
 	}
 
 	//we check if there is non-ambiguous correct-type index to return
@@ -774,6 +892,16 @@ function tryDivisionName(str)
 function tryOrientationName(str)
 {
 	return tryName(str, orientationsMap, 0);
+}
+
+function tryAttitudeName(str)
+{
+	return tryName(str, attitudesMap, 0);
+}
+
+function tryDirectionName(str)
+{
+	return tryName(str, directionsMap, 0);
 }
 
 //either return a field, or leave the stream semantically unchanged
@@ -912,6 +1040,7 @@ function getCharge(str, type)
 	var tincture=new Field(0); //defaults to "specified later"
 	var ret;
 	var orientation=0;
+	var direction=0;
 	var mirrored=false;
 	var pos=str.savePos(); //save our place in the token stream so we can exit without changing anything
 	if( isNumber(str.peek()) ){
@@ -934,11 +1063,33 @@ function getCharge(str, type)
 				//if we read an orientation, apply it and go back to the top
 				if( tmp!==undefined )
 				{
-					if(type===TYPE_IMMOVABLE){
-						console.error("Semantic error: immovable charges cannot be oriented");
+					if(type!==TYPE_MOVABLE){
+						console.error("Semantic error: beasts and immovable charges cannot be oriented");
 					}else{
 						orientation=tmp[1];
 						mirrored=tmp[2];
+					}
+					continue;
+				}
+				var tmp=tryAttitudeName(str);
+				//if we read an attitude, apply it (if beast) and go back to the top
+				if( tmp!==undefined )
+				{
+					if(type!==TYPE_BEAST){
+						console.error("Semantic error: only beasts can have attitude");
+					}else{
+						orientation=tmp[1];
+					}
+					continue;
+				}
+				var tmp=tryDirectionName(str);
+				//if we read a direction, apply it (if beast) and go back to the top
+				if( tmp!==undefined )
+				{
+					if(type!==TYPE_BEAST){
+						console.error("Semantic error: only beasts can have attitude");
+					}else{
+						direction=tmp[1];
 					}
 					continue;
 				}
@@ -949,7 +1100,12 @@ function getCharge(str, type)
 				//if no token was recognised, end the charge
 				break;
 			}
-			ret = new Charge(type, index, tincture, number, orientation, mirrored);
+			//all attributes read, create the actual charge
+			if(type!==TYPE_BEAST){
+				ret = new Charge(type, index, tincture, number, orientation, mirrored);
+			}else{
+				ret = new Beast(index, tincture, number, orientation, direction);
+			}
 			//if we see a linking word
 			if( isLinking( str.peek() ) )
 			{
