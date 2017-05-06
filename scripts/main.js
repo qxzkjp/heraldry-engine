@@ -292,6 +292,7 @@ addSynonym(movpluralMap, "fleurs-de-lis", "fleurs-de-lys");
 addSynonym(movpluralMap, "fleurs-de-lis", "fleurs de lis");
 addSynonym(movpluralMap, "fleurs-de-lis", "fleurs de lys");
 
+//possibly not the most elegant way of handling the orientations, but we only need eight manual synonyms so it'll do
 addSynonym(mirrorOrientMap, "fesswise inverted", "inverted");
 addSynonym(mirrorOrientMap, "fesswise reversed", "reversed");
 addSynonym(halfOrientMap, "fesswise inverted and reversed", "inverted and reversed");
@@ -390,7 +391,10 @@ function Charge(type, index, tincture, number = 1, orientation=0, mirrored=false
 //set up inheritance
 Charge.prototype=Object.create(Node.prototype);
 Charge.prototype.constructor=Charge;
-//Charge.prototype.append=Node.append;
+
+Charge.prototype.clone= function(){
+	return new Charge(this.type, this.index, new Field(this.subnode[0].tincture), this.number, this.orientation, this.mirrored)
+}
 
 Charge.prototype.getName= function (){
 	var out="";
@@ -436,6 +440,10 @@ function Beast(index, tincture, number = 1, orientation=0, direction=0)
 //set up inheritance
 Beast.prototype=Object.create(Charge.prototype);
 Beast.prototype.constructor=Beast;
+
+Beast.prototype.clone= function(){
+	return new Beast(this.index, new Field(this.subnode[0].tincture), this.number, this.orientation, this.direction);
+}
 
 Beast.prototype.getName= function (){
 	var out="";
@@ -1111,7 +1119,7 @@ function getCharge(str, type)
 			{
 				var linkpos=str.savePos();
 				var lwrd = str.pop();
-				var crg=getMovable(str);
+				var crg=getMovableOrBeast(str);
 				var scrg;
 				if( crg===undefined ){
 					str.rewind();//un-pop the linking word
@@ -1119,7 +1127,7 @@ function getCharge(str, type)
 					//check for a second charge for it to be between
 					if( isThisWord(str.peek(), "and") ){
 						str.pop();
-						var scrg=getMovable(str);
+						var scrg=getMovableOrBeast(str);
 						if( scrg===undefined )
 						{
 							str.pop();//un-pop the conjunction
@@ -1130,14 +1138,13 @@ function getCharge(str, type)
 					if(scrg===undefined){
 						var hlf=Math.floor(crg.number/2);
 						var gtr=crg.number-hlf;
+						scrg = crg.clone();
 						//place larger half above/dexter of the ordinary, lesser half below/sinister
-						ret.append( new Charge(TYPE_MOVABLE, crg.index, crg.subnode[0], gtr) );
-						ret.append( new Charge(TYPE_MOVABLE, crg.index, crg.subnode[0], hlf) );
-					}else{ //otherwise just place it beteeen the two groups of charges
-						ret.append( crg );
-						ret.append( scrg );
+						crg.number = gtr;
+						scrg.number = hlf;
 					}
-
+					ret.append( crg );
+					ret.append( scrg );
 				}else if( isThisWord(lwrd, "and") ){
 					str.loadPos(linkpos); //rewind to the word "and", deal with second charge later
 				}else{
@@ -1160,7 +1167,7 @@ function getCharge(str, type)
 			return;
 		}
 		//charge on the ordinary itself becomes a subnode of its tincture
-		var mov=getMovable(str);
+		var mov=getMovableOrBeast(str);
 		if(mov!==undefined){
 			ret.subnode[0].append(mov);
 			return ret;
@@ -1176,6 +1183,20 @@ function getCharge(str, type)
 function getMovable(str)
 {
 	return getCharge(str, TYPE_MOVABLE);
+}
+
+function getBeast(str)
+{
+	return getCharge(str, TYPE_BEAST);
+}
+
+function getMovableOrBeast(str)
+{
+	var ret = getMovable(str);
+	if(ret === undefined){
+		ret = getBeast(str)
+	}
+	return ret;
 }
 
 function getImmovable(str)
