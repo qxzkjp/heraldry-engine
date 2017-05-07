@@ -198,8 +198,8 @@ function addSynonym(map, name, syn){
 divisions = ["per pale", "per fess", "per bend", "per bend sinister", "per chevron", "per saltire", "", "", "", "", "", "", "",""];
 plurals = ["paly", "barry", "bendy", "bendy sinister", "chevronny", "gyronny", "quarterly", "chequy", "lozengy", "barry bendy", "paly bendy", "pily", "pily bendy", "pily bendy sinister"]
 
-//"undefined" is not a real tincture (duh), but is used as a placeholder. It must be in position 0.
-tinctures = ["undefined", "argent", "or", "gules", "azure", "vert", "purpure", "sable", "tenny", "sanguine", "vair", "countervair", "potent", "counterpotent", "ermine", "ermines", "erminois", "pean"];
+//"unspecified" is not a real tincture (duh), but is used as a placeholder. It must be in position 0.
+tinctures = ["unspecified", "argent", "or", "gules", "azure", "vert", "purpure", "sable", "tenny", "sanguine", "vair", "countervair", "potent", "counterpotent", "ermine", "ermines", "erminois", "pean"];
 
 //chevron is immovable, while "chevrons" is moveable: strange hack, but it might work
 immovables = ["chief", "pale", "fess", "bend", "bend sinister", "chevron", "saltire", "pall", "cross", "pile", "bordure", "orle", "tressure", "canton", "flanches", "gyron", "fret"];
@@ -212,9 +212,18 @@ beasts = ["lion", "eagle", "bear"];
 beastplurals = ["lions", "eagles", "bears"];
 
 attitudes = ["rampant", "statant", "couchant", "passant", "salient", "sejant", "sejant erect", "cowed", "displayed"];
+
+ATT_RAMPANT = 0;
+console.assert(attitudes[ATT_RAMPANT]==="rampant")
+
 facings = ["guardant", "reguardant"];
 directions = ["to dexter", "to sinister", "affronte", "en arriere"];
 //affronté, arrière
+
+DIR_DEXTER = 0;
+DIR_SINISTER = 1;
+console.assert(directions[DIR_DEXTER]==="to dexter")
+console.assert(directions[DIR_SINISTER]==="to sinister")
 
 //armed=claws, langued=tongue, attired=antlers, unguled=hooves
 beastColours=["armed", "langued", "attired", "unguled"];
@@ -223,9 +232,29 @@ conjunctions = ["and"];
 prepositions = ["on", "between", "above", "below", "within", "overall"];
 numbers=["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
 
-//orientations=["palewise", "fesswise", "bendwise"]
-//orientmods=["sinister", "reversed", "inverted"]
-arrangements=["addorsed", "confronte", "in saltire", "in pale", "in fess", "in bend", "in bend sinister"];
+arrangements=["unspecified", "combined", "two and one", "one and two", "addorsed", "confronte", "in saltire", "in pale", "in fess", "in bend", "in bend sinister"];
+
+ARR_COMBINED=1;
+ARR_FESS=8;
+console.assert(arrangements[ARR_COMBINED]==="combined")
+console.assert(arrangements[ARR_FESS]==="in fess")
+
+//set up "dual" arrangements -- those which involve two charges in diferent orientations
+ARR_SALTIRE=6;
+console.assert(arrangements[ARR_SALTIRE]==="in saltire")
+ARR_ADDORSED=4;
+console.assert(arrangements[ARR_ADDORSED]==="addorsed")
+ARR_CONFRONTE=5;
+console.assert(arrangements[ARR_CONFRONTE]==="confronte")
+dualArrangements=[ARR_SALTIRE, ARR_ADDORSED, ARR_CONFRONTE]
+
+function isDualArrangement(arrangement){
+	if( dualArrangements.indexOf(arrangement) > -1 ){
+		return true;
+	}else{
+		return false;
+	}
+}
 
 orientations=["palewise", "bendwise", "fesswise", "bendwise sinister inverted", "palewise inverted and reversed", "bendwise inverted and reversed", "fesswise inverted and reversed", "bendwise sinister reversed"];
 mirror_orients=["palewise reversed", "bendwise reversed", "fesswise inverted", "bendwise sinister inverted and reversed", "palewise inverted", "bendwise inverted", "fesswise reversed", "bendwise sinister"];
@@ -274,6 +303,7 @@ var SINISTER_REV_MIRRORED=false;
 TYPE_IMMOVABLE = 0;
 TYPE_MOVABLE = 1;
 TYPE_BEAST = 2;
+TYPE_GROUP = 3;
 
 //set up token maps
 divisionsMap = new Map();
@@ -311,6 +341,11 @@ addSynonym(movpluralMap, "fleurs-de-lis", "fleurs-de-lys");
 addSynonym(movpluralMap, "fleurs-de-lis", "fleurs de lis");
 addSynonym(movpluralMap, "fleurs-de-lis", "fleurs de lys");
 
+addSynonym(attMap, "rampant", "forcené");
+addSynonym(attMap, "rampant", "forcene");
+addSynonym(attMap, "sejant erect", "sejant rampant");
+addSynonym(attMap, "sejant erect", "sejant-rampant");
+
 //possibly not the most elegant way of handling the orientations, but we only need eight manual synonyms so it'll do
 addSynonym(mirrorOrientMap, "fesswise inverted", "inverted");
 addSynonym(mirrorOrientMap, "fesswise reversed", "reversed");
@@ -321,11 +356,6 @@ addSynonym(halfOrientMap, "fesswise inverted and reversed", "fesswise reversed a
 addSynonym(halfOrientMap, "palewise inverted and reversed", "palewise reversed and inverted");
 addSynonym(halfOrientMap, "bendwise inverted and reversed", "bendwise reversed and inverted");
 addSynonym(mirrorOrientMap, "bendwise sinister inverted and reversed", "bendwise sinister reversed and inverted");
-
-addSynonym(attMap, "rampant", "forcené");
-addSynonym(attMap, "rampant", "forcene");
-addSynonym(attMap, "sejant erect", "sejant rampant");
-addSynonym(attMap, "sejant erect", "sejant-rampant");
 
 
 //combine charge maps
@@ -408,14 +438,17 @@ Field.prototype.clone = function(){
 	return ret;
 }
 
-function Charge(type, index, tincture, number = 1, orientation=0, mirrored=false)
+function Charge(type, index, tincture, number = 1, orientation=0, mirrored=false, arrangement=0)
 {
 	Node.call(this);
-	this.setatt(type, index, number, orientation, mirrored);
-	if(tincture===undefined){
-		this.append( new Field(0) )
-	}else if(tincture!==null){
-		this.append( tincture );
+	this.setatt(type, index, number, orientation, mirrored, arrangement);
+	//if we have a charge group, there is no tincture
+	if( type!==TYPE_GROUP ){
+		if(tincture===undefined){
+			this.append( new Field(0) )
+		}else if(tincture!==null){
+			this.append( tincture );
+		}
 	}
 	//tincture === null means "do not append tincture".
 	//Do not use this unless you are manually constructing a tincture immediately afterwards
@@ -425,7 +458,7 @@ function Charge(type, index, tincture, number = 1, orientation=0, mirrored=false
 Charge.prototype=Object.create(Node.prototype);
 Charge.prototype.constructor=Charge;
 
-Charge.prototype.setatt = function(type, index, number, orientation, mirrored)
+Charge.prototype.setatt = function(type, index, number, orientation, mirrored, arrangement)
 {
 	if( type!==undefined ){
 		this.type = type;
@@ -442,10 +475,13 @@ Charge.prototype.setatt = function(type, index, number, orientation, mirrored)
 	if( mirrored!==undefined ){
 		this.mirrored = mirrored;
 	}
+	if( arrangement!==undefined ){
+		this.arrangement = arrangement;
+	}
 }
 
 Charge.prototype.clone= function(){
-	var ret = new Charge(this.type, this.index, null, this.number, this.orientation, this.mirrored);
+	var ret = new Charge(this.type, this.index, null, this.number, this.orientation, this.mirrored, this.arrangement);
 	Node.prototype.clone.call(this, ret);
 	return ret;
 }
@@ -480,23 +516,52 @@ Charge.prototype.getName= function (){
 			out+=orientations[this.orientation];
 		}
 	}
+	if( this.arrangement !== 0 )
+	{
+		out += " " + arrangements[this.arrangement];
+	}
 	return out;
 }
 
 //"orientation" is attitude
-function Beast(index, tincture, number = 1, orientation=0, direction=0)
+function ChargeGroup(arrangement=0)
 {
-	Charge.call(this, TYPE_BEAST, index, tincture, number, orientation);
+	Charge.call(this, TYPE_GROUP, 0, null, 0, 0, false, arrangement);
+}
+
+//set up inheritance
+ChargeGroup.prototype=Object.create(Charge.prototype);
+ChargeGroup.prototype.constructor=ChargeGroup;
+
+ChargeGroup.prototype.clone = function(){
+	var ret = new ChargeGroup(this.arrangement);
+	Node.prototype.clone.call(this, ret);
+	return ret;
+}
+
+ChargeGroup.prototype.getName = function(){
+	var out="";
+	out+="(charge group";
+	if( this.arrangement!==0 ){
+		out+=" " + arrangements[this.arrangement]; 
+	}
+	out+=")"
+	return out;
+}
+
+//"orientation" is attitude
+function Beast(index, tincture, number = 1, orientation=0, direction=0, arrangement=0)
+{
+	Charge.call(this, TYPE_BEAST, index, tincture, number, orientation, false, arrangement);
 	this.direction = direction;
-	
 }
 
 //set up inheritance
 Beast.prototype=Object.create(Charge.prototype);
 Beast.prototype.constructor=Beast;
 
-Beast.prototype.clone= function(){
-	var ret = new Beast(this.index, null, this.number, this.orientation, this.direction);
+Beast.prototype.clone = function(){
+	var ret = new Beast(this.index, null, this.number, this.orientation, this.direction, this.arrangement);
 	Node.prototype.clone.call(this, ret);
 	return ret;
 }
@@ -522,6 +587,10 @@ Beast.prototype.getName= function (){
 	}
 	if(this.direction !== 0){
 		out += " " + directions[this.direction];
+	}
+	if( arrangement !== 0 )
+	{
+		out += " " + arrangements[arrangement];
 	}
 	return out;
 }
@@ -968,6 +1037,11 @@ function tryDirectionName(str)
 	return tryName(str, directionsMap, 0);
 }
 
+function tryArrangementName(str)
+{
+	return tryName(str, arrangementsMap, 0);
+}
+
 //either return a field, or leave the stream semantically unchanged
 function getField(str)
 {
@@ -1098,23 +1172,24 @@ function getFieldOrDivision(str, bare=false)
 //type is optional and should not generally be used explicitly
 function getCharge(str, type)
 {
+	var ret;
 	var number=0; //not possible, error if this does not change
-	var type; //defults to undefined
 	var index;
 	var tincture=new Field(0); //defaults to "specified later"
-	var ret;
-	var orientation=0;
-	var direction=0;
+	var orientation;
 	var mirrored=false;
+	var direction=0;
+	var arrangement=0;
 	var pos=str.savePos(); //save our place in the token stream so we can exit without changing anything
 	if( isNumber(str.peek()) ){
 		number=str.pop().value;
-		var name = tryChargeName(str, type);
+		var name = tryChargeName(str, type);//if type is undefined, we'll get any charge
 		if( name!==undefined ){
+			//if we found a charge, set type and index...
 			type=name[0];
 			index=name[1];
+			//...then parse through modifiers in a loop
 			while( isWord(str.peek()) ){
-				
 				//check for a colouring
 				var tmp=getFieldOrDivision(str,true);
 				//colouring is optional, but ends the charge if it exists
@@ -1123,8 +1198,19 @@ function getCharge(str, type)
 					tincture=tmp;
 					break;
 				}
-				var tmp=tryOrientationName(str);
-				//if we read an orientation, apply it and go back to the top
+				
+				tmp=tryArrangementName(str);
+				if( tmp!==undefined )
+				{
+					if(type===TYPE_IMMOVABLE){
+						console.error("Semantic error: immovable charges cannot be arranged");
+					}else{
+						arrangement=tmp[1];
+					}
+					continue;
+				}
+				
+				tmp=tryOrientationName(str);
 				if( tmp!==undefined )
 				{
 					if(type!==TYPE_MOVABLE){
@@ -1135,8 +1221,8 @@ function getCharge(str, type)
 					}
 					continue;
 				}
-				var tmp=tryAttitudeName(str);
-				//if we read an attitude, apply it (if beast) and go back to the top
+				
+				tmp=tryAttitudeName(str);
 				if( tmp!==undefined )
 				{
 					if(type!==TYPE_BEAST){
@@ -1146,8 +1232,8 @@ function getCharge(str, type)
 					}
 					continue;
 				}
-				var tmp=tryDirectionName(str);
-				//if we read a direction, apply it (if beast) and go back to the top
+				
+				tmp=tryDirectionName(str);
 				if( tmp!==undefined )
 				{
 					if(type!==TYPE_BEAST){
@@ -1157,6 +1243,7 @@ function getCharge(str, type)
 					}
 					continue;
 				}
+				
 				//if we see a linking word, end the charge
 				if( isLinking(str.peek()) ){
 					break;
@@ -1164,11 +1251,42 @@ function getCharge(str, type)
 				//if no token was recognised, end the charge
 				break;
 			}
-			//all attributes read, create the actual charge
-			if(type!==TYPE_BEAST){
-				ret = new Charge(type, index, tincture, number, orientation, mirrored);
+			//if we have a dual arrangement, create a charge group with two charges
+			if( isDualArrangement(arrangement) ){
+				ret=new ChargeGroup();
+				var orientA, orientB, mirrorA, mirrorB, directA, directB;
+				if( arrangement===ARR_SALTIRE ){
+					orientA = ORIENT_BEND;
+					mirrorA = BEND_MIRRORED;
+					orientB = ORIENT_SINISTER;
+					mirrorB = SINISTER_MIRRORED;
+					ret.arrangement=ARR_COMBINED;
+					if(type===TYPE_BEAST){
+						console.error("Semantic error: beasts cannot be in saltire");
+						return;
+					}
+				}else if( arrangement===ARR_ADDORSED ){
+					orientA = ORIENT_PALE;
+					mirrorA = PALE_MIRRORED;
+					directA = DIR_DEXTER;
+					orientB = ORIENT_PALE_REV;
+					mirrorB = PALE_REV_MIRRORED;
+					directB = DIR_SINISTER;
+					ret.arrangement=ARR_FESS;
+				}else if( arrangement===ARR_CONFRONTE ){
+					orientA = ORIENT_PALE_REV;
+					mirrorA = PALE_REV_MIRRORED;
+					directA = DIR_SINISTER;
+					orientB = ORIENT_PALE;
+					mirrorB = PALE_MIRRORED;
+					directB = DIR_DEXTER;
+					ret.arrangement=ARR_FESS;
+				}
+				ret.append( createCharge(type, index, tincture, 1, orientA, mirrorA, direction, 0) );
+				ret.append( createCharge(type, index, tincture, 1, orientB, mirrorB, direction, 0) );
 			}else{
-				ret = new Beast(index, tincture, number, orientation, direction);
+				//all attributes read, create the actual charge
+				ret = createCharge(type, index, tincture, number, orientation, mirrored, direction, arrangement);
 			}
 			//if we see a linking word
 			if( isLinking( str.peek() ) )
@@ -1192,15 +1310,35 @@ function getCharge(str, type)
 					
 					//if the ordinary is amidst one group of charges, split the group in half as  evenly as possible
 					if(scrg===undefined){
-						var hlf=Math.floor(crg.number/2);
-						var gtr=crg.number-hlf;
-						scrg = crg.clone();
-						//place larger half above/dexter of the ordinary, lesser half below/sinister
-						crg.number = gtr;
-						scrg.number = hlf;
+						//if we have a charge group, take the individual charges
+						if(crg.type===TYPE_GROUP){
+							if(crg.subnode.length === 2){
+								scrg = crg.at(1);
+								crg=crg.at(0);
+							}else{
+								console.error("Parsing error: can only split group with two charges");
+								scrg=newChargeGroup();
+							}
+						}else{
+							var hlf=Math.floor(crg.number/2);
+							var gtr=crg.number-hlf;
+							scrg = crg.clone();
+							//place larger half above/dexter of the ordinary, lesser half below/sinister
+							crg.number = gtr;
+							scrg.number = hlf;
+						}
 					}
-					ret.append( crg );
-					ret.append( scrg );
+					//immovable charges can just have sub-charges on them, otherwise create a charge group
+					if(type===TYPE_IMMOVABLE){
+						ret.append( crg );
+						ret.append( scrg );
+					}else{
+						tmp=ret;
+						ret=new ChargeGroup(ARR_FESS);
+						ret.append( crg );
+						ret.append( tmp );
+						ret.append( scrg );
+					}
 				}else if( isThisWord(lwrd, "and") ){
 					str.loadPos(linkpos); //rewind to the word "and", deal with second charge later
 				}else{
@@ -1211,7 +1349,6 @@ function getCharge(str, type)
 			}
 			return ret;
 		}else{
-			//console.error("Word "+str.pos.toString()+": '" +str.peek().value+"' is not an ordinary");
 			str.rewind(); //un-pop the number
 			return;
 		}
@@ -1234,6 +1371,16 @@ function getCharge(str, type)
 		//console.error("Word "+str.pos.toString()+": no number where one was expected");
 		return;
 	}
+}
+
+function createCharge(type, index, tincture, number, orientation, mirrored, direction, arrangement){
+	var ret;
+	if(type!==TYPE_BEAST){
+		ret = new Charge(type, index, tincture, number, orientation, mirrored, arrangement);
+	}else{
+		ret = new Beast(index, tincture, number, orientation, direction, arrangement);
+	}
+	return ret;
 }
 
 function getMovable(str)
