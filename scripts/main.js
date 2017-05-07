@@ -236,8 +236,12 @@ arrangements=["unspecified", "combined", "two and one", "one and two", "addorsed
 
 ARR_COMBINED=1;
 ARR_FESS=8;
+ARR_BEND=9;
+ARR_SINISTER=10;
 console.assert(arrangements[ARR_COMBINED]==="combined")
 console.assert(arrangements[ARR_FESS]==="in fess")
+console.assert(arrangements[ARR_BEND]==="in bend")
+console.assert(arrangements[ARR_SINISTER]==="in bend sinister")
 
 //set up "dual" arrangements -- those which involve two charges in diferent orientations
 ARR_SALTIRE=6;
@@ -1206,6 +1210,14 @@ function getCharge(str, type)
 						console.error("Semantic error: immovable charges cannot be arranged");
 					}else{
 						arrangement=tmp[1];
+						//if a group is arranged bendwise or bendwise sinister, by default the charges should be oriented likewise
+						if(orientation === undefined){
+							if(arrangement === ARR_BEND){
+								orientation = ORIENT_BEND;
+							}else if(arrangement === ARR_SINISTER){
+								orientation = ORIENT_SINISTER;
+							}
+						}
 					}
 					continue;
 				}
@@ -1263,6 +1275,7 @@ function getCharge(str, type)
 					ret.arrangement=ARR_COMBINED;
 					if(type===TYPE_BEAST){
 						console.error("Semantic error: beasts cannot be in saltire");
+						str.loadPos(pos);
 						return;
 					}
 				}else if( arrangement===ARR_ADDORSED ){
