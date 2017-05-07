@@ -35,14 +35,28 @@ Node.prototype.display=function (depth=0)
 	return str;
 }
 
-Node.prototype.append=function(newNode)
+Node.prototype.append = function(newNode)
 {
 	this.subnode.push(newNode);
 }
 
-Node.prototype.at=function(index)
+Node.prototype.at = function(index)
 {
 	return this.subnode[index];
+}
+
+Node.prototype.clone = function()
+{
+	var ret = new Node();
+	ret.subnode = cloneSubnode(this.subnode);
+}
+
+function cloneSubnode(arr){
+	var ret=[];
+	for (var node of arr){
+		ret.push(node.clone());
+	}
+	return ret;
 }
 
 function NamedNode(name)
@@ -363,6 +377,11 @@ Division.prototype.getName= function (){
 	return out;
 }
 
+Division.prototype.clone = function(){
+	var ret = new Division(this.type, this.number);
+	ret.subnode = cloneSubnode(this.subnode);
+}
+
 function Field(tincture)
 {
 	Node.call(this);
@@ -375,6 +394,12 @@ Field.prototype.constructor=Field;
 
 Field.prototype.getName= function (){
 	return tinctureName(this.tincture);
+}
+
+Field.prototype.clone = function(){
+	var ret = new Field(this.tincture);
+	ret.subnode = cloneSubnode(this.subnode);
+	return ret;
 }
 
 function Charge(type, index, tincture, number = 1, orientation=0, mirrored=false)
@@ -393,7 +418,9 @@ Charge.prototype=Object.create(Node.prototype);
 Charge.prototype.constructor=Charge;
 
 Charge.prototype.clone= function(){
-	return new Charge(this.type, this.index, new Field(this.subnode[0].tincture), this.number, this.orientation, this.mirrored)
+	var ret = new Charge(this.type, this.index, new Field(this.subnode[0].tincture), this.number, this.orientation, this.mirrored);
+	ret.subnode = cloneSubnode(this.subnode);
+	return ret;
 }
 
 Charge.prototype.getName= function (){
@@ -442,7 +469,9 @@ Beast.prototype=Object.create(Charge.prototype);
 Beast.prototype.constructor=Beast;
 
 Beast.prototype.clone= function(){
-	return new Beast(this.index, new Field(this.subnode[0].tincture), this.number, this.orientation, this.direction);
+	var ret = new Beast(this.index, new Field(this.subnode[0].tincture), this.number, this.orientation, this.direction);
+	ret.subnode = cloneSubnode(this.subnode);
+	return ret;
 }
 
 Beast.prototype.getName= function (){
