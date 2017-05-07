@@ -45,9 +45,14 @@ Node.prototype.at = function(index)
 	return this.subnode[index];
 }
 
-Node.prototype.clone = function()
+Node.prototype.clone = function(newNode)
 {
-	var ret = new Node();
+	var ret;
+	if(newNode instanceof Node){
+		ret = newNode;
+	}else{
+		ret = new Node();
+	}
 	ret.subnode = cloneSubnode(this.subnode);
 }
 
@@ -379,7 +384,8 @@ Division.prototype.getName= function (){
 
 Division.prototype.clone = function(){
 	var ret = new Division(this.type, this.number);
-	ret.subnode = cloneSubnode(this.subnode);
+	Node.prototype.clone.call(this, ret);
+	//ret.subnode = cloneSubnode(this.subnode);
 }
 
 function Field(tincture)
@@ -398,28 +404,49 @@ Field.prototype.getName= function (){
 
 Field.prototype.clone = function(){
 	var ret = new Field(this.tincture);
-	ret.subnode = cloneSubnode(this.subnode);
+	Node.prototype.clone.call(this, ret);
 	return ret;
 }
 
 function Charge(type, index, tincture, number = 1, orientation=0, mirrored=false)
 {
 	Node.call(this);
-	this.type = type;
-	this.index = index;
-	this.number = number;
-	this.orientation=orientation;
-	this.mirrored=mirrored;
-	this.append( tincture );
+	this.setatt(type, index, number, orientation, mirrored);
+	if(tincture===undefined){
+		this.append( new Field(0) )
+	}else if(tincture!==null){
+		this.append( tincture );
+	}
+	//tincture === null means "do not append tincture".
+	//Do not use this unless you are manually constructing a tincture immediately afterwards
 }
 
 //set up inheritance
 Charge.prototype=Object.create(Node.prototype);
 Charge.prototype.constructor=Charge;
 
+Charge.prototype.setatt = function(type, index, number, orientation, mirrored)
+{
+	if( type!==undefined ){
+		this.type = type;
+	}
+	if( index!==undefined ){
+		this.index = index;
+	}
+	if( number!==undefined ){
+		this.number = number;
+	}
+	if( orientation!== undefined ){
+		this.orientation = orientation;
+	}
+	if( mirrored!==undefined ){
+		this.mirrored = mirrored;
+	}
+}
+
 Charge.prototype.clone= function(){
-	var ret = new Charge(this.type, this.index, new Field(this.subnode[0].tincture), this.number, this.orientation, this.mirrored);
-	ret.subnode = cloneSubnode(this.subnode);
+	var ret = new Charge(this.type, this.index, null, this.number, this.orientation, this.mirrored);
+	Node.prototype.clone.call(this, ret);
 	return ret;
 }
 
@@ -469,8 +496,8 @@ Beast.prototype=Object.create(Charge.prototype);
 Beast.prototype.constructor=Beast;
 
 Beast.prototype.clone= function(){
-	var ret = new Beast(this.index, new Field(this.subnode[0].tincture), this.number, this.orientation, this.direction);
-	ret.subnode = cloneSubnode(this.subnode);
+	var ret = new Beast(this.index, null, this.number, this.orientation, this.direction);
+	Node.prototype.clone.call(this, ret);
 	return ret;
 }
 
