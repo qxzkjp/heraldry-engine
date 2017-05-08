@@ -5,17 +5,35 @@
 		<title>Heraldry Syntax</title>
 		<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 		<link href="styles/style.css" rel="stylesheet" type="text/css">
+		<script type="text/javascript" src="../base64-js/base64js.min.js"></script>
+		<script type="text/javascript" src="../TextEncoderLite/index.js"></script>
 	</head>
 	<body>
 		<h1>SVG Test</h1>
 		<div style="text-align:center;">
-			<svg version="1.1" baseProfile="full" width="300" height="200" xmlns="http://www.w3.org/2000/svg" id="escutcheon">
-				<rect width="100%" height="100%" fill="red" />
-				<circle cx="150" cy="100" r="80" fill="green" />
-				<text x="150" y="125" font-size="60" text-anchor="middle" fill="white">SVG</text>
+			<svg version="1.1" baseProfile="full" width="200" height="200" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" id="escutcheon">
+				<defs>
+					<pattern id="dotty" width="5" height="5" patternUnits="userSpaceOnUse">
+						<rect width="100%" height="100%" fill="white" />
+						<circle cx="2.5" cy="2.5" r="0.75" fill="black" />
+						<circle cx="0" cy="5" r="0.75" fill="black" />
+						<circle cx="5" cy="0" r="0.75" fill="black" />
+						<circle cx="0" cy="0" r="0.75" fill="black" />
+						<circle cx="5" cy="5" r="0.75" fill="black" />
+					</pattern>
+				</defs>
+				<rect width="100%" height="100%" fill="white" />
+				<path
+					d="m 54.75943,25.778305 c 0,3.449998 -2.8,6.249998 -6.249998,6.249998 -3.449999,0 -6.249997,-2.8 -6.249997,-6.249998 0,-3.449999 2.799998,-6.249997 6.249997,-6.249997 3.449998,0 6.249998,2.799998 6.249998,6.249997 z m -9.000001,11 c 0,3.449998 -2.8,6.249998 -6.249998,6.249998 -3.449999,0 -6.249997,-2.8 -6.249997,-6.249998 0,-3.449999 2.799998,-6.249997 6.249997,-6.249997 3.449998,0 6.249998,2.799998 6.249998,6.249997 z m 18.000001,0 c 0,3.449998 -2.8,6.249998 -6.249998,6.249998 -3.449999,0 -6.249997,-2.8 -6.249997,-6.249998 0,-3.449999 2.799998,-6.249997 6.249997,-6.249997 3.449998,0 6.249998,2.799998 6.249998,6.249997 z m -17.078699,-3.313499 2.951989,0.203586 c 0.101793,19.23883 14.759949,49.674863 14.759949,49.674863 l -9.212244,-8.805073 c -2.544818,2.95199 -7.074596,8.805073 -7.074596,8.805073 0,0 -3.257368,-5.90398 -5.598601,-8.85597 l -10.484653,8.754177 c 0,0 14.45457,-30.130655 14.658156,-49.776656 z"
+					fill="black"
+					id="ermineSpot"
+					/>
 			</svg>
 		</div>
-		<script src="scripts/svg.js"></script>
+		<div style="text-align:center;" id="dotContainer">
+			<object data="./images/dots.svg" type="image/svg+xml" id="dots"></object>
+		</div>
+		<textarea rows="4" cols="50" id="idOut"></textarea>
 		<h1>Syntax Test</h1>
 		<p class="console" id="displayPara">
 			root<br>
@@ -25,5 +43,6 @@
 			-node3<br>
 		</p>
 		<script src="scripts/main.js"></script>
+		<script src="scripts/svg.js"></script>
 	</body>
 </html>
