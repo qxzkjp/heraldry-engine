@@ -34,7 +34,7 @@ p, li {
 	border: 6px solid #CFB53B;
 	line-height: 1;
 	font-family: monospace;
-	color: #00FF00
+	color: #00FF00;
 }
 
 h1 {
@@ -49,4 +49,14 @@ h1 {
 img {
   display: block;
   margin: 0 auto;
+}
+
+#wrapper {
+  display: flex;
+}
+#left {
+  flex: 0 0 50%;
+}
+#right {
+  flex: 1;
 }

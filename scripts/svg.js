@@ -347,6 +347,27 @@ function shiftPath(path, dx=0, dy=0){
 	return newPath;
 }
 
+function roundToSix(n){
+	return Math.round(n*1000000)/1000000;
+}
+
+function roundPath(path){
+	var newPath = clonePath(path);
+	for(var i=0; i<newPath.length; ++i){
+		for(var j=0; j<newPath[i].length; ++j){
+			if( newPath[i][j] instanceof Point){
+				newPath[i][j].x = roundToSix( newPath[i][j].x );
+				newPath[i][j].y = roundToSix( newPath[i][j].y );
+			}else if( typeof newPath[i][j] ==="string" ){
+				//do nothing
+			}else if( typeof newPath[i][j] === "number" ){
+				newPath[i][j] += roundToSix( newPath[i][j] );
+			}
+		}
+	}
+	return newPath;
+}
+
 function clonePath(path){
 	var newPath=[];
 	for( var i of path ){
@@ -387,13 +408,38 @@ function scalePath(path, c){
 }
 
 function addPathToSVG(container, path){
-	d = reassemblePath(path);
-	pathElem=document.createElementNS(SVG_URI, "path");
+	var d = reassemblePath(path);
+	var pathElem=document.createElementNS(SVG_URI, "path");
 	pathElem.setAttribute("d", d)
 	container.appendChild(pathElem);
 }
 
+function getPathFromElem(id)
+{
+	var elem = document.getElementById(id);
+	var d = elem.getAttribute("d");
+	var arr = analyzePath(d);
+	return arr;
+}
+
+function setPathOnElem(id, arr){
+	var elem = document.getElementById(id);
+	var d = reassemblePath(arr);
+	elem.setAttribute("d", d);
+}
+
+function roundElem(id){
+	var path = getPathFromElem(id);
+	path = roundPath(path);
+	setPathOnElem(id, path);
+}
+
 function changeTincture(id,tinct){
 	var elem = document.getElementById(id);
-	elem.setAttribute("fill", "url(#"+tinct+")");
+	elem.setAttribute("class", "heraldry-"+tinct);
+}
+
+function changeHeraldryCSS(fileName){
+	var elem = document.getElementById("heraldry-css");
+	elem.setAttribute("href","styles/"+fileName);
 }
