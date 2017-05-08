@@ -393,21 +393,7 @@ function addPathToSVG(container, path){
 	container.appendChild(pathElem);
 }
 
-ermineSVG=document.getElementById("escutcheon");
-erminePath=analyzePath(document.getElementById("ermineSpot").getAttribute("d"));
-//drawBox("escutcheon", "ermineSpot", "ermineBox");
-C = getCentre(erminePath);
-dx = 50 - C.x;
-dy = 50 - C.y;
-centrePath = shiftPath(erminePath, dx, dy);
-centrePath = scalePath(centrePath, 0.5);
-changeErmine(centrePath);
-topLeftPath=shiftPath(centrePath,-50,-50);
-topRightPath=shiftPath(centrePath,50,-50);
-bottomLeftPath=shiftPath(centrePath,-50,50);
-bottomRightPath=shiftPath(centrePath,50,50);
-
-addPathToSVG(ermineSVG, topLeftPath);
-addPathToSVG(ermineSVG, topRightPath);
-addPathToSVG(ermineSVG, bottomLeftPath);
-addPathToSVG(ermineSVG, bottomRightPath);
+function changeTincture(id,tinct){
+	var elem = document.getElementById(id);
+	elem.setAttribute("fill", "url(#"+tinct+")");
+}
