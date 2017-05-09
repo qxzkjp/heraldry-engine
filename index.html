@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Heraldry Syntax</title>
+		<link rel="icon" type="image/x-icon" href="logo.png" />
 		<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 		<link href="styles/style.css" rel="stylesheet" type="text/css">
 		<link id="heraldry-css" href="styles/heraldry.css" rel="stylesheet" type="text/css">
@@ -12,7 +13,7 @@
 	<body>
 		<h1>SVG Test</h1>
 		<div style="text-align:center;" id="dotContainer">
-			<svg version="1.1" baseProfile="full" width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" id="escutcheon">
+			<svg version="1.1" baseProfile="full" width="300" height="300" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="escutcheon">
 				<defs>
 					<pattern id="or-bw" width="200" height="200" patternUnits="userSpaceOnUse" patternTransform="scale(0.0625)">
 						<rect width="200" height="200" fill="white" />
@@ -91,20 +92,26 @@
 						<path d="M 103.275904,87.171262 C 103.275904,88.896261 101.875904,90.296261 100.150905,90.296261 C 98.425906,90.296261 97.025906,88.896261 97.025906,87.171262 C 97.025906,85.446262 98.425906,84.046263 100.150905,84.046263 C 101.875904,84.046263 103.275904,85.446262 103.275904,87.171262 Z M 98.775904,92.671262 C 98.775904,94.396261 97.375904,95.796261 95.650905,95.796261 C 93.925905,95.796261 92.525906,94.396261 92.525906,92.671262 C 92.525906,90.946262 93.925905,89.546263 95.650905,89.546263 C 97.375904,89.546263 98.775904,90.946262 98.775904,92.671262 Z M 107.775904,92.671262 C 107.775904,94.396261 106.375904,95.796261 104.650905,95.796261 C 102.925906,95.796261 101.525907,94.396261 101.525907,92.671262 C 101.525907,90.946262 102.925906,89.546263 104.650905,89.546263 C 106.375904,89.546263 107.775904,90.946262 107.775904,92.671262 Z M 99.236555,91.014512 M 100.712549,91.116305 C 100.763446,100.73572 108.092524,115.953737 108.092524,115.953737 L 103.486402,111.5512 C 102.213993,113.027195 99.949104,115.953737 99.949104,115.953737 C 99.949104,115.953737 98.32042,113.001747 97.149803,111.525752 L 91.907477,115.90284 C 91.907477,115.90284 99.134762,100.837513 99.236555,91.014512 Z" fill="white" stroke="black" stroke-width="2" />
 					</pattern>
 				</defs>
-				<rect width="100%" height="100%" class="heraldry-ermine" id="field" stroke="black" stroke-width="3" />
+				<rect x="0" y="0" width="100%" height="100%" fill="white" />
+				<path
+					d="m 19,10 h 162.232606 v 82.853549 c 0,0 -0.53454,24.32153 -39.28862,64.14469 -38.75409,39.82316 -41.827683,39.55589 -41.827683,39.55589 0,0 -3.073593,0.26727 -41.827683,-39.55589 -38.75408,-39.82316 -39.28862,-64.14469 -39.28862,-64.14469 z"
+					id="shield"
+					stroke-width="1"
+					stroke="black"
+					class="heraldry-ermine" />
 			</svg>
 		</div>
 		<div id="wrapper">
 			<div id="left" style="color: yellow;">
-				<input type="radio" name="tincture" value="ermine" onchange="changeTincture('field','ermine')" checked> Ermine<br>
-				<input type="radio" name="tincture" value="ermines" onchange="changeTincture('field','ermines')"> Ermines<br>
-				<input type="radio" name="tincture" value="or" onchange="changeTincture('field','or')"> "Or"<br>
-				<input type="radio" name="tincture" value="argent" onchange="changeTincture('field','argent')"> "Argent"<br>
-				<input type="radio" name="tincture" value="azure" onchange="changeTincture('field','azure')"> "Azure"<br>
-				<input type="radio" name="tincture" value="gules" onchange="changeTincture('field','gules')"> "Gules"<br>
-				<input type="radio" name="tincture" value="vert" onchange="changeTincture('field','vert')"> "Vert"<br>
-				<input type="radio" name="tincture" value="purpure" onchange="changeTincture('field','purpure')"> "Purpure"<br>
-				<input type="radio" name="tincture" value="sable" onchange="changeTincture('field','sable')"> "Sable"<br>
+				<input type="radio" name="tincture" value="ermine" onchange="changeTincture('shield','ermine')" checked> Ermine<br>
+				<input type="radio" name="tincture" value="ermines" onchange="changeTincture('shield','ermines')"> Ermines<br>
+				<input type="radio" name="tincture" value="or" onchange="changeTincture('shield','or')"> "Or"<br>
+				<input type="radio" name="tincture" value="argent" onchange="changeTincture('shield','argent')"> "Argent"<br>
+				<input type="radio" name="tincture" value="azure" onchange="changeTincture('shield','azure')"> "Azure"<br>
+				<input type="radio" name="tincture" value="gules" onchange="changeTincture('shield','gules')"> "Gules"<br>
+				<input type="radio" name="tincture" value="vert" onchange="changeTincture('shield','vert')"> "Vert"<br>
+				<input type="radio" name="tincture" value="purpure" onchange="changeTincture('shield','purpure')"> "Purpure"<br>
+				<input type="radio" name="tincture" value="sable" onchange="changeTincture('shield','sable')"> "Sable"<br>
 			</div>
 			<div id="right" style="color: yellow;">
 				<input type="radio" name="style" value="normal" onchange="changeHeraldryCSS('heraldry.css')" checked> Full colour<br>

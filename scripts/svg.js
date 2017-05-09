@@ -116,6 +116,9 @@ function reassemblePath(arr){
 	var path="";
 	for (var i of arr){
 		for(var j of i){
+			if(typeof j === "number" && j<Math.pow(10,-6)){
+				j=0;
+			}
 			path+=j;
 			path+=" ";
 		}
@@ -361,7 +364,7 @@ function roundPath(path){
 			}else if( typeof newPath[i][j] ==="string" ){
 				//do nothing
 			}else if( typeof newPath[i][j] === "number" ){
-				newPath[i][j] += roundToSix( newPath[i][j] );
+				newPath[i][j] = roundToSix( newPath[i][j] );
 			}
 		}
 	}
