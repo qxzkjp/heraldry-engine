@@ -38,3 +38,27 @@
 .heraldry-sable {
 	fill: url(#sable-bw);
 }
+
+.bend .heraldry-ermines {
+	fill: url(#ermines-bend)
+}
+
+.bend .heraldry-azure {
+	fill: url(#vert-bw)
+}
+
+.bend .heraldry-purpure {
+	fill: url(#azure-bw)
+}
+
+.bend .heraldry-gules {
+	fill: url(#purpure-bw)
+}
+
+.bend .heraldry-vert {
+	fill: url(#gules-bw)
+}
+
+.bend .heraldry-sable {
+	fill: url(#sable-bend)
+}

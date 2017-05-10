@@ -1,5 +1,4 @@
 SVG_URI = "http://www.w3.org/2000/svg";
-SVG_dots="<svg version=\"1.1\" baseProfile=\"full\" width=\"200\" height=\"200\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"100%\" height=\"100%\" fill=\"white\" /><circle cx=\"100\" cy=\"100\" r=\"60\" fill=\"black\" /><circle cx=\"0\" cy=\"200\" r=\"60\" fill=\"black\" /><circle cx=\"200\" cy=\"0\" r=\"60\" fill=\"black\" /><circle cx=\"0\" cy=\"0\" r=\"60\" fill=\"black\" /><circle cx=\"200\" cy=\"200\" r=\"60\" fill=\"black\" /></svg>";
 
 //encode safely to base64 using open source libraries (included in head)
 function base64EncodingUTF8(str) {
@@ -10,12 +9,6 @@ function base64EncodingUTF8(str) {
 
 function getEncodedSVG(name){
 	return base64EncodingUTF8(document.getElementById(name).contentDocument.childNodes[0].outerHTML);
-}
-
-//objectsdo not count as pard of the DOM for dom-ready status, so we wait on them manually.
-document.getElementById("dots").onload = function(){
-	document.getElementById("idOut").value = getEncodedSVG("dots")
-	console.log("Loaded "+document.getElementById("dots").data)
 }
 
 function analyzePath(d){
@@ -132,6 +125,10 @@ function Point(x, y){
 	this.y=y;
 }
 
+Point.prototype.clone = function(){
+	return new Point(this.x, this.y);
+}
+
 Point.prototype.toString = function(){
 	return ""+this.x+","+this.y;
 }
@@ -200,6 +197,52 @@ function bezierBox(p0, p1, p2, p3){
 	return [ new Point(x[0], y[0]), new Point(x[1], y[1]) ];
 }
 
+function bezierInvert(p0, p1, p2, p3){
+	return [p3.clone(), p2.clone(), p1.clone(), p0.clone()];
+}
+
+function qBezierInvert(p0, p1, p2){
+	return [p2.clone(), p1.clone(), p0.clone()];
+}
+
+//b must be 1-a, option included for computational accuracy
+function bezierTruncate(p0, p1, p2, p3, a, b){
+	if(b===undefined){
+		b=1-a;
+	}
+	var ret=qBezierTruncate(p0, p1, p2, a, b);
+	var r3=new Point( b*b*b*p0.x + 3*a*b*b*p1.x + 3*a*a*b*p2.x + a*a*a*p3.x,
+		b*b*b*p0.y + 3*a*b*b*p1.y + 3*a*a*b*p2.y + a*a*a*p3.y );
+	ret.push(r3);
+	return [r0, r1, r2, r3];
+}
+
+//b must be 1-a, option included for computational accuracy
+function qBezierTruncate(p0, p1, p2, a, b){
+	if(b===undefined){
+		b=1-a;
+	}
+	var r0=p0.clone();
+	var r1=new Point( b*p0.x + a*p1.x, b*p0.y + a*p1.y );
+	var r2=new Point( b*b*p0.x + 2*a*b*p1.x + a*a*p2.x,
+		b*b*p0.y + 2*a*b*p1.y + a*a*p2.y );
+	return [r0, r1, r2];
+}
+
+function bezierSplit(p0, p1, p2, p3, a){
+	var r1 = bezierTruncate(p0, p1, p2, p3, a);
+	var r2 = bezierInvert(...bezierTruncate(...bezierInvert(p0, p1, p2, p3), 1-a, a));
+	var ret = r1.concat(r2.slice(1));
+	return ret;
+}
+
+function qBezierSplit(p0, p1, p2, a){
+	var r1 = qBezierTruncate(p0, p1, p2, a);
+	var r2 = qBezierInvert(...qBezierTruncate(...qBezierInvert(p0, p1, p2), 1-a, a));
+	var ret = r1.concat(r2.slice(1));
+	return ret;
+}
+
 function qBezier(c0, c1, c2, t){
 	var ret = Math.pow(1-t, 2)*c0
 	+ 2*(1-t)*t*c1
@@ -260,7 +303,7 @@ BoundingBox.prototype.addPoints = function(){
 //TODO: make this function deal with arc commands
 function getBoundingBox(arr){
 	var bBox = new BoundingBox;
-	var firstPoint = arr[0][1];
+	var firstPoint = arr[0][1].clone();
 	//var prevPoint = new Point( 0, 0 )
 	var pos = new Point( 0, 0 )
 	for (var p of arr){
@@ -278,7 +321,7 @@ function getBoundingBox(arr){
 			bBox.addPoints( ...qBezierBox( pos, p[1], p[2] ) );
 		}else if( p[0] === "M" || p[0] === "L" ){
 			bBox.addPoint(p[1]);
-			pos = p[1];
+			pos = p[1].clone();
 		} 
 	}
 	return [bBox.min, bBox.max];
@@ -388,21 +431,26 @@ function clonePath(path){
 	return newPath;
 }
 
-function scalePath(path, c){
-	newPath = clonePath(path);
-	var centre = getCentre(newPath);
-	for(var i=0; i<newPath.length; ++i){
-		for(var j=0; j<newPath[i].length; ++j){
-			if( newPath[i][j] instanceof Point){
-				newPath[i][j].x= (newPath[i][j].x-centre.x)*c + centre.x;
-				newPath[i][j].y= (newPath[i][j].y-centre.y)*c + centre.y;
-			}else if( typeof newPath[i][j] ==="string" ){
-				//do nothing
-			}else if( typeof newPath[i][j] === "number" ){
-				if( newPath[i][0] === "H" ){
-					newPath[i][j] = (newPath[i][j]-centre.x)*c + centre.x;
-				}else if(newPath[i][0] === "V"){
-					newPath[i][j] = (newPath[i][j]-centre.y)*c + centre.y;
+//TODO: fix this function
+function scalePath(path, c, cx, cy){
+	var newPath = clonePath(path);
+	if(cx===undefined || cy===undefined){
+		cx=0;
+		cy=0;
+	}
+	centre = new Point(cx, cy);
+	for(var i of newPath){
+		for(var j=1; j<i.length; ++j){
+			if( i[j] instanceof Point){
+				i[j].x= (i[j].x-centre.x)*c + centre.x;
+				i[j].y= (i[j].y-centre.y)*c + centre.y;
+			}else if( typeof i[j] ==="string" ){
+				console.error("error: command in path where point was expected")
+			}else if( typeof i[j] === "number" ){
+				if( i[0] === "H" ){
+					i[j] = (i[j]-centre.x)*c + centre.x;
+				}else if(i[0] === "V"){
+					i[j] = (i[j]-centre.y)*c + centre.y;
 				}
 			}
 		}
@@ -446,3 +494,70 @@ function changeHeraldryCSS(fileName){
 	var elem = document.getElementById("heraldry-css");
 	elem.setAttribute("href","styles/"+fileName);
 }
+
+function recentrePath(arr, x, y){
+	var c = getCentre(arr);
+	var dx = x - c.x;
+	var dy = y - c.y;
+	var newPath = shiftPath(arr, dx, dy);
+	return newPath;
+}
+
+function recentreElem(id, x, y){
+	var elem = document.getElementById(id);
+	var d = elem.getAttribute("d");
+	var arr = analyzePath(d);
+	arr = recentrePath(arr, x, y);
+	d = reassemblePath(arr);
+	elem.setAttribute("d", d)
+}
+
+//recentreElem("shield", 100, 100);
+//roundElem("shield");
+//var shield = document.getElementById("shield");
+//var path=analyzePath(shield.getAttribute("d"));
+//path=scalePath(path, 1.5);
+//path=recentrePath(path, 150, 150);
+//path=roundPath(path);
+//shield.setAttribute("d", reassemblePath(path));
+
+//var root = document.getElementById("root");
+//var path = document.getElementById("path");
+//var point = root.createSVGPoint();
+//point.x = 0;  // replace this with the x co-ordinate of the path segment
+//point.y = 0;  // replace this with the y co-ordinate of the path segment
+//var matrix = path.getTransformToElement(root);
+//var position = point.matrixTransform(matrix);
+
+path=document.getElementById("shield");
+box=path.getBBox();
+centre=new Point(box.x+(box.width/2), box.y+(box.height/2));
+
+addPale(id, tinct, rw=0.3){
+	path=document.getElementById(id);
+	box=path.getBBox();
+	h=box.height;
+	w=box.width;
+	rh=Math.ceil(sqrt(h*h+w*w);//diagonal length
+	rx=box.x+(w-rw)/2;
+	ry=box.y+(w-rh)/2;
+	esc=document.getElementById("escutcheon");
+	pale=document.createElementNS(SVG_URI, "rect");
+	pale.setAttribute("x", rx);
+	pale.setAttribute("y", ry);
+	pale.setAttribute("width", rw);
+	pale.setAttribute("height", rh);
+	pale.setAttribute("class", "heraldry-"+tinctures[tincture]);
+	pale.appendChild(circ);
+}
+
+var tree = parseString("Azure, a bend or");
+
+tinctureClasses = ["heraldry-unspecified", "heraldry-argent", "heraldry-or", "heraldry-gules", "heraldry-azure", "heraldry-vert", "heraldry-purpure", "heraldry-sable", "heraldry-tenny", "heraldry-sanguine", "heraldry-vair", "heraldry-countervair", "heraldry-potent", "heraldry-counterpotent", "heraldry-ermine", "heraldry-ermines", "heraldry-erminois", "heraldry-pean"]
+
+function applyTree(tree){
+	var tinct = tinctures[tree.tincture];
+	changeTincture("shield", tinct);
+}
+
+//applyTree(tree);
