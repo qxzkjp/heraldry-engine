@@ -1,18 +1,25 @@
+/*make body element actually cover 100% of window height*/
+body, html {
+ /*height: 100%;*/
+ padding: 0;
+}
+
 html {
-  font-size: 10px;
-  font-family: 'Open Sans', sans-serif;
-  background-image: url("../images/ermine.png");
-  background-color:  #FFFFFF;
-  background-size: 50px;
-  height: 100%;
+	font-size: 10px;
+	font-family: 'Open Sans', sans-serif;
+	background-image: url("../images/erminesmall.svg");
+	/*background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgYmFzZVByb2ZpbGU9ImZ1bGwiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBpZD0iZXNjdXRjaGVvbiI+Cgk8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ3aGl0ZSIvPgoJPGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSIzMCIgZmlsbD0iYmxhY2siLz4KCTxjaXJjbGUgY3g9IjAiIGN5PSIyMDAiIHI9IjMwIiBmaWxsPSJibGFjayIvPgoJPGNpcmNsZSBjeD0iMjAwIiBjeT0iMCIgcj0iMzAiIGZpbGw9ImJsYWNrIi8+Cgk8Y2lyY2xlIGN4PSIwIiBjeT0iMCIgcj0iMzAiIGZpbGw9ImJsYWNrIi8+Cgk8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjMwIiBmaWxsPSJibGFjayIvPgo8L3N2Zz4=");*/
+	background-color:  #FFFFFF;
+	background-size: 50px;
+	margin: 0;
 }
 
 body {
   width: 600px;
-  height: 100%;
+  /*min-height: 100%;*/
   margin: 0 auto;
   background-color: #0000FF;
-  padding: 0 20px 20px 20px;
+  padding: 0 20px 0 20px;
   /*border: 5px solid black;*/
 }
 
@@ -22,13 +29,12 @@ p, li {
   letter-spacing: 1px;
 }
 
-.console
-{
+.console {
 	background-color: #000000;
 	border: 6px solid #CFB53B;
 	line-height: 1;
 	font-family: monospace;
-	color: #00FF00
+	color: #00FF00;
 }
 
 h1 {
@@ -43,4 +49,19 @@ h1 {
 img {
   display: block;
   margin: 0 auto;
+}
+
+.clear { clear: both; }
+
+#wrapper {
+  display: flex;
+}
+#left {
+  flex: 0 0 33%;
+}
+#middle {
+	flex: 0 0 33%;
+}
+#right {
+  flex: 1;
 }
