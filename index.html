@@ -131,10 +131,11 @@
 				</defs>
 				<rect x="0" y="0" width="100%" height="100%" fill="url(#chequeredBG)" />
 				<g id="escutcheon">
-					<path
+					<!-- alternative shield outline (my creation) -->
+					<!--path
 						d="M 20 5 L 180 5 C 180 5 182.113598 84.825528 167.003707 137.362438 C 151.893806 189.899348 102.105477 195.000018 100 195 C 97.894524 195 48.106195 189.899348 32.996295 137.362438 C 17.886404 84.825528 20 5 20 5 Z"
 						id="shield"
-						class="heraldry-azure" />
+						class="heraldry-ermine" />
 					<path
 						d="M 20 5 L 180 5 C 180 5 182.113598 84.825528 167.003707 137.362438 C 151.893806 189.899348 102.105477 195.000018 100 195 C 97.894524 195 48.106195 189.899348 32.996295 137.362438 C 17.886404 84.825528 20 5 20 5 Z"
 						id="shieldOutline"
@@ -142,13 +143,28 @@
 						stroke="black"
 						stroke-linecap="square"
 						stroke-linejoin="bevel"
+						fill="none" /-->
+					<!-- alternative shield outline (adapted from Wikimedia Commons) -->
+					<path
+						d="M 20 12.5 L 179.999996 12.5 L 179.999996 81.366166 C 179.999996 157.611827 99.999998 187.500003 99.999998 187.500003 C 99.999998 187.500003 20 157.611827 20 81.366166 Z"
+						id="shield"
+						class="heraldry-ermine" />
+					<path
+						d="M 20 12.5 L 179.999996 12.5 L 179.999996 81.366166 C 179.999996 157.611827 99.999998 187.500003 99.999998 187.500003 C 99.999998 187.500003 20 157.611827 20 81.366166 Z"
+						id="shieldOutline"
+						stroke-width="1"
+						stroke="black"
+						stroke-linecap="square"
+						stroke-linejoin="bevel"
 						fill="none" />
-				<g id="SVGContent">
+				</g>
 			</svg>
 			<br class="clear" />
 		</div>
 		<div id="wrapper">
 			<div id="left" style="color: yellow;">
+				<input type="radio" name="shape" value="A" onchange="changeShield(shieldA)"> Shape A<br>
+				<input type="radio" name="shape" value="B" onchange="changeShield(shieldB)" checked> Shape B<br>
 			</div>
 			<div id="middle" style="color: yellow;">
 			</div>
@@ -169,6 +185,7 @@
 		</div>
 		<br class="clear" />
 		<script src="../path-data-polyfill.js../path-data-polyfill.js"></script>
+		<script src="scripts/cubic.js"></script>
 		<script src="scripts/main.js"></script>
 		<script src="scripts/svg.js"></script>
 	</body>

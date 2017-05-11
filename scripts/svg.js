@@ -1,4 +1,7 @@
 SVG_URI = "http://www.w3.org/2000/svg";
+shieldA = "M 20 5 L 180 5 C 180 5 182.113598 84.825528 167.003707 137.362438 C 151.893806 189.899348 102.105477 195.000018 100 195 C 97.894524 195 48.106195 189.899348 32.996295 137.362438 C 17.886404 84.825528 20 5 20 5 Z";
+shieldB = "M 20 12.5 L 179.999996 12.5 L 179.999996 81.366166 C 179.999996 157.611827 99.999998 187.500003 99.999998 187.500003 C 99.999998 187.500003 20 157.611827 20 81.366166 Z";
+blazon = "";
 
 //encode safely to base64 using open source libraries (included in head)
 function base64EncodingUTF8(str) {
@@ -147,6 +150,13 @@ Point.prototype.max = function (A)
 Point.prototype.min = function (A)
 {
 	return new Point( Math.min( this.x, A.x ), Math.min( this.y, A.y ) );
+}
+
+Point.difference = function(p1, p2){
+	var p3 = new Point( 0, 0 );
+	p3.x = p2.x - p1.x;
+	p3.y = p2.y - p1.y;
+	return p3;
 }
 
 function bezier(c0, c1, c2, c3, t){
@@ -533,27 +543,6 @@ path=document.getElementById("shield");
 box=path.getBBox();
 centre=new Point(box.x+(box.width/2), box.y+(box.height/2));
 
-function addPale(id, tinct, rw=0.3){
-	var elem=document.getElementById(id);
-	var pale=createPale(elem, tinct, rw);
-	setClip(pale, id);
-	//insert just after given element
-	elem.parentNode.insertBefore(pale, elem.nextSibling);
-}
-
-function addBend(id, tinct, rw=0.3){
-	var elem=document.getElementById(id);
-	var c=[];
-	var pale=createPale(elem, tinct, rw, c);
-	pale.setAttribute("transform", "rotate(-45 "+c[0]+" "+c[1]+")");
-	var g=document.createElementNS(SVG_URI, "g");
-	g.setAttribute("class", "bend");
-	g.appendChild(pale);
-	setClip(g,id);
-	//insert just after given element
-	elem.parentNode.insertBefore(g, elem.nextSibling);
-}
-
 function createClip(id){
 	var clipId=id+"-clip";
 	var clip=document.getElementById(clipId);
@@ -576,6 +565,7 @@ function setClip(elem, clipToId){
 	elem.setAttribute("clip-path","url(#"+clipId+")");
 }
 
+//c comes back containing [centre x, centre y, rect x, rect y, rect height, rect width]
 function createPale(elem, tinct, rw=0.34, c=[]){
 	//var path=document.getElementById(id);
 	var box=elem.getBBox();
@@ -589,6 +579,10 @@ function createPale(elem, tinct, rw=0.34, c=[]){
 	var cy=box.y+w/2;
 	c.push(cx);
 	c.push(cy);
+	c.push(rx);
+	c.push(ry);
+	c.push(rh);
+	c.push(rw);
 	var pale=document.createElementNS(SVG_URI, "rect");
 	pale.setAttribute("x", rx);
 	pale.setAttribute("y", ry);
@@ -599,7 +593,7 @@ function createPale(elem, tinct, rw=0.34, c=[]){
 	return pale;
 }
 
-function createFess(elem, tinct, rh=0.34){
+function createFess(elem, tinct, rh=0.34, c=[]){
 	var box=elem.getBBox();
 	var h=box.height;
 	var w=box.width;
@@ -607,6 +601,12 @@ function createFess(elem, tinct, rh=0.34){
 	var ry=box.y+(h-rh)/2;
 	var rx=box.x;
 	rw=w;
+	c.push(null);
+	c.push(null);
+	c.push(rx);
+	c.push(ry);
+	c.push(rw);
+	c.push(rh);
 	var fess=document.createElementNS(SVG_URI, "rect");
 	fess.setAttribute("x", rx);
 	fess.setAttribute("y", ry);
@@ -617,12 +617,98 @@ function createFess(elem, tinct, rh=0.34){
 	return fess;
 }
 
+function getPoints(c1, c2, c3, c4){
+	var p1=SVG.createSVGPoint();
+	p1.x=c1;
+	p1.y=c2;
+	var p3=SVG.createSVGPoint();
+	p3.x=p1.x+c3;
+	p3.y=p1.y+c4;
+	var p2=SVG.createSVGPoint();
+	p2.x=p3.x;
+	p2.y=p1.y;
+	var p4=SVG.createSVGPoint();
+	p4.x=p1.x;
+	p4.y=p3.y;
+	return [p1, p2, p3, p4];
+}
+
 function addFess(id, tinct, rw=0.3){
+	var r=[];
 	var elem=document.getElementById(id);
-	var fess=createFess(elem, tinct, rw);
+	var fess=createFess(elem, tinct, rw, r);
 	setClip(fess, id);
 	//insert just after given element
 	elem.parentNode.insertBefore(fess, elem.nextSibling);
+	var P=getPoints(...r.slice(2));
+}
+
+function addPale(id, tinct, rw=0.3){
+	var r=[];
+	var elem=document.getElementById(id);
+	var pale=createPale(elem, tinct, rw, r);
+	setClip(pale, id);
+	//insert just after given element
+	elem.parentNode.insertBefore(pale, elem.nextSibling);
+	var P=getPoints(...r.slice(2));
+}
+
+function addBend(id, tinct, rw=0.3){
+	var elem=document.getElementById(id);
+	var c=[];
+	var pale=createPale(elem, tinct, rw, c);
+	pale.setAttribute("transform", "rotate(-45 "+c[0]+" "+c[1]+")");
+	pale.setAttribute("id", id+"-bend");
+	var g=document.createElementNS(SVG_URI, "g");
+	g.setAttribute("class", "bend");
+	g.appendChild(pale);
+	setClip(g,id);
+	//insert just after given element
+	elem.parentNode.insertBefore(g, elem.nextSibling);
+	var m=pale.getCTM();
+	//turn rectangle x,y,h,w into four SVG points (clockwise from top left)
+	var P=getPoints(...c.slice(2));
+	//apply 45 deg rotation to get true points
+	for( var i=0; i<P.length; ++i ){
+		P[0]=P[0].matrixTransform(m);
+	}
+	getIntersection(elem.getPathData(), P[1], P[2]);
+	getIntersection(elem.getPathData(), P[0], P[3]);
+}
+
+//TODO: implement this function
+function getIntersection(path, p1 ,p2){
+	var pos = new Point(0,0);
+	var fistPos = new Point(0,0);
+	for( var seg of path ){
+		if(seg.type==="M" || seg.type==="L"){
+			var start = pos.clone();
+			pos = new Point(seg.values[0], seg.values[0]);
+			var end = pos.clone();
+			if(seg.type==="M"){
+				firstPos = pos.clone();
+			}
+		}
+	}
+}
+
+function addSinister(id, tinct, rw=0.3){
+	var elem=document.getElementById(id);
+	var c=[];
+	var pale=createPale(elem, tinct, rw, c);
+	pale.setAttribute("transform", "rotate(45 "+c[0]+" "+c[1]+")");
+	pale.setAttribute("id", id+"-sinister");
+	var g=document.createElementNS(SVG_URI, "g");
+	g.setAttribute("class", "sinister");
+	g.appendChild(pale);
+	setClip(g,id);
+	//insert just after given element
+	elem.parentNode.insertBefore(g, elem.nextSibling);
+	var m=pale.getCTM();
+	var P=getPoints(...c.slice(2));
+	for( var i=0; i<P.length; ++i ){
+		P[0]=P[0].matrixTransform(m);
+	}
 }
 
 var tree = parseString("Azure, a bend or");
@@ -644,12 +730,15 @@ function applyTree(shieldId, tree){
 				addFess(shieldId, tree.at(0).at(0).tincture);
 			}else if(tree.at(0).index===3){//bend
 				addBend(shieldId, tree.at(0).at(0).tincture);
+			}else if(tree.at(0).index===4){//bend sinister
+				addSinister(shieldId, tree.at(0).at(0).tincture);
 			}
 		}
 	}
 }
 
 scratch=document.createElementNS(SVG_URI,"svg");
+SVG=document.getElementById("escutcheonContainer");
 
 function clearShield(){
 	var shield = document.getElementById("shield");
@@ -666,7 +755,108 @@ function clearShield(){
 }
 
 function setBlazon(str){
+	blazon=str;
 	clearShield();
-	parseStringAndDisplay(str)
-	applyTree("shield", parseString(str))
+	if(str!=""){
+		parseStringAndDisplay(str)
+		applyTree("shield", parseString(str))
+	}
+}
+
+function nearlyEqual(a, b, eps=0.000001){
+	absA=Math.abs(a);
+	absB=Math.abs(b);
+	diff=Math.abs(a-b);
+	if( a===b ){//shortcut for infinity
+		return true;
+	}else if( a===0 || b===0 ){
+		//a or b are zero, relative error is meaningless
+		return diff < eps;
+	}else{ //use relative error
+		return diff/ (Math.min(absA+absB, Number.MAX_VALUE)) < eps;
+	}
+}
+
+function twoDimCross(p1, p2){
+	return (p1.x * p2.y - p1.y*p2.x);
+}
+
+//line 1 is p1->p2, line 2 is p3->p4
+function fourPointIntersection(p1, p2, p3, p4){
+	var r = Point.difference(p1, p2);
+	var s = Point.difference(p3, p4);
+	var rs = twoDimCross(r, s);
+	var pq = Point.difference(p1, p3);
+	var pqs = twoDimCross( pq, s );
+	var pqr = twoDimCross( pq, r );
+	if ( nearlyEqual(rs, 0) ){ //lines are colinear or parallel, intersection points are meaningless
+			return [];
+	}else{
+		var t = pqs / rs;
+		var u = pqr / rs;
+		if( t>0 && t<1 && u>0 && u<1){ //intersection point is within segments
+			var c = new Point(0, 0);
+			c.x = p1.x + t*r.x;
+			c.y = p1.y + t*r.y;
+			return [c];
+		}else{
+			return [];
+		}
+	}
+}
+
+//p0-p3 bezier control points, p4&p5 line segment end points
+function bezierLineIntersection(p0, p1, p2, p3, p4, p5){
+	var ldx = p4.x-p5.x;
+	var ldy = p5.y-p4.y;
+	var d = ldy*p0.x + ldx*p0.y - ldy*p4.x - ldx * p4.y;
+	var c = -3*( (p0.x - p1.x)*ldy + (p0.y-p1.y)*ldx );
+	var b = 3*( (p0.x - 2*p1.x + p2.x)*ldy + (p0.y - 2*p1.y + p2.y)*ldx );
+	var a = -( (p0.x - 3*p1.x + 3*p2.x - p3.x)*ldy + (p0.y - 3*p1.y + 3*p2.y - p3.y)*ldx );
+	var t = bezierRoots(a, b, c, d);
+	var ret = [];
+	for(i of t){
+		ret.push( new Point( bezier(p0.x, p1.x, p2.x, p3.x, i), bezier(p0.y, p1.y, p2.y, p3.y, i) ) );
+	}
+	return ret;
+}
+
+//path data *must* be normalised, or garbage will result
+function pathLineIntersection(pathData, p0, p1){
+	var pos = new Point(0, 0);
+	var fistPos = new Point(0, 0);
+	var iPoints = [];
+	for( var seg of pathData ){
+		if( seg.type === "M" || seg.type === "L"){
+			var tmp=new Point(seg.values[0], seg.values[1]);
+			if(seg.type === "L"){//calculate intersection with line between previous and new positions
+				iPoints=iPoints.concat(fourPointIntersection(p0, p1, pos, tmp));
+			}else{
+				firstPos=tmp; //"M" command  resets the start point of the path
+			}
+			pos=tmp;//update position
+		}else if( seg.type === "C" ){//calculate intersecton of line and cubic bezier
+			var tmp1 = new Point(seg.values[0], seg.values[1]);
+			var tmp2 = new Point(seg.values[2], seg.values[3]);
+			var tmp3 = new Point(seg.values[4], seg.values[5]);
+			iPoints=iPoints.concat(bezierLineIntersection(pos, tmp1, tmp2, tmp3, p0, p1))
+			pos = tmp3;//update position
+		}else if( seg.type === "Z" ){//intersection using line between current position and start of path
+			iPoints=iPoints.concat(fourPointIntersection(p0, p1, pos, firstPos));
+			pos=firstPos.clone();
+		}
+	}
+	return iPoints;
+}
+
+function changeShield(d){
+	var shield = document.getElementById("shield")
+	var outline = document.getElementById("shieldOutline")
+	var clip = document.getElementById("shield-clip")
+	if(clip!=null){
+		clip.parentNode.removeChild(clip);
+	}
+	shield.setAttribute("d", d);
+	outline.setAttribute("d", d);
+	setBlazon(blazon);
 }
