@@ -638,15 +638,35 @@ function applyTree(shieldId, tree){
 	changeTincture(shieldId, tinct);
 	if( tree.subnode.length > 0 ){
 		if(tree.at(0).type===TYPE_IMMOVABLE){
-			if(tree.at(0).index[0]===1){//pale
+			if(tree.at(0).index===1){//pale
 				addPale(shieldId, tree.at(0).at(0).tincture);
-			}else if(tree.at(0).index[0]===2){//fess
+			}else if(tree.at(0).index===2){//fess
 				addFess(shieldId, tree.at(0).at(0).tincture);
-			}else if(tree.at(0).index[0]===3){//bend
+			}else if(tree.at(0).index===3){//bend
 				addBend(shieldId, tree.at(0).at(0).tincture);
 			}
 		}
 	}
 }
 
-//applyTree(tree);
+scratch=document.createElementNS(SVG_URI,"svg");
+
+function clearShield(){
+	var shield = document.getElementById("shield");
+	var outline = document.getElementById("shieldOutline");
+	var esc = document.getElementById("escutcheon");
+	scratch.appendChild(shield);
+	scratch.appendChild(outline);
+	while (esc.lastChild) {
+		esc.removeChild(esc.lastChild);
+	}
+	esc.appendChild(shield);
+	esc.appendChild(outline);
+	changeTincture("shield", "ermine");
+}
+
+function setBlazon(str){
+	clearShield();
+	parseStringAndDisplay(str)
+	applyTree("shield", parseString(str))
+}
