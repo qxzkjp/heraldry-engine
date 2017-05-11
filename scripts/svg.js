@@ -533,31 +533,120 @@ path=document.getElementById("shield");
 box=path.getBBox();
 centre=new Point(box.x+(box.width/2), box.y+(box.height/2));
 
-addPale(id, tinct, rw=0.3){
-	path=document.getElementById(id);
-	box=path.getBBox();
-	h=box.height;
-	w=box.width;
-	rh=Math.ceil(sqrt(h*h+w*w);//diagonal length
-	rx=box.x+(w-rw)/2;
-	ry=box.y+(w-rh)/2;
-	esc=document.getElementById("escutcheon");
-	pale=document.createElementNS(SVG_URI, "rect");
+function addPale(id, tinct, rw=0.3){
+	var elem=document.getElementById(id);
+	var pale=createPale(elem, tinct, rw);
+	setClip(pale, id);
+	//insert just after given element
+	elem.parentNode.insertBefore(pale, elem.nextSibling);
+}
+
+function addBend(id, tinct, rw=0.3){
+	var elem=document.getElementById(id);
+	var c=[];
+	var pale=createPale(elem, tinct, rw, c);
+	pale.setAttribute("transform", "rotate(-45 "+c[0]+" "+c[1]+")");
+	var g=document.createElementNS(SVG_URI, "g");
+	g.setAttribute("class", "bend");
+	g.appendChild(pale);
+	setClip(g,id);
+	//insert just after given element
+	elem.parentNode.insertBefore(g, elem.nextSibling);
+}
+
+function createClip(id){
+	var clipId=id+"-clip";
+	var clip=document.getElementById(clipId);
+	if(clip == null){
+		clip=document.createElementNS(SVG_URI, "clipPath");
+		var elem=document.getElementById(id);
+		var d=elem.getAttribute("d");
+		var defEl=document.getElementById("SVGDefs");
+		var path=document.createElementNS(SVG_URI, "path");
+		path.setAttribute("d",d);
+		clip.appendChild(path);
+		clip.setAttribute("id", clipId);
+		defEl.appendChild(clip);
+	}
+	return clipId;
+}
+
+function setClip(elem, clipToId){
+	clipId=createClip(clipToId);
+	elem.setAttribute("clip-path","url(#"+clipId+")");
+}
+
+function createPale(elem, tinct, rw=0.34, c=[]){
+	//var path=document.getElementById(id);
+	var box=elem.getBBox();
+	var h=box.height;
+	var w=box.width;
+	rw=w*rw;
+	var rh=Math.ceil(Math.sqrt(h*h+w*w));//diagonal length
+	var rx=box.x+(w-rw)/2;
+	var ry=box.y+(w-rh)/2;
+	var cx=box.x+w/2;
+	var cy=box.y+w/2;
+	c.push(cx);
+	c.push(cy);
+	var pale=document.createElementNS(SVG_URI, "rect");
 	pale.setAttribute("x", rx);
 	pale.setAttribute("y", ry);
 	pale.setAttribute("width", rw);
 	pale.setAttribute("height", rh);
-	pale.setAttribute("class", "heraldry-"+tinctures[tincture]);
-	pale.appendChild(circ);
+	pale.setAttribute("class", "heraldry-"+tinctures[tinct]);
+	pale.setAttribute("id", elem.id+"-pale");
+	return pale;
+}
+
+function createFess(elem, tinct, rh=0.34){
+	var box=elem.getBBox();
+	var h=box.height;
+	var w=box.width;
+	rh=rh*h;
+	var ry=box.y+(h-rh)/2;
+	var rx=box.x;
+	rw=w;
+	var fess=document.createElementNS(SVG_URI, "rect");
+	fess.setAttribute("x", rx);
+	fess.setAttribute("y", ry);
+	fess.setAttribute("width", rw);
+	fess.setAttribute("height", rh);
+	fess.setAttribute("class", "heraldry-"+tinctures[tinct]);
+	fess.setAttribute("id", elem.id+"-fess");
+	return fess;
+}
+
+function addFess(id, tinct, rw=0.3){
+	var elem=document.getElementById(id);
+	var fess=createFess(elem, tinct, rw);
+	setClip(fess, id);
+	//insert just after given element
+	elem.parentNode.insertBefore(fess, elem.nextSibling);
 }
 
 var tree = parseString("Azure, a bend or");
 
 tinctureClasses = ["heraldry-unspecified", "heraldry-argent", "heraldry-or", "heraldry-gules", "heraldry-azure", "heraldry-vert", "heraldry-purpure", "heraldry-sable", "heraldry-tenny", "heraldry-sanguine", "heraldry-vair", "heraldry-countervair", "heraldry-potent", "heraldry-counterpotent", "heraldry-ermine", "heraldry-ermines", "heraldry-erminois", "heraldry-pean"]
 
-function applyTree(tree){
+//addBend("shield", 3, 0.34);
+
+//immovables = ["chief", "pale", "fess", "bend", "bend sinister", "chevron", "saltire", "pall", "cross", "pile", "bordure", "orle", "tressure", "canton", "flanches", "gyron", "fret"];
+function applyTree(shieldId, tree){
+	//var shield=document.getElementById(shieldId);
 	var tinct = tinctures[tree.tincture];
-	changeTincture("shield", tinct);
+	changeTincture(shieldId, tinct);
+	if( tree.subnode.length > 0 ){
+		if(tree.at(0).type===TYPE_IMMOVABLE){
+			if(tree.at(0).index[0]===1){//pale
+				addPale(shieldId, tree.at(0).at(0).tincture);
+			}else if(tree.at(0).index[0]===2){//fess
+				addFess(shieldId, tree.at(0).at(0).tincture);
+			}else if(tree.at(0).index[0]===3){//bend
+				addBend(shieldId, tree.at(0).at(0).tincture);
+			}
+		}
+	}
 }
 
 //applyTree(tree);
