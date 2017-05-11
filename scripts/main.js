@@ -133,9 +133,9 @@ function appendMap(mapbase, mapapp, type, flag)
 				mapbase.set(key, []);
 			}
 			if( type!==undefined && flag!==undefined){
-				mapbase.get(key)[type]=[value, flag];
+				mapbase.get(key)[type]=[value[0], flag];
 			}else{
-				mapbase.get(key)=[value];
+				mapbase.get(key)=[value[0]];
 			}
 		}else{
 			if(mapbase.get(key)===undefined){
