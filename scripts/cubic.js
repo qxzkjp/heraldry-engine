@@ -1,4 +1,4 @@
-/*based on http://mysite.verizon.net/res148h4j/javascript/script_exact_cubic.html#the%20source%20code*/
+/*based on https://www.particleincell.com/2013/cubic-line-intersection/ */
 function bezierRoots(a, b, c, d)
 { 
     var A=b/a;

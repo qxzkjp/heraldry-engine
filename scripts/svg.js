@@ -3,6 +3,11 @@ shieldA = "M 20 5 L 180 5 C 180 5 182.113598 84.825528 167.003707 137.362438 C 1
 shieldB = "M 20 12.5 L 179.999996 12.5 L 179.999996 81.366166 C 179.999996 157.611827 99.999998 187.500003 99.999998 187.500003 C 99.999998 187.500003 20 157.611827 20 81.366166 Z";
 blazon = "";
 
+scratch=document.createElementNS(SVG_URI,"svg");
+SVG=document.getElementById("escutcheonContainer");
+SVG_HEIGHT = 200;
+SVG_WIDTH = 200;
+
 //encode safely to base64 using open source libraries (included in head)
 function base64EncodingUTF8(str) {
     var encoded = new TextEncoderLite('utf-8').encode(str);        
@@ -224,7 +229,7 @@ function bezierTruncate(p0, p1, p2, p3, a, b){
 	var r3=new Point( b*b*b*p0.x + 3*a*b*b*p1.x + 3*a*a*b*p2.x + a*a*a*p3.x,
 		b*b*b*p0.y + 3*a*b*b*p1.y + 3*a*a*b*p2.y + a*a*a*p3.y );
 	ret.push(r3);
-	return [r0, r1, r2, r3];
+	return ret;
 }
 
 //b must be 1-a, option included for computational accuracy
@@ -401,6 +406,59 @@ function shiftPath(path, dx=0, dy=0){
 		}
 	}
 	return newPath;
+}
+
+function clonePathData(pathData){
+	var newPD=[];
+	for( var seg of pathData ){
+		newPD.push( {type:seg.type, values:seg.values.slice(0)} );
+	}
+	return newPD;
+}
+
+function roundPathData(pathData, prec=6){
+	var powten = Math.pow(10,prec);
+	var ret = clonePathData(pathData);
+	for( var seg of ret ){
+		for(var i=0; i<seg.values.length; ++i){
+				seg.values[i]=Math.round(seg.values[i]*powten)/powten;
+		}
+	}
+	return ret;
+}
+
+//path data must be normalised!
+function shiftPathData(pathData, dx=0, dy=0){
+	var ret = clonePathData(pathData);
+	for( var seg of ret ){
+		for(var i=0; i<seg.values.length; ++i){
+			if(i%2==0){
+				seg.values[i]+=dx;
+			}else{
+				seg.values[i]+=dy;
+			}
+		}
+	}
+	return ret;
+}
+
+//path data must be normalised!
+function scalePathData(pathData, sx, sy, cx=0, cy=0){
+	if(sy===undefined){//if only one scaling factor supplied, scale uniformly
+		sy=sx;
+	}
+	var ret = clonePathData(pathData);
+	for( var seg of ret ){
+		for(var i=0; i<seg.values.length; ++i){
+			var tmp=seg.values[i];
+			if(i%2==0){
+				seg.values[i]=(tmp-cx)*sx+cx;
+			}else{
+				seg.values[i]=(tmp-cy)*sy+cy;
+			}
+		}
+	}
+	return ret;
 }
 
 function roundToSix(n){
@@ -581,8 +639,8 @@ function createPale(elem, tinct, rw=0.34, c=[]){
 	c.push(cy);
 	c.push(rx);
 	c.push(ry);
-	c.push(rh);
 	c.push(rw);
+	c.push(rh);
 	var pale=document.createElementNS(SVG_URI, "rect");
 	pale.setAttribute("x", rx);
 	pale.setAttribute("y", ry);
@@ -670,10 +728,20 @@ function addBend(id, tinct, rw=0.3){
 	var P=getPoints(...c.slice(2));
 	//apply 45 deg rotation to get true points
 	for( var i=0; i<P.length; ++i ){
-		P[0]=P[0].matrixTransform(m);
+		P[i]=P[i].matrixTransform(m);
 	}
-	getIntersection(elem.getPathData(), P[1], P[2]);
-	getIntersection(elem.getPathData(), P[0], P[3]);
+	var pathGroup1 = [];
+	var pathGroup2 = [];
+	var pathData = elem.getPathData();
+	pathLineIntersection(pathData, P[1], P[2], pathGroup1);
+	pathLineIntersection(pathData, P[0], P[3], pathGroup2);
+	var topRightPath = pathGroup1[1];
+	var bottomLeftPath = pathGroup2[1];
+	var topRight =  document.createElementNS(SVG_URI, "path");
+	topRight.setPathData(topRightPath);
+	var bottomLeft =  document.createElementNS(SVG_URI, "path");
+	bottomLeft.setPathData(bottomLeftPath);
+	return(topRight, bottomLeft);
 }
 
 //TODO: implement this function
@@ -715,30 +783,77 @@ var tree = parseString("Azure, a bend or");
 
 tinctureClasses = ["heraldry-unspecified", "heraldry-argent", "heraldry-or", "heraldry-gules", "heraldry-azure", "heraldry-vert", "heraldry-purpure", "heraldry-sable", "heraldry-tenny", "heraldry-sanguine", "heraldry-vair", "heraldry-countervair", "heraldry-potent", "heraldry-counterpotent", "heraldry-ermine", "heraldry-ermines", "heraldry-erminois", "heraldry-pean"]
 
-//addBend("shield", 3, 0.34);
-
 //immovables = ["chief", "pale", "fess", "bend", "bend sinister", "chevron", "saltire", "pall", "cross", "pile", "bordure", "orle", "tressure", "canton", "flanches", "gyron", "fret"];
+//divisions = ["per pale", "per fess", "per bend", "per bend sinister", "per chevron", "per saltire", "", "", "", "", "", "", "",""];
+
 function applyTree(shieldId, tree){
 	//var shield=document.getElementById(shieldId);
-	var tinct = tinctures[tree.tincture];
-	changeTincture(shieldId, tinct);
-	if( tree.subnode.length > 0 ){
-		if(tree.at(0).type===TYPE_IMMOVABLE){
-			if(tree.at(0).index===1){//pale
-				addPale(shieldId, tree.at(0).at(0).tincture);
-			}else if(tree.at(0).index===2){//fess
-				addFess(shieldId, tree.at(0).at(0).tincture);
-			}else if(tree.at(0).index===3){//bend
-				addBend(shieldId, tree.at(0).at(0).tincture);
-			}else if(tree.at(0).index===4){//bend sinister
-				addSinister(shieldId, tree.at(0).at(0).tincture);
+	if( tree instanceof Field ){
+		var tinct = tinctures[tree.tincture];
+		changeTincture(shieldId, tinct);
+		if( tree.subnode.length > 0 ){
+			if(tree.at(0).type===TYPE_IMMOVABLE){
+				if(tree.at(0).index===1){//pale
+					addPale(shieldId, tree.at(0).at(0).tincture);
+				}else if(tree.at(0).index===2){//fess
+					addFess(shieldId, tree.at(0).at(0).tincture);
+				}else if(tree.at(0).index===3){//bend
+					addBend(shieldId, tree.at(0).at(0).tincture);
+				}else if(tree.at(0).index===4){//bend sinister
+					addSinister(shieldId, tree.at(0).at(0).tincture);
+				}
 			}
+		}
+	}else if(tree instanceof Division){
+		var elem = document.getElementById(shieldId);
+		var pathData = elem.getPathData();
+		var shieldBox = elem.getBBox();
+		if( tree.type === 0){
+			var midx = shieldBox.x + shieldBox.width/2;
+			//partyPerPoints(elem, new Point(midx, 0), new Point(midx, SVG_HEIGHT), tree);
+			var sections = [];
+			pathLineIntersection(pathData, new Point(midx, 0), new Point(midx, SVG_HEIGHT), sections);
+			var firstHalf = document.createElementNS(SVG_URI, "path");
+			var secondHalf = document.createElementNS(SVG_URI, "path");
+			//firstHalf.setAttribute("visibility", "hidden");
+			//secondHalf.setAttribute("visibility", "hidden");
+			firstHalf.setAttribute("id", shieldId+"-first");
+			secondHalf.setAttribute("id", shieldId+"-second");
+			firstHalf.setPathData(sections[0]);
+			secondHalf.setPathData(sections[1]); 
+			//insert just after given element
+			elem.parentNode.insertBefore(secondHalf, elem.nextSibling);
+			//insert just after given element, which is then just *before* secondHalf
+			elem.parentNode.insertBefore(firstHalf, elem.nextSibling);
+			applyTree(shieldId+"-first", tree.at(0));
+			applyTree(shieldId+"-second", tree.at(1));
+		}else{
+			console.error("division not implemented");
 		}
 	}
 }
 
-scratch=document.createElementNS(SVG_URI,"svg");
-SVG=document.getElementById("escutcheonContainer");
+function partyPerPoints(elem, p1, p2, tree){
+	//var elem = document.getElementById(shieldId);
+	var pathData = elem.getPathData();
+	var shieldId = elem.getAttribute("id");
+	var sections = [];
+	pathLineIntersection(pathData, p1, p1, sections);
+	var firstHalf = document.createElementNS(SVG_URI, "path");
+	var secondHalf = document.createElementNS(SVG_URI, "path");
+	//firstHalf.setAttribute("visibility", "hidden");
+	//secondHalf.setAttribute("visibility", "hidden");
+	firstHalf.setAttribute("id", shieldId+"-first");
+	secondHalf.setAttribute("id", shieldId+"-second");
+	firstHalf.setPathData(sections[0]);
+	secondHalf.setPathData(sections[1]); 
+	//insert just after given element
+	elem.parentNode.insertBefore(secondHalf, elem.nextSibling);
+	//insert just after given element, which is then just *before* secondHalf
+	elem.parentNode.insertBefore(firstHalf, elem.nextSibling);
+	applyTree(shieldId+"-first", tree.at(0));
+	applyTree(shieldId+"-second", tree.at(1));
+}
 
 function clearShield(){
 	var shield = document.getElementById("shield");
@@ -805,8 +920,21 @@ function fourPointIntersection(p1, p2, p3, p4){
 	}
 }
 
+function bezierPoints(p0, p1, p2, p3, arr){
+	ret = [];
+	for(i of arr){
+		ret.push( new Point( bezier(p0.x, p1.x, p2.x, p3.x, i), bezier(p0.y, p1.y, p2.y, p3.y, i) ) );
+	}
+	return ret;
+}
+
 //p0-p3 bezier control points, p4&p5 line segment end points
 function bezierLineIntersection(p0, p1, p2, p3, p4, p5){
+	var t = bezierIntersecitonParameters(p0, p1, p2, p3, p4, p5);
+	return bezierPoints(p0, p1, p2, p3, t);
+}
+
+function bezierIntersectionParameters(p0, p1, p2, p3, p4, p5){
 	var ldx = p4.x-p5.x;
 	var ldy = p5.y-p4.y;
 	var d = ldy*p0.x + ldx*p0.y - ldy*p4.x - ldx * p4.y;
@@ -814,39 +942,101 @@ function bezierLineIntersection(p0, p1, p2, p3, p4, p5){
 	var b = 3*( (p0.x - 2*p1.x + p2.x)*ldy + (p0.y - 2*p1.y + p2.y)*ldx );
 	var a = -( (p0.x - 3*p1.x + 3*p2.x - p3.x)*ldy + (p0.y - 3*p1.y + 3*p2.y - p3.y)*ldx );
 	var t = bezierRoots(a, b, c, d);
-	var ret = [];
-	for(i of t){
-		ret.push( new Point( bezier(p0.x, p1.x, p2.x, p3.x, i), bezier(p0.y, p1.y, p2.y, p3.y, i) ) );
-	}
-	return ret;
+	return t;
 }
 
 //path data *must* be normalised, or garbage will result
-function pathLineIntersection(pathData, p0, p1){
+function pathLineIntersection(pathData, p0, p1, paths=[]){
 	var pos = new Point(0, 0);
 	var fistPos = new Point(0, 0);
 	var iPoints = [];
+	//var paths=[];
+	var currentPath=[];
 	for( var seg of pathData ){
 		if( seg.type === "M" || seg.type === "L"){
 			var tmp=new Point(seg.values[0], seg.values[1]);
 			if(seg.type === "L"){//calculate intersection with line between previous and new positions
-				iPoints=iPoints.concat(fourPointIntersection(p0, p1, pos, tmp));
+				var tmpPoints = fourPointIntersection(p0, p1, pos, tmp);
+				iPoints=iPoints.concat(tmpPoints);
+				if(tmpPoints.length > 0){
+					currentPath.push({ type:"L", values:[tmpPoints[0].x, tmpPoints[0].y] });
+					currentPath.push({ type:"Z", values:[] });
+					paths.push(currentPath);
+					currentPath=[{ type:"M", values:[tmpPoints[0].x, tmpPoints[0].y] }];
+					
+				}
+				currentPath.push({ type:"L", values:[seg.values[0], seg.values[1]] });
 			}else{
 				firstPos=tmp; //"M" command  resets the start point of the path
+				//if we have a non-empty path, add it to the list
+				if(currentPath.length>0){
+					currentPath.push({type:"Z", values:[]});
+					paths.push(currentPath);
+				}
+				//start a new path with this move command
+				currentPath.push({ type:"M", values:[seg.values[0], seg.values[1]] });
 			}
 			pos=tmp;//update position
 		}else if( seg.type === "C" ){//calculate intersecton of line and cubic bezier
 			var tmp1 = new Point(seg.values[0], seg.values[1]);
 			var tmp2 = new Point(seg.values[2], seg.values[3]);
 			var tmp3 = new Point(seg.values[4], seg.values[5]);
-			iPoints=iPoints.concat(bezierLineIntersection(pos, tmp1, tmp2, tmp3, p0, p1))
+			var ts=bezierIntersectionParameters(pos, tmp1, tmp2, tmp3, p0, p1);
+			var oldBez=[pos.clone(), tmp1.clone(), tmp2.clone(), tmp3.clone()];
+			var scale=1;
+			var offset=0;
+			for(var t of ts){
+				var newBez=bezierSplit(...oldBez, (t-offset)/scale);
+				oldBez=newBez.slice(-4);//last 4 elements
+				scale=(1-t);
+				offset=t;
+				var bezObj=bezierPathSegmentFromPoints(...newBez.slice(0,4));//first four elements
+				currentPath.push(bezObj);
+				currentPath.push({ type:"Z", values:[] });
+				paths.push(currentPath);
+				currentPath=[ { type:"M", values:[newBez[3].x, newBez[3].y] } ]
+			}
+			//add the last bezier slice, iff it isn't infinitesimal (dropping it in this case gives minimal error)
+			if(!nearlyEqual(ts.slice(-1)[0],1)){
+				currentPath.push(bezierPathSegmentFromPoints(...oldBez));
+			}
+			var tmpPoints=bezierPoints(pos, tmp1, tmp2, tmp3, ts);
+			iPoints=iPoints.concat(tmpPoints)
 			pos = tmp3;//update position
 		}else if( seg.type === "Z" ){//intersection using line between current position and start of path
-			iPoints=iPoints.concat(fourPointIntersection(p0, p1, pos, firstPos));
+			var tmpPoints=fourPointIntersection(p0, p1, pos, firstPos);
+			iPoints=iPoints.concat(tmpPoints);
+			if(tmpPoints.length>0){
+				currentPath.push({type:"L", values:[tmpPoints[0].x, tmpPoints[0].y]});
+				currentPath.push({type:"Z", values:[]});
+				paths.push(currentPath);
+				currentPath=[ { type:"M", values:[tmpPoints[0].x, tmpPoints[0].y] } ];
+			}
 			pos=firstPos.clone();
+			currentPath.push({type:"L", values:[firstPos.x, firstPos.y]});//first point of cut up path probably won't be the same
 		}
 	}
+	paths.push(currentPath);
+	if(pathData.slice(-1)[0].type=="Z"){//if the path was closed, we append the first segment to the last
+		var length=paths.length;
+		var lastPath = paths[length-1];
+		var firstPath = paths[0].slice(1);//we drop the initial move command, it's redundant
+		paths[0]=lastPath.concat(firstPath);
+		paths.pop();//drop last path, it is now part of the first
+		//paths=paths.slice(1);//drop the original first path
+	}
 	return iPoints;
+}
+
+function bezierPathSegmentFromPoints(p0, p1, p2, p3){
+	var ret={type:"C",values:[]};
+	ret.values.push(p1.x);
+	ret.values.push(p1.y);
+	ret.values.push(p2.x);
+	ret.values.push(p2.y);
+	ret.values.push(p3.x);
+	ret.values.push(p3.y);
+	return ret;
 }
 
 function changeShield(d){
@@ -859,4 +1049,15 @@ function changeShield(d){
 	shield.setAttribute("d", d);
 	outline.setAttribute("d", d);
 	setBlazon(blazon);
+}
+
+function setupMullet(){
+	mullet=document.createElementNS(SVG_URI,"path");
+	mullet.setAttribute("d",document.getElementById("mullet").contentDocument.getElementById("mullet").getAttribute("d"));
+	mulletData=mullet.getPathData();
+	mulletBox=mullet.getBBox();
+	mulletData=shiftPathData(mulletData, -mulletBox.x, -mulletBox.y);
+	mulletData=scalePathData(mulletData, 100/mulletBox.width);
+	mulletData=roundPathData(mulletData);
+	mullet.setPathData(mulletData);
 }
