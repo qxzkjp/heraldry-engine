@@ -788,47 +788,41 @@ tinctureClasses = ["heraldry-unspecified", "heraldry-argent", "heraldry-or", "he
 
 function applyTree(shieldId, tree){
 	//var shield=document.getElementById(shieldId);
+	var fields=0; //how many nodes must we skip over to get to the charges?
 	if( tree instanceof Field ){
 		var tinct = tinctures[tree.tincture];
 		changeTincture(shieldId, tinct);
-		if( tree.subnode.length > 0 ){
-			if(tree.at(0).type===TYPE_IMMOVABLE){
-				if(tree.at(0).index===1){//pale
-					addPale(shieldId, tree.at(0).at(0).tincture);
-				}else if(tree.at(0).index===2){//fess
-					addFess(shieldId, tree.at(0).at(0).tincture);
-				}else if(tree.at(0).index===3){//bend
-					addBend(shieldId, tree.at(0).at(0).tincture);
-				}else if(tree.at(0).index===4){//bend sinister
-					addSinister(shieldId, tree.at(0).at(0).tincture);
-				}
-			}
-		}
 	}else if(tree instanceof Division){
+		fields=2;
 		var elem = document.getElementById(shieldId);
 		var pathData = elem.getPathData();
 		var shieldBox = elem.getBBox();
-		if( tree.type === 0){
+		var p1,p2;
+		if( tree.type === 0){//per pale
 			var midx = shieldBox.x + shieldBox.width/2;
-			//partyPerPoints(elem, new Point(midx, 0), new Point(midx, SVG_HEIGHT), tree);
-			var sections = [];
-			pathLineIntersection(pathData, new Point(midx, 0), new Point(midx, SVG_HEIGHT), sections);
-			var firstHalf = document.createElementNS(SVG_URI, "path");
-			var secondHalf = document.createElementNS(SVG_URI, "path");
-			//firstHalf.setAttribute("visibility", "hidden");
-			//secondHalf.setAttribute("visibility", "hidden");
-			firstHalf.setAttribute("id", shieldId+"-first");
-			secondHalf.setAttribute("id", shieldId+"-second");
-			firstHalf.setPathData(sections[0]);
-			secondHalf.setPathData(sections[1]); 
-			//insert just after given element
-			elem.parentNode.insertBefore(secondHalf, elem.nextSibling);
-			//insert just after given element, which is then just *before* secondHalf
-			elem.parentNode.insertBefore(firstHalf, elem.nextSibling);
-			applyTree(shieldId+"-first", tree.at(0));
-			applyTree(shieldId+"-second", tree.at(1));
+			p1=new Point(midx, 0);
+			p2=new Point(midx, SVG_HEIGHT);
+		}else if(tree.type==1){//per fess
+			var midy = shieldBox.y + shieldBox.height/2;
+			p1=new Point(0, midy);
+			p2=new Point(SVG_WIDTH, midy);
 		}else{
 			console.error("division not implemented");
+			return;
+		}
+		partyPerPoints(elem, p1, p2, tree);
+	}
+	if( tree.subnode.length > fields ){
+		if(tree.at(fields).type===TYPE_IMMOVABLE){
+			if(tree.at(fields).index===1){//pale
+				addPale(shieldId, tree.at(fields).at(0).tincture);
+			}else if(tree.at(fields).index===2){//fess
+				addFess(shieldId, tree.at(fields).at(0).tincture);
+			}else if(tree.at(fields).index===3){//bend
+				addBend(shieldId, tree.at(fields).at(0).tincture);
+			}else if(tree.at(fields).index===4){//bend sinister
+				addSinister(shieldId, tree.at(fields).at(0).tincture);
+			}
 		}
 	}
 }
@@ -838,7 +832,7 @@ function partyPerPoints(elem, p1, p2, tree){
 	var pathData = elem.getPathData();
 	var shieldId = elem.getAttribute("id");
 	var sections = [];
-	pathLineIntersection(pathData, p1, p1, sections);
+	pathLineIntersection(pathData, p1, p2, sections);
 	var firstHalf = document.createElementNS(SVG_URI, "path");
 	var secondHalf = document.createElementNS(SVG_URI, "path");
 	//firstHalf.setAttribute("visibility", "hidden");
@@ -846,11 +840,13 @@ function partyPerPoints(elem, p1, p2, tree){
 	firstHalf.setAttribute("id", shieldId+"-first");
 	secondHalf.setAttribute("id", shieldId+"-second");
 	firstHalf.setPathData(sections[0]);
-	secondHalf.setPathData(sections[1]); 
-	//insert just after given element
-	elem.parentNode.insertBefore(secondHalf, elem.nextSibling);
-	//insert just after given element, which is then just *before* secondHalf
-	elem.parentNode.insertBefore(firstHalf, elem.nextSibling);
+	secondHalf.setPathData(sections[1]);
+	//make overall shield invisible
+	elem.setAttribute("class", "heraldry-invisible");
+	//insert just before given element
+	elem.parentNode.insertBefore(firstHalf, elem);
+	//insert just before given element, which is then just *after* firstHalf
+	elem.parentNode.insertBefore(secondHalf, elem);
 	applyTree(shieldId+"-first", tree.at(0));
 	applyTree(shieldId+"-second", tree.at(1));
 }
@@ -946,6 +942,7 @@ function bezierIntersectionParameters(p0, p1, p2, p3, p4, p5){
 }
 
 //path data *must* be normalised, or garbage will result
+//this function changes p0 and p1. I should probably change this.
 function pathLineIntersection(pathData, p0, p1, paths=[]){
 	var pos = new Point(0, 0);
 	var fistPos = new Point(0, 0);

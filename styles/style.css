@@ -65,3 +65,7 @@ img {
 #right {
   flex: 1;
 }
+
+.heraldry-invisible {
+	fill:none;
+}
