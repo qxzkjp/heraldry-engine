@@ -2,6 +2,8 @@ SVG_URI = "http://www.w3.org/2000/svg";
 shieldA = "M 20 5 L 180 5 C 180 5 182.113598 84.825528 167.003707 137.362438 C 151.893806 189.899348 102.105477 195.000018 100 195 C 97.894524 195 48.106195 189.899348 32.996295 137.362438 C 17.886404 84.825528 20 5 20 5 Z";
 shieldB = "M 20 12.5 L 179.999996 12.5 L 179.999996 81.366166 C 179.999996 157.611827 99.999998 187.500003 99.999998 187.500003 C 99.999998 187.500003 20 157.611827 20 81.366166 Z";
 blazon = "";
+chargePaths=[];
+CHARGE_SPACING=0.3;
 
 scratch=document.createElementNS(SVG_URI,"svg");
 SVG=document.getElementById("escutcheonContainer");
@@ -299,6 +301,10 @@ function qBezierBox(p0, p1, p2){
 function BoundingBox(){
 	this.min = new Point( Infinity, Infinity );
 	this.max = new Point( -Infinity, -Infinity );
+	this.width = 0;
+	this.height = 0;
+	this.x=Infinity;
+	this.y=Infinity;
 }
 
 BoundingBox.prototype.addPoint = function( P ){
@@ -312,6 +318,13 @@ BoundingBox.prototype.addPoints = function(){
 	for ( arg of arguments ) {
 		this.addPoint(arg);
 	}
+}
+
+BoundingBox.prototype.finalise= function(){
+	this.x = this.min.x;
+	this.y = this.min.y;
+	this.width = this.max.x - this.min.x;
+	this.height = this.max.y - this.min.y;
 }
 
 //NOTE: this function cannot deal with arc commands
@@ -342,6 +355,34 @@ function getBoundingBox(arr){
 	return [bBox.min, bBox.max];
 }
 
+
+//path data must be normalised!
+function pathDataBoundingBox(pathData){
+	var bBox = new BoundingBox;
+	var firstPoint = new Point( 0, 0 );
+	//var prevPoint = new Point( 0, 0 )
+	var pos = new Point( 0, 0 )
+	for (var seg of pathData){
+		if( seg.type === "M" || seg.type === "L" ){
+			pos.x = seg.values[0];
+			pos.y = seg.values[1];
+			bBox.addPoint(pos);
+			if( seg.type === "M" ){
+				firstPoint = pos.clone(); //M command resets beginning of path
+			}
+		}else if( seg.type === "Z" ){
+			pos = firstPoint.clone();//don't need to add first point to bbox -- it's already there
+		}else if( seg.type === "C"){
+			var p1 = new Point (seg.values[0], seg.values[1]);
+			var p2 = new Point (seg.values[2], seg.values[3]);
+			var p3 = new Point (seg.values[4], seg.values[5]);
+			bBox.addPoints( ...bezierBox( pos, p1, p2, p3 ) );
+			pos = p3;
+		} 
+	}
+	bBox.finalise();
+	return bBox;
+}
 
 //has to be window.onLoad: objects are not loaded at DOMready
 //window.onload = function () { document.getElementById("idOut").value = getEncodedSVG("dots") }
@@ -553,8 +594,8 @@ function roundElem(id){
 	setPathOnElem(id, path);
 }
 
-function changeTincture(id,tinct){
-	var elem = document.getElementById(id);
+function changeTincture(elem,tinct){
+	//var elem = document.getElementById(id);
 	elem.setAttribute("class", "heraldry-"+tinct);
 }
 
@@ -630,9 +671,9 @@ function createPale(elem, tinct, rw=0.34, c=[]){
 	var h=box.height;
 	var w=box.width;
 	rw=w*rw;
-	var rh=Math.ceil(Math.sqrt(h*h+w*w));//diagonal length
+	var rh=1.2*Math.ceil(Math.sqrt(h*h+w*w));//diagonal length times a bit extra
 	var rx=box.x+(w-rw)/2;
-	var ry=box.y+(w-rh)/2;
+	var ry=box.y+(h-rh)/2;
 	var cx=box.x+w/2;
 	var cy=box.y+w/2;
 	c.push(cx);
@@ -744,22 +785,6 @@ function addBend(id, tinct, rw=0.3){
 	return(topRight, bottomLeft);
 }
 
-//TODO: implement this function
-function getIntersection(path, p1 ,p2){
-	var pos = new Point(0,0);
-	var fistPos = new Point(0,0);
-	for( var seg of path ){
-		if(seg.type==="M" || seg.type==="L"){
-			var start = pos.clone();
-			pos = new Point(seg.values[0], seg.values[0]);
-			var end = pos.clone();
-			if(seg.type==="M"){
-				firstPos = pos.clone();
-			}
-		}
-	}
-}
-
 function addSinister(id, tinct, rw=0.3){
 	var elem=document.getElementById(id);
 	var c=[];
@@ -788,31 +813,66 @@ tinctureClasses = ["heraldry-unspecified", "heraldry-argent", "heraldry-or", "he
 
 function applyTree(shieldId, tree){
 	//var shield=document.getElementById(shieldId);
+	var elem = document.getElementById(shieldId);
 	var fields=0; //how many nodes must we skip over to get to the charges?
 	if( tree instanceof Field ){
 		var tinct = tinctures[tree.tincture];
-		changeTincture(shieldId, tinct);
+		changeTincture(elem, tinct);
 	}else if(tree instanceof Division){
 		fields=2;
-		var elem = document.getElementById(shieldId);
+		//var elem = document.getElementById(shieldId);
 		var pathData = elem.getPathData();
 		var shieldBox = elem.getBBox();
 		var p1,p2;
+		var sections;
 		if( tree.type === 0){//per pale
 			var midx = shieldBox.x + shieldBox.width/2;
 			p1=new Point(midx, 0);
 			p2=new Point(midx, SVG_HEIGHT);
+			sections = partyPerPoints(elem, p1, p2, tree);
+			sections.sort(comparePathDataX);
 		}else if(tree.type==1){//per fess
 			var midy = shieldBox.y + shieldBox.height/2;
 			p1=new Point(0, midy);
 			p2=new Point(SVG_WIDTH, midy);
+			sections = partyPerPoints(elem, p1, p2, tree);
+			sections.sort(comparePathDataY);
+		}else if(tree.type==2){//per bend
+			var far = Math.max(shieldBox.width, shieldBox.height);
+			far*=1.1;
+			p1=new Point(shieldBox.x -10, shieldBox.y-10);
+			p2=new Point(shieldBox.x + far, shieldBox.y + far);
+			sections = partyPerPoints(elem, p1, p2, tree);
+		}else if(tree.type==3){//per bend sinister
+			var farx = shieldBox.x + shieldBox.width;
+			//var fary = shieldBox.y + shieldBox.height;
+			var far = Math.max(shieldBox.width, shieldBox.height);
+			far*=1.1;
+			p1=new Point(farx+10, shieldBox.y-10);
+			p2=new Point(farx - far, shieldBox.y + far);
+			sections = partyPerPoints(elem, p1, p2, tree);
 		}else{
 			console.error("division not implemented");
 			return;
 		}
-		partyPerPoints(elem, p1, p2, tree);
+		var firstHalf = document.createElementNS(SVG_URI, "path");
+		var secondHalf = document.createElementNS(SVG_URI, "path");
+		//firstHalf.setAttribute("visibility", "hidden");
+		//secondHalf.setAttribute("visibility", "hidden");
+		firstHalf.setAttribute("id", shieldId+"-first");
+		secondHalf.setAttribute("id", shieldId+"-second");
+		firstHalf.setPathData(sections[0]);
+		secondHalf.setPathData(sections[1]);
+		//make overall shield invisible
+		elem.setAttribute("class", "heraldry-invisible");
+		//insert just before given element
+		elem.parentNode.insertBefore(firstHalf, elem);
+		//insert just before given element, which is then just *after* firstHalf
+		elem.parentNode.insertBefore(secondHalf, elem);
+		applyTree(shieldId+"-first", tree.at(0));
+		applyTree(shieldId+"-second", tree.at(1));
 	}
-	if( tree.subnode.length > fields ){
+	if( tree.subnode.length > fields ){//if there are nodes after the division nodes (if any), display them as charges
 		if(tree.at(fields).type===TYPE_IMMOVABLE){
 			if(tree.at(fields).index===1){//pale
 				addPale(shieldId, tree.at(fields).at(0).tincture);
@@ -823,7 +883,73 @@ function applyTree(shieldId, tree){
 			}else if(tree.at(fields).index===4){//bend sinister
 				addSinister(shieldId, tree.at(fields).at(0).tincture);
 			}
+		}else if(tree.at(fields).type===TYPE_MOVABLE){
+			//var elem = document.getElementById(shieldId);
+			var bBox = elem.getBBox();
+			var cx = bBox.x + bBox.width/2;
+			var cy = bBox.y + bBox.height/2;
+			var chargeData = chargePaths[tree.at(fields).index];
+			if(chargeData === undefined){
+				console.error("Charge not implemented");
+				return;
+			}
+			var rows = getRowNumbers(tree.at(fields).number);
+			var positions = getRowPositions(rows,CHARGE_SPACING);
+			var rowWidth = 2 + rows[0];
+			var scale = 1/rowWidth;
+			var chargeData = scalePathData(chargeData, scale*bBox.width/100);//scale charge to be 1/n shield width;
+			var cBox = pathDataBoundingBox(chargeData);
+			//reposition charge over centre of shield
+			var chargeData = shiftPathData(chargeData, bBox.x+(bBox.width-cBox.width)/2, bBox.y+(bBox.height-cBox.height)/2);
+			var finalPath=[];
+			//concatenate shifted paths into one big path
+			for(var i of positions){
+				for( var j of i){
+					var tmp=shiftPathData(chargeData, j[0]*cBox.width, j[1]*cBox.height );
+					finalPath = finalPath.concat(tmp);
+				}
+			}
+			var charge = document.createElementNS(SVG_URI, "path");
+			charge.setPathData(finalPath);
+			charge.setAttribute("id", shieldId + "-charge1");
+			var tinct = tinctures[tree.at(fields).at(0).tincture];
+			changeTincture(charge, tinct)
+			//insert just after given element
+			elem.parentNode.insertBefore(charge, elem.nextSibling);
 		}
+		//movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge", "key", "phrygian cap with bells on"];
+	}
+}
+
+function comparePathDataX(pd1, pd2){
+	var box1 = pathDataBoundingBox(pd1);
+	var box2 = pathDataBoundingBox(pd2);
+	if(box1.max.x > box2.max.x){
+		return 1;
+	}else if(box1.max.x < box2.max.x){
+		return -1;
+	}else if(box1.min.x > box2.min.x){
+		return 1;
+	}else if(box1.min.x < box2.min.x){
+		return -1;
+	}else{
+		return 0;
+	}
+}
+
+function comparePathDataY(pd1, pd2){
+	var box1 = pathDataBoundingBox(pd1);
+	var box2 = pathDataBoundingBox(pd2);
+	if(box1.max.y > box2.max.y){
+		return 1;
+	}else if(box1.max.y < box2.max.y){
+		return -1;
+	}else if(box1.min.y > box2.min.y){
+		return 1;
+	}else if(box1.min.y < box2.min.y){
+		return -1;
+	}else{
+		return 0;
 	}
 }
 
@@ -833,42 +959,31 @@ function partyPerPoints(elem, p1, p2, tree){
 	var shieldId = elem.getAttribute("id");
 	var sections = [];
 	pathLineIntersection(pathData, p1, p2, sections);
-	var firstHalf = document.createElementNS(SVG_URI, "path");
-	var secondHalf = document.createElementNS(SVG_URI, "path");
-	//firstHalf.setAttribute("visibility", "hidden");
-	//secondHalf.setAttribute("visibility", "hidden");
-	firstHalf.setAttribute("id", shieldId+"-first");
-	secondHalf.setAttribute("id", shieldId+"-second");
-	firstHalf.setPathData(sections[0]);
-	secondHalf.setPathData(sections[1]);
-	//make overall shield invisible
-	elem.setAttribute("class", "heraldry-invisible");
-	//insert just before given element
-	elem.parentNode.insertBefore(firstHalf, elem);
-	//insert just before given element, which is then just *after* firstHalf
-	elem.parentNode.insertBefore(secondHalf, elem);
-	applyTree(shieldId+"-first", tree.at(0));
-	applyTree(shieldId+"-second", tree.at(1));
+	return sections;
 }
 
 function clearShield(){
 	var shield = document.getElementById("shield");
 	var outline = document.getElementById("shieldOutline");
+	var clip = document.getElementById("shield-clip");
 	var esc = document.getElementById("escutcheon");
 	scratch.appendChild(shield);
 	scratch.appendChild(outline);
 	while (esc.lastChild) {
 		esc.removeChild(esc.lastChild);
 	}
+	var rem = document.querySelectorAll("[id*='-clip']");
+	for (var i=0; i < rem.length; i++)
+		rem[i].parentNode.removeChild(rem[i]);
 	esc.appendChild(shield);
 	esc.appendChild(outline);
-	changeTincture("shield", "ermine");
+	changeTincture(shield, "ermine");
 }
 
 function setBlazon(str){
 	blazon=str;
 	clearShield();
-	if(str!=""){
+	if(str!="" && str!=undefined){
 		parseStringAndDisplay(str)
 		applyTree("shield", parseString(str))
 	}
@@ -905,7 +1020,7 @@ function fourPointIntersection(p1, p2, p3, p4){
 	}else{
 		var t = pqs / rs;
 		var u = pqr / rs;
-		if( t>0 && t<1 && u>0 && u<1){ //intersection point is within segments
+		if( t>0 && t<=1 && u>0 && u<=1){ //intersection point is within segments
 			var c = new Point(0, 0);
 			c.x = p1.x + t*r.x;
 			c.y = p1.y + t*r.y;
@@ -1039,10 +1154,10 @@ function bezierPathSegmentFromPoints(p0, p1, p2, p3){
 function changeShield(d){
 	var shield = document.getElementById("shield")
 	var outline = document.getElementById("shieldOutline")
-	var clip = document.getElementById("shield-clip")
+	/*var clip = document.getElementById("shield-clip")
 	if(clip!=null){
 		clip.parentNode.removeChild(clip);
-	}
+	}*/
 	shield.setAttribute("d", d);
 	outline.setAttribute("d", d);
 	setBlazon(blazon);
@@ -1057,4 +1172,51 @@ function setupMullet(){
 	mulletData=scalePathData(mulletData, 100/mulletBox.width);
 	mulletData=roundPathData(mulletData);
 	mullet.setPathData(mulletData);
+	chargePaths[0] = mulletData;
 }
+
+function getGreatestTriangularIndex(n){
+	var T=0;
+	var ret=0;
+	for(;;++ret){
+		T+=ret+1;
+		if(T>n)
+			break;
+	}
+	T-=ret+1;
+	return [ret,T];
+}
+
+function getRowNumbers(n){
+	var [k, T] = getGreatestTriangularIndex(n);
+	var d=n-T;
+	var rows=[];
+	for(var i=0; i<=k; ++i)//[k, k-1, ..., 1, 0]
+		rows.push(k-i);
+	for(var i=0; i<d; ++i)
+		++rows[k-i]
+	if(rows[k]===1 && rows[k-1]===1 && n>2){//special case for two, as it would be wider than long otherwise
+		rows[k]=0;
+		rows[k-1]=2;
+	}
+	if(rows[k]===0)
+		rows.pop();
+	return rows;
+}
+
+function getRowPositions(arr, spacing=0){
+	var ret=[];
+	var cy = (arr.length-1)/2
+	for(var i = 0; i<arr.length; ++i){
+		var cx = (arr[i]-1)/2;
+		var row=[];
+		for(var j=0;j<arr[i];++j){
+			row.push([(j-cx)*(1+spacing),(i-cy)*(1+spacing)]);
+		}
+		ret.push(row);
+	}
+	return ret;
+}
+
+document.getElementById('blazonText').value = "Azure, a bend Or";
+setBlazon(document.getElementById('blazonText').value);
