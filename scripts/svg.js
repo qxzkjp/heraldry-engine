@@ -9,6 +9,10 @@ scratch=document.createElementNS(SVG_URI,"svg");
 SVG=document.getElementById("escutcheonContainer");
 SVG_HEIGHT = 200;
 SVG_WIDTH = 200;
+SVG_MOVABLES=undefined;
+
+//newTransform = SVG.createSVGTransformFromMatrix(SVG.createSVGMatrix().translate(150,50))
+//rect.transform.baseVal.appendItem(newTransform)
 
 //encode safely to base64 using open source libraries (included in head)
 function base64EncodingUTF8(str) {
@@ -356,8 +360,19 @@ function getBoundingBox(arr){
 }
 
 
+function rot45ac(p){
+	return new Point( (p.x-p.y)/Math.sqrt(2), (p.x+p.y)/Math.sqrt(2) ); //anticlockwise 45deg rotation in SVG (right-handed) co-ordinates
+}
+
+function rot45(p){
+	return new Point( (p.y+p.x)/Math.sqrt(2), (p.y-p.x)/Math.sqrt(2) ); //clockwise 45deg rotation in SVG (right-handed) co-ordinates
+}
+
 //path data must be normalised!
-function pathDataBoundingBox(pathData){
+function pathDataBoundingBox(pathData, func){
+	if(func === undefined){
+		func = function (x){return x;}
+	}
 	var bBox = new BoundingBox;
 	var firstPoint = new Point( 0, 0 );
 	//var prevPoint = new Point( 0, 0 )
@@ -366,6 +381,7 @@ function pathDataBoundingBox(pathData){
 		if( seg.type === "M" || seg.type === "L" ){
 			pos.x = seg.values[0];
 			pos.y = seg.values[1];
+			pos=func(pos);
 			bBox.addPoint(pos);
 			if( seg.type === "M" ){
 				firstPoint = pos.clone(); //M command resets beginning of path
@@ -373,9 +389,9 @@ function pathDataBoundingBox(pathData){
 		}else if( seg.type === "Z" ){
 			pos = firstPoint.clone();//don't need to add first point to bbox -- it's already there
 		}else if( seg.type === "C"){
-			var p1 = new Point (seg.values[0], seg.values[1]);
-			var p2 = new Point (seg.values[2], seg.values[3]);
-			var p3 = new Point (seg.values[4], seg.values[5]);
+			var p1 = func( new Point (seg.values[0], seg.values[1]) );
+			var p2 = func( new Point (seg.values[2], seg.values[3]) );
+			var p3 = func( new Point (seg.values[4], seg.values[5]) );
 			bBox.addPoints( ...bezierBox( pos, p1, p2, p3 ) );
 			pos = p3;
 		} 
@@ -698,8 +714,8 @@ function createFess(elem, tinct, rh=0.34, c=[]){
 	var w=box.width;
 	rh=rh*h;
 	var ry=box.y+(h-rh)/2;
-	var rx=box.x;
-	rw=w;
+	var rx=box.x-5;//add five units of "padding" either sied to the fess
+	rw=w+10;
 	c.push(null);
 	c.push(null);
 	c.push(rx);
@@ -735,28 +751,56 @@ function getPoints(c1, c2, c3, c4){
 function addFess(id, tinct, rw=0.3){
 	var r=[];
 	var elem=document.getElementById(id);
+	var pathData = elem.getPathData();
 	var fess=createFess(elem, tinct, rw, r);
 	setClip(fess, id);
 	//insert just after given element
 	elem.parentNode.insertBefore(fess, elem.nextSibling);
 	var P=getPoints(...r.slice(2));
+	var sections=[];
+	pathLineIntersection(pathData, P[0], P[1], sections);
+	sections.sort(comparePathDataY);
+	var newsections=[];
+	pathLineIntersection(sections[0], P[3], P[2], newsections);
+	newsections.sort(comparePathDataY);
+	sections=sections.concat(newsections);
+	// [2/3, chief, base, fess]
+	sections=sections.slice(1);
+	sections.sort(comparePathDataY);
+	return sections;
 }
 
 function addPale(id, tinct, rw=0.3){
 	var r=[];
 	var elem=document.getElementById(id);
 	var pale=createPale(elem, tinct, rw, r);
+	var pathData = elem.getPathData();
 	setClip(pale, id);
 	//insert just after given element
 	elem.parentNode.insertBefore(pale, elem.nextSibling);
 	var P=getPoints(...r.slice(2));
+	var sections=[];
+	pathLineIntersection(pathData, P[1], P[2], sections);
+	sections.sort(comparePathDataX);
+	pathLineIntersection(sections[0], P[0], P[3], sections);
+	// [2/3, sinister, dexter, pale]
+	sections=sections.slice(1);
+	sections.sort(comparePathDataX);
+	return sections;
 }
 
 function addBend(id, tinct, rw=0.3){
 	var elem=document.getElementById(id);
+	var pathData = elem.getPathData();
 	var c=[];
 	var pale=createPale(elem, tinct, rw, c);
-	pale.setAttribute("transform", "rotate(-45 "+c[0]+" "+c[1]+")");
+	//matrix for rotation by 45deg about centre
+	var m=SVG.createSVGMatrix()
+			.translate(c[0],c[1])
+			.rotate(-45)
+			.translate(-c[0],-c[1]);
+	//apply matrix transform to pale
+	pale.transform.baseVal.appendItem(SVG.createSVGTransformFromMatrix(m));
 	pale.setAttribute("id", id+"-bend");
 	var g=document.createElementNS(SVG_URI, "g");
 	g.setAttribute("class", "bend");
@@ -764,29 +808,26 @@ function addBend(id, tinct, rw=0.3){
 	setClip(g,id);
 	//insert just after given element
 	elem.parentNode.insertBefore(g, elem.nextSibling);
-	var m=pale.getCTM();
+	//var m=pale.getCTM();
 	//turn rectangle x,y,h,w into four SVG points (clockwise from top left)
 	var P=getPoints(...c.slice(2));
 	//apply 45 deg rotation to get true points
 	for( var i=0; i<P.length; ++i ){
 		P[i]=P[i].matrixTransform(m);
 	}
-	var pathGroup1 = [];
-	var pathGroup2 = [];
-	var pathData = elem.getPathData();
-	pathLineIntersection(pathData, P[1], P[2], pathGroup1);
-	pathLineIntersection(pathData, P[0], P[3], pathGroup2);
-	var topRightPath = pathGroup1[1];
-	var bottomLeftPath = pathGroup2[1];
-	var topRight =  document.createElementNS(SVG_URI, "path");
-	topRight.setPathData(topRightPath);
-	var bottomLeft =  document.createElementNS(SVG_URI, "path");
-	bottomLeft.setPathData(bottomLeftPath);
-	return(topRight, bottomLeft);
+	var sections=[];
+	pathLineIntersection(pathData, P[1], P[2], sections);
+	sections.sort(comparePathDataBendwise);
+	pathLineIntersection(sections[0], P[0], P[3], sections);
+	// [2/3, sinister-chief, dexter-base, bend]
+	sections=sections.slice(1);
+	sections.sort(comparePathDataBendwise);
+	return sections;
 }
 
 function addSinister(id, tinct, rw=0.3){
 	var elem=document.getElementById(id);
+	var pathData = elem.getPathData();
 	var c=[];
 	var pale=createPale(elem, tinct, rw, c);
 	pale.setAttribute("transform", "rotate(45 "+c[0]+" "+c[1]+")");
@@ -802,6 +843,14 @@ function addSinister(id, tinct, rw=0.3){
 	for( var i=0; i<P.length; ++i ){
 		P[0]=P[0].matrixTransform(m);
 	}
+	var sections=[];
+	pathLineIntersection(pathData, P[1], P[2], sections);
+	sections.sort(comparePathDataBendwise);
+	pathLineIntersection(sections[0], P[0], P[3], sections);
+	// [2/3, dexter-chief, sinister-base, bend]
+	sections=sections.slice(1);
+	sections.sort(comparePathDataBendwise);
+	return sections;
 }
 
 var tree = parseString("Azure, a bend or");
@@ -815,6 +864,8 @@ function applyTree(shieldId, tree){
 	//var shield=document.getElementById(shieldId);
 	var elem = document.getElementById(shieldId);
 	var fields=0; //how many nodes must we skip over to get to the charges?
+	upsideDownFirst=false;
+	upsideDownSecond=false;
 	if( tree instanceof Field ){
 		var tinct = tinctures[tree.tincture];
 		changeTincture(elem, tinct);
@@ -873,51 +924,169 @@ function applyTree(shieldId, tree){
 		applyTree(shieldId+"-second", tree.at(1));
 	}
 	if( tree.subnode.length > fields ){//if there are nodes after the division nodes (if any), display them as charges
+		var sections;
 		if(tree.at(fields).type===TYPE_IMMOVABLE){
 			if(tree.at(fields).index===1){//pale
-				addPale(shieldId, tree.at(fields).at(0).tincture);
+				sections = addPale(shieldId, tree.at(fields).at(0).tincture);
 			}else if(tree.at(fields).index===2){//fess
-				addFess(shieldId, tree.at(fields).at(0).tincture);
+				sections = addFess(shieldId, tree.at(fields).at(0).tincture);
 			}else if(tree.at(fields).index===3){//bend
-				addBend(shieldId, tree.at(fields).at(0).tincture);
+				sections = addBend(shieldId, tree.at(fields).at(0).tincture);
+				upsideDownFirst=true;
 			}else if(tree.at(fields).index===4){//bend sinister
-				addSinister(shieldId, tree.at(fields).at(0).tincture);
+				sections = addSinister(shieldId, tree.at(fields).at(0).tincture);
+				upsideDownSecond=true;
 			}
-		}else if(tree.at(fields).type===TYPE_MOVABLE){
-			//var elem = document.getElementById(shieldId);
-			var bBox = elem.getBBox();
-			var cx = bBox.x + bBox.width/2;
-			var cy = bBox.y + bBox.height/2;
-			var chargeData = chargePaths[tree.at(fields).index];
-			if(chargeData === undefined){
-				console.error("Charge not implemented");
-				return;
-			}
-			var rows = getRowNumbers(tree.at(fields).number);
-			var positions = getRowPositions(rows,CHARGE_SPACING);
-			var rowWidth = 2 + rows[0];
-			var scale = 1/rowWidth;
-			var chargeData = scalePathData(chargeData, scale*bBox.width/100);//scale charge to be 1/n shield width;
-			var cBox = pathDataBoundingBox(chargeData);
-			//reposition charge over centre of shield
-			var chargeData = shiftPathData(chargeData, bBox.x+(bBox.width-cBox.width)/2, bBox.y+(bBox.height-cBox.height)/2);
-			var finalPath=[];
-			//concatenate shifted paths into one big path
-			for(var i of positions){
-				for( var j of i){
-					var tmp=shiftPathData(chargeData, j[0]*cBox.width, j[1]*cBox.height );
-					finalPath = finalPath.concat(tmp);
+			if(tree.at(fields).subnode.length > 1){
+				if(tree.at(fields).at(1) instanceof Charge){
+					var secElem = document.createElementNS(SVG_URI, "path")
+					secElem.id=elem.id+"-dexter";
+					secElem.setPathData(sections[0]);
+					elem.parentNode.insertBefore(secElem, elem.nextSibling);//insert just after field
+					addCharge(secElem, tree.at(fields).at(1).index, tree.at(fields).at(1).number, tree.at(fields).at(1).at(0).tincture, upsideDownFirst);
+					secElem.parentNode.removeChild(secElem);
+				}
+				if(tree.at(fields).at(2) instanceof Charge){
+					var secElem = document.createElementNS(SVG_URI, "path")
+					secElem.id=elem.id+"-sinister";
+					secElem.setPathData(sections[2]);
+					elem.parentNode.insertBefore(secElem, elem.nextSibling);//insert just after field
+					addCharge(secElem, tree.at(fields).at(2).index, tree.at(fields).at(2).number, tree.at(fields).at(2).at(0).tincture, upsideDownSecond);
+					secElem.parentNode.removeChild(secElem);
 				}
 			}
-			var charge = document.createElementNS(SVG_URI, "path");
-			charge.setPathData(finalPath);
-			charge.setAttribute("id", shieldId + "-charge1");
-			var tinct = tinctures[tree.at(fields).at(0).tincture];
-			changeTincture(charge, tinct)
-			//insert just after given element
-			elem.parentNode.insertBefore(charge, elem.nextSibling);
+		}else if(tree.at(fields).type===TYPE_MOVABLE){
+			addCharge(elem, tree.at(fields).index, tree.at(fields).number, tree.at(fields).at(0).tincture);
 		}
 		//movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge", "key", "phrygian cap with bells on"];
+	}
+}
+
+function addCharge(elem, index, number, tinct, upsideDown=false){
+	var bBox = elem.getBBox();
+	var charge = SVG_MOVABLES.getElementById(movables[index]).cloneNode(true);
+	charge.id="temp-1";
+	var cBox = SVG_MOVABLES.getElementById(movables[index]).getBBox();
+	var pathData = elem.getPathData();
+	var cx = bBox.x + bBox.width/2;
+	var cy = bBox.y + bBox.height/2;
+	var ccx = cBox.x + cBox.width/2;
+	var ccy = cBox.y + cBox.height/2;
+	var aspectRatio = cBox.width / cBox.height;
+	var chHeight = 2 * bBox.height / 3;
+	var step = chHeight/20;
+	//console.log(charge.outerHTML);
+	if(number === 1){
+		while(true){
+			//eps=0.0001;
+			var topPoints = pathLineIntersection(pathData, new Point(0, cy + chHeight/2), new Point(SVG_WIDTH, cy + chHeight/2));
+			var midPoints = pathLineIntersection(pathData, new Point(0, cy), new Point(SVG_WIDTH, cy));
+			var bottomPoints = pathLineIntersection(pathData, new Point(0, cy - chHeight/2), new Point(SVG_WIDTH, cy - chHeight/2));
+			topWidth = Math.abs(topPoints[1].x - topPoints[0].x);
+			midWidth = Math.abs(midPoints[1].x - midPoints[0].x);
+			bottomWidth = Math.abs(bottomPoints[1].x - bottomPoints[0].x);
+			if( chHeight * aspectRatio < Math.min(topWidth, midWidth, bottomWidth) ){
+				var middleX = (midPoints[0].x+midPoints[1].x)/2;
+				var Ypoints=pathLineIntersection(pathData, new Point(middleX, 0), new Point(middleX, SVG_HEIGHT));
+				Ypoints.sort(comparePointsY);
+				var middleY = (Ypoints[0].y + Ypoints[Ypoints.length-1].y)/2;
+				//draw charge
+				var newCharge=charge.cloneNode(true);
+				elem.parentNode.insertBefore(newCharge, elem.nextSibling);//insert just after field
+				//console.log("Charge height " + chHeight +" fits")
+				var scale = chHeight/cBox.height;
+				var translateX = middleX;
+				var translateY = middleY;
+				//matrix for transform (shift to 0,0 scale then shift to new position)
+				var m=SVG.createSVGMatrix()
+						.translate(translateX,translateY)
+						.scale(scale)
+						.translate(-ccx,-ccy);
+				//apply matrix transform
+				newCharge.transform.baseVal.appendItem(SVG.createSVGTransformFromMatrix(m));
+				newCharge.id=elem.id+"-charge"+"1";
+				var children=newCharge.children;
+				for (var i = 0; i < children.length; i++) {
+					var childElem = children[i];
+					if(childElem.getAttribute("tinctured")==="true"){
+						childElem.setAttribute("class", "heraldry-"+tinctures[tinct]);
+					}
+				}
+				break;
+			}
+			//console.log("Charge height: " + chHeight + ", charge width: " + chHeight * aspectRatio);
+			chHeight -= step;
+			if(chHeight<0){
+				console.error("Could not fit charge in field!");
+				break;
+			}
+		}
+		
+	}else if( number === 2){
+		var sections = [];
+		if(upsideDown){
+			pathLineIntersection(pathData, new Point(cx, 0), new Point(cx, SVG_HEIGHT), sections);
+		}else{
+			pathLineIntersection(pathData, new Point(0, cy), new Point(SVG_WIDTH, cy), sections);
+		}
+		var el1 = document.createElementNS(SVG_URI, "path");
+		var el2 = document.createElementNS(SVG_URI, "path");
+		el1.setPathData(sections[0]);
+		el2.setPathData(sections[1]);
+		elem.parentNode.insertBefore(el2, elem.nextSibling);
+		elem.parentNode.insertBefore(el1, elem.nextSibling);
+		addCharge(el1, index, 1, tinct);
+		addCharge(el2, index, 1, tinct);
+		el1.parentElement.removeChild(el1);
+		el2.parentElement.removeChild(el2);
+		
+	}else if( number === 3){
+		var numAbove=2;
+		var numBelow=1;
+		if(upsideDown){
+			numAbove=1;
+			numBelow=2;
+		}
+		var sections = [];
+		var subsections =[];
+		pathLineIntersection(pathData, new Point(0, cy), new Point(SVG_WIDTH, cy), sections);
+		sections.sort(comparePathDataY);
+		var el1 = document.createElementNS(SVG_URI, "path");
+		var el2 = document.createElementNS(SVG_URI, "path");
+		el1.setPathData(sections[0]);
+		el2.setPathData(sections[1]);
+		elem.parentNode.insertBefore(el2, elem.nextSibling);
+		elem.parentNode.insertBefore(el1, elem.nextSibling);
+		addCharge(el1, index, numAbove, tinct, true);
+		addCharge(el2, index, numBelow, tinct, true);
+		el1.parentElement.removeChild(el1);
+		el2.parentElement.removeChild(el2);
+	}else{
+		console.error("I don't know how to draw a group of "+number+" charges.");
+	}
+	SVG.appendChild(charge);
+	charge.parentElement.removeChild(charge);
+	var rowNums = getRowNumbers(number);
+	var numRows = rowNums.length;
+}
+
+function comparePointsY(p1, p2){
+	if(p1.y<p2.y){
+		return -1;
+	}else if(p1.y>p2.y){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+function comparePointsX(p1, p2){
+	if(p1.x<p2.x){
+		return -1;
+	}else if(p1.x>p2.x){
+		return 1;
+	}else{
+		return 0;
 	}
 }
 
@@ -951,6 +1120,26 @@ function comparePathDataY(pd1, pd2){
 	}else{
 		return 0;
 	}
+}
+
+function comparePathDataBendwise(pd1, pd2){
+	var box1 = pathDataBoundingBox(pd1, rot45);
+	var box2 = pathDataBoundingBox(pd2, rot45);
+	if(box1.max.y > box2.max.y){
+		return -1;
+	}else if(box1.max.y < box2.max.y){
+		return 1;
+	}else if(box1.min.y > box2.min.y){
+		return -1;
+	}else if(box1.min.y < box2.min.y){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+function comparePathDataSinister(pd1, pd2){
+	return -comparePathDataBendwise(pd1,pd2);
 }
 
 function partyPerPoints(elem, p1, p2, tree){
@@ -1129,7 +1318,7 @@ function pathLineIntersection(pathData, p0, p1, paths=[]){
 		}
 	}
 	paths.push(currentPath);
-	if(pathData.slice(-1)[0].type=="Z"){//if the path was closed, we append the first segment to the last
+	if(pathData.slice(-1)[0].type=="Z" && paths.length>1){//if the path was closed, we append the first segment to the last
 		var length=paths.length;
 		var lastPath = paths[length-1];
 		var firstPath = paths[0].slice(1);//we drop the initial move command, it's redundant
@@ -1161,18 +1350,6 @@ function changeShield(d){
 	shield.setAttribute("d", d);
 	outline.setAttribute("d", d);
 	setBlazon(blazon);
-}
-
-function setupMullet(){
-	mullet=document.createElementNS(SVG_URI,"path");
-	mullet.setAttribute("d",document.getElementById("mullet").contentDocument.getElementById("mullet").getAttribute("d"));
-	mulletData=mullet.getPathData();
-	mulletBox=mullet.getBBox();
-	mulletData=shiftPathData(mulletData, -mulletBox.x, -mulletBox.y);
-	mulletData=scalePathData(mulletData, 100/mulletBox.width);
-	mulletData=roundPathData(mulletData);
-	mullet.setPathData(mulletData);
-	chargePaths[0] = mulletData;
 }
 
 function getGreatestTriangularIndex(n){
@@ -1216,6 +1393,10 @@ function getRowPositions(arr, spacing=0){
 		ret.push(row);
 	}
 	return ret;
+}
+
+function setupCharges(){
+	SVG_MOVABLES = document.getElementById("movable_charges").contentDocument;
 }
 
 document.getElementById('blazonText').value = "Azure, a bend Or";
