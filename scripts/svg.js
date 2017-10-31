@@ -333,30 +333,38 @@ BoundingBox.prototype.finalise= function(){
 
 //NOTE: this function cannot deal with arc commands
 //TODO: make this function deal with arc commands
-function getBoundingBox(arr){
-	var bBox = new BoundingBox;
-	var firstPoint = arr[0][1].clone();
-	//var prevPoint = new Point( 0, 0 )
-	var pos = new Point( 0, 0 )
-	for (var p of arr){
-		if( p[0] === "V" ){//"Z" does nothing to alter the bounding box
-			pos.y = p[1];
-			bBox.addPoint(pos);
-		}else if( p[0] === "H" ){
-			pos.x = p[1];
-			bBox.addPoint(pos);
-		}else if( p[0] === "Z" ){
-			pos = firstPoint;//don't need to add first point to bbox -- it's already there
-		}else if(p[0] === "C"){
-			bBox.addPoints( ...bezierBox( pos, p[1], p[2], p[3] ) );
-		}else if(p[0] === "Q"){
-			bBox.addPoints( ...qBezierBox( pos, p[1], p[2] ) );
-		}else if( p[0] === "M" || p[0] === "L" ){
-			bBox.addPoint(p[1]);
-			pos = p[1].clone();
-		} 
+function getBoundingBox(arr, transform=undefined){
+	var secElem = document.createElementNS(SVG_URI, "path");
+	var ret;
+	secElem.setPathData(arr);
+	SVG.appendChild(secElem);
+	if(transform!==undefined){
+		var bb=secElem.getBBox();
+		var cx = bb.x+bb.width/2;
+		var cy = bb.y+bb.height/2;
+		secElem.transform.baseVal.appendItem(
+			SVG.createSVGTransformFromMatrix(
+				SVG.createSVGMatrix()
+					.translate(cx,cy)
+				)
+			);
+		secElem.transform.baseVal.appendItem(transform);
+		secElem.transform.baseVal.appendItem(
+			SVG.createSVGTransformFromMatrix(
+				SVG.createSVGMatrix()
+					.translate(-cx,-cy)
+				)
+			);
+		var g=document.createElementNS(SVG_URI, "g");
+		g.appendChild(secElem);
+		SVG.appendChild(g);
+		ret=g.getBBox();
+		SVG.removeChild(g);
+	}else{
+		ret=secElem.getBBox();
+		SVG.removeChild(secElem);
 	}
-	return [bBox.min, bBox.max];
+	return ret;
 }
 
 
@@ -407,16 +415,16 @@ function drawBox(container, shape, boxID){
 	var esc=document.getElementById(container);
 	var d=document.getElementById(shape).getAttribute("d");
 	var boxElem = document.getElementById(boxID);
-	var b=analyzePath(d);
+	var b=d.getPathData();
 	var box=getBoundingBox(b);
 	if(boxElem !== null){
 		esc.removeChild(boxElem);
 	}
 	rect=document.createElementNS(SVG_URI, "rect");
-	rect.setAttribute("x", box[0].x);
-	rect.setAttribute("y", box[0].y);
-	rect.setAttribute("width", box[1].x - box[0].x);
-	rect.setAttribute("height", box[1].y - box[0].y);
+	rect.setAttribute("x", box.x);
+	rect.setAttribute("y", box.y);
+	rect.setAttribute("width", box.width);
+	rect.setAttribute("height", box.height);
 	rect.setAttribute("fill", "transparent");
 	rect.setAttribute("stroke", "black");
 	rect.setAttribute("id", boxID);
@@ -432,15 +440,15 @@ function changeErmine(arr){
 
 function getWidthAndHeight(path){
 	var box=getBoundingBox(path);
-	var w = box[1].x - box[0].x;
-	var h = box[1].y - box[0].y;
+	var w = box.width;
+	var h = box.height;
 	return [w,h];
 }
 
 function getCentre(path){
 	var box=getBoundingBox(path);
-	var cx = (box[0].x + box[1].x)/2;
-	var cy = (box[0].y + box[1].y)/2;
+	var cx = box.x + box.width/2;
+	var cy = box.y + box.height/2;
 	return new Point(cx, cy);
 }
 
@@ -759,14 +767,36 @@ function addFess(id, tinct, rw=0.3){
 	var P=getPoints(...r.slice(2));
 	var sections=[];
 	pathLineIntersection(pathData, P[0], P[1], sections);
+	var debug1=displayPath(sections[0]);
+	var debug2=displayPath(sections[1],"or");
+	SVG.removeChild(debug1);
+	SVG.removeChild(debug2);
 	sections.sort(comparePathDataY);
+	debug1=displayPath(sections[0]);
+	debug2=displayPath(sections[1],"or");
+	SVG.removeChild(debug1);
+	SVG.removeChild(debug2);
 	var newsections=[];
 	pathLineIntersection(sections[0], P[3], P[2], newsections);
+	debug1=displayPath(newsections[0]);
+	debug2=displayPath(newsections[1],"or");
+	SVG.removeChild(debug1);
+	SVG.removeChild(debug2);
 	newsections.sort(comparePathDataY);
+	debug1=displayPath(newsections[0]);
+	debug2=displayPath(newsections[1],"or");
+	SVG.removeChild(debug1);
+	SVG.removeChild(debug2);
 	sections=sections.concat(newsections);
 	// [2/3, chief, base, fess]
 	sections=sections.slice(1);
 	sections.sort(comparePathDataY);
+	debug1=displayPath(sections[0]);
+	debug2=displayPath(sections[1],"or");
+	var debug3=displayPath(sections[2],"vert");
+	SVG.removeChild(debug1);
+	SVG.removeChild(debug2);
+	SVG.removeChild(debug3);
 	return sections;
 }
 
@@ -830,26 +860,52 @@ function addSinister(id, tinct, rw=0.3){
 	var pathData = elem.getPathData();
 	var c=[];
 	var pale=createPale(elem, tinct, rw, c);
-	pale.setAttribute("transform", "rotate(45 "+c[0]+" "+c[1]+")");
-	pale.setAttribute("id", id+"-sinister");
+	//matrix for rotation by 45deg about centre
+	var m=SVG.createSVGMatrix()
+			.translate(c[0],c[1])
+			.rotate(45)
+			.translate(-c[0],-c[1]);
+	//apply matrix transform to pale
+	pale.transform.baseVal.appendItem(SVG.createSVGTransformFromMatrix(m));
+	pale.setAttribute("id", id+"-bend_sinister");
 	var g=document.createElementNS(SVG_URI, "g");
-	g.setAttribute("class", "sinister");
+	g.setAttribute("class", "bend-sinister");
 	g.appendChild(pale);
 	setClip(g,id);
 	//insert just after given element
 	elem.parentNode.insertBefore(g, elem.nextSibling);
-	var m=pale.getCTM();
+	//var m=pale.getCTM();
+	//turn rectangle x,y,h,w into four SVG points (clockwise from top left)
 	var P=getPoints(...c.slice(2));
+	//apply 45 deg rotation to get true points
 	for( var i=0; i<P.length; ++i ){
-		P[0]=P[0].matrixTransform(m);
+		P[i]=P[i].matrixTransform(m);
 	}
 	var sections=[];
-	pathLineIntersection(pathData, P[1], P[2], sections);
-	sections.sort(comparePathDataBendwise);
-	pathLineIntersection(sections[0], P[0], P[3], sections);
-	// [2/3, dexter-chief, sinister-base, bend]
+	pathLineIntersection(pathData, P[0], P[3], sections);
+	sections.sort(comparePathDataSinister);
+	var debug1=displayPath(sections[0]);
+	var debug2=displayPath(sections[1],"or");
+	SVG.removeChild(debug1);
+	SVG.removeChild(debug2);
+	pathLineIntersection(sections[0], P[1], P[2], sections);
+	// [2/3, sinister-chief, dexter-base, bend]
+	debug1=displayPath(sections[0]);
+	debug2=displayPath(sections[1],"or");
+	var debug3=displayPath(sections[2],"vert");
+	var debug4=displayPath(sections[3],"ermine");
+	SVG.removeChild(debug1);
+	SVG.removeChild(debug2);
+	SVG.removeChild(debug3);
+	SVG.removeChild(debug4);
 	sections=sections.slice(1);
-	sections.sort(comparePathDataBendwise);
+	sections.sort(comparePathDataSinister);
+	debug1=displayPath(sections[0]);
+	debug2=displayPath(sections[1],"or");
+	debug3=displayPath(sections[2],"vert");
+	SVG.removeChild(debug1);
+	SVG.removeChild(debug2);
+	SVG.removeChild(debug3);
 	return sections;
 }
 
@@ -861,6 +917,9 @@ tinctureClasses = ["heraldry-unspecified", "heraldry-argent", "heraldry-or", "he
 //divisions = ["per pale", "per fess", "per bend", "per bend sinister", "per chevron", "per saltire", "", "", "", "", "", "", "",""];
 
 function applyTree(shieldId, tree){
+	if(tree===undefined){
+		console.error("Rendering error: no escutcheon to diaplay (probably due to a catastrophic parsing error)");
+	}
 	//var shield=document.getElementById(shieldId);
 	var elem = document.getElementById(shieldId);
 	var fields=0; //how many nodes must we skip over to get to the charges?
@@ -932,7 +991,7 @@ function applyTree(shieldId, tree){
 				sections = addFess(shieldId, tree.at(fields).at(0).tincture);
 			}else if(tree.at(fields).index===3){//bend
 				sections = addBend(shieldId, tree.at(fields).at(0).tincture);
-				upsideDownFirst=true;
+				upsideDownSecond=true;
 			}else if(tree.at(fields).index===4){//bend sinister
 				sections = addSinister(shieldId, tree.at(fields).at(0).tincture);
 				upsideDownSecond=true;
@@ -1107,31 +1166,32 @@ function comparePathDataX(pd1, pd2){
 }
 
 function comparePathDataY(pd1, pd2){
-	var box1 = pathDataBoundingBox(pd1);
-	var box2 = pathDataBoundingBox(pd2);
-	if(box1.max.y > box2.max.y){
-		return 1;
-	}else if(box1.max.y < box2.max.y){
+	var box1 = getBoundingBox(pd1);
+	var box2 = getBoundingBox(pd2);
+	if(box1.y+box1.height > box2.y+box2.height){
 		return -1;
-	}else if(box1.min.y > box2.min.y){
+	}else if(box1.y+box1.height < box2.y+box2.height){
 		return 1;
-	}else if(box1.min.y < box2.min.y){
+	}else if(box1.y > box2.y){
 		return -1;
+	}else if(box1.y < box2.y){
+		return 1;
 	}else{
 		return 0;
 	}
 }
 
 function comparePathDataBendwise(pd1, pd2){
-	var box1 = pathDataBoundingBox(pd1, rot45);
-	var box2 = pathDataBoundingBox(pd2, rot45);
-	if(box1.max.y > box2.max.y){
+	var rot45t=SVG.createSVGTransformFromMatrix(SVG.createSVGMatrix().rotate(-45))
+	var box1 = getBoundingBox(pd1, rot45t);
+	var box2 = getBoundingBox(pd2, rot45t);
+	if(box1.y+box1.height > box2.y+box2.height){
 		return -1;
-	}else if(box1.max.y < box2.max.y){
+	}else if(box1.y+box1.height < box2.y+box2.height){
 		return 1;
-	}else if(box1.min.y > box2.min.y){
+	}else if(box1.y > box2.y){
 		return -1;
-	}else if(box1.min.y < box2.min.y){
+	}else if(box1.y < box2.y){
 		return 1;
 	}else{
 		return 0;
@@ -1139,7 +1199,24 @@ function comparePathDataBendwise(pd1, pd2){
 }
 
 function comparePathDataSinister(pd1, pd2){
-	return -comparePathDataBendwise(pd1,pd2);
+	var debug1=displayPath(pd1);
+	var debug2=displayPath(pd2,"vert");
+	SVG.removeChild(debug1);
+	SVG.removeChild(debug2);
+	var rot45t=SVG.createSVGTransformFromMatrix(SVG.createSVGMatrix().rotate(45));
+	var box1 = getBoundingBox(pd1, rot45t);
+	var box2 = getBoundingBox(pd2, rot45t);
+	if(box1.y > box2.y){
+		return -1;
+	}else if(box1.y < box2.y){
+		return 1;
+	}else if(box1.y+box1.height > box2.y+box2.height){
+		return -1;
+	}else if(box1.y+box1.height < box2.y+box2.height){
+		return 1;
+	}else{
+		return 0;
+	}
 }
 
 function partyPerPoints(elem, p1, p2, tree){
@@ -1397,6 +1474,14 @@ function getRowPositions(arr, spacing=0){
 
 function setupCharges(){
 	SVG_MOVABLES = document.getElementById("movable_charges").contentDocument;
+}
+
+function displayPath(pd, tincture="gules"){
+	var pathElem = document.createElementNS(SVG_URI, "path");
+	pathElem.setPathData(pd);
+	pathElem.setAttribute("class","heraldry-"+tincture);
+	SVG.appendChild(pathElem);
+	return pathElem;
 }
 
 document.getElementById('blazonText').value = "Azure, a bend Or";
