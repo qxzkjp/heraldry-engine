@@ -351,10 +351,10 @@ addSynonym(attMap, "sejant erect", "sejant rampant");
 addSynonym(attMap, "sejant erect", "sejant-rampant");
 
 //possibly not the most elegant way of handling the orientations, but we only need eight manual synonyms so it'll do
-addSynonym(mirrorOrientMap, "fesswise inverted", "inverted");
-addSynonym(mirrorOrientMap, "fesswise reversed", "reversed");
-addSynonym(halfOrientMap, "fesswise inverted and reversed", "inverted and reversed");
-addSynonym(halfOrientMap, "fesswise inverted and reversed", "reversed and inverted");
+addSynonym(mirrorOrientMap, "palewise inverted", "inverted");
+addSynonym(mirrorOrientMap, "palewise reversed", "reversed");
+addSynonym(halfOrientMap, "palewise inverted and reversed", "inverted and reversed");
+addSynonym(halfOrientMap, "palewise inverted and reversed", "reversed and inverted");
 
 addSynonym(halfOrientMap, "fesswise inverted and reversed", "fesswise reversed and inverted");
 addSynonym(halfOrientMap, "palewise inverted and reversed", "palewise reversed and inverted");

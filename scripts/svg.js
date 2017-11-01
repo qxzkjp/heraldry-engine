@@ -1002,7 +1002,15 @@ function applyTree(shieldId, tree){
 					secElem.id=elem.id+"-dexter";
 					secElem.setPathData(sections[0]);
 					elem.parentNode.insertBefore(secElem, elem.nextSibling);//insert just after field
-					addCharge(secElem, tree.at(fields).at(1).index, tree.at(fields).at(1).number, tree.at(fields).at(1).at(0).tincture, upsideDownFirst);
+					addCharge(secElem,
+						elem.id,
+						tree.at(fields).at(1).index,
+						tree.at(fields).at(1).number,
+						tree.at(fields).at(1).at(0).tincture,
+						upsideDownFirst,
+						tree.at(fields).at(1).mirrored,
+						tree.at(fields).at(1).orientation
+						);
 					secElem.parentNode.removeChild(secElem);
 				}
 				if(tree.at(fields).at(2) instanceof Charge){
@@ -1010,18 +1018,34 @@ function applyTree(shieldId, tree){
 					secElem.id=elem.id+"-sinister";
 					secElem.setPathData(sections[2]);
 					elem.parentNode.insertBefore(secElem, elem.nextSibling);//insert just after field
-					addCharge(secElem, tree.at(fields).at(2).index, tree.at(fields).at(2).number, tree.at(fields).at(2).at(0).tincture, upsideDownSecond);
+					addCharge(secElem,
+						elem.id,
+						tree.at(fields).at(2).index,
+						tree.at(fields).at(2).number,
+						tree.at(fields).at(2).at(0).tincture,
+						upsideDownSecond,
+						tree.at(fields).at(2).mirrored,
+						tree.at(fields).at(2).orientation
+						);
 					secElem.parentNode.removeChild(secElem);
 				}
 			}
 		}else if(tree.at(fields).type===TYPE_MOVABLE){
-			addCharge(elem, tree.at(fields).index, tree.at(fields).number, tree.at(fields).at(0).tincture);
+			addCharge(elem,
+						elem.id,
+						tree.at(fields).index,
+						tree.at(fields).number,
+						tree.at(fields).at(0).tincture,
+						false,
+						tree.at(fields).mirrored,
+						tree.at(fields).orientation
+						);
 		}
 		//movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge", "key", "phrygian cap with bells on"];
 	}
 }
 
-function addCharge(elem, index, number, tinct, upsideDown=false){
+function addCharge(elem, clipId, index, number, tinct, upsideDown=false, mirror=false, rotation=0, sequence=0){
 	var bBox = elem.getBBox();
 	var charge = SVG_MOVABLES.getElementById(movables[index]).cloneNode(true);
 	charge.id="temp-1";
@@ -1036,6 +1060,18 @@ function addCharge(elem, index, number, tinct, upsideDown=false){
 	var step = chHeight/20;
 	//console.log(charge.outerHTML);
 	if(number === 1){
+		var newCharge=charge.cloneNode(true);
+		if(rotation!=0){
+			var m=SVG.createSVGMatrix()
+					.rotate(-45*rotation)
+					.translate(-ccx,-ccy);
+			var g=document.createElementNS(SVG_URI, "g");
+			g.appendChild(charge);
+			SVG.appendChild(g);
+			var tBox=g.getBBox();
+			aspectRatio = tBox.width / tBox.height;
+			SVG.removeChild(g);
+		}
 		while(true){
 			//eps=0.0001;
 			var topPoints = pathLineIntersection(pathData, new Point(0, cy + chHeight/2), new Point(SVG_WIDTH, cy + chHeight/2));
@@ -1050,7 +1086,6 @@ function addCharge(elem, index, number, tinct, upsideDown=false){
 				Ypoints.sort(comparePointsY);
 				var middleY = (Ypoints[0].y + Ypoints[Ypoints.length-1].y)/2;
 				//draw charge
-				var newCharge=charge.cloneNode(true);
 				elem.parentNode.insertBefore(newCharge, elem.nextSibling);//insert just after field
 				//console.log("Charge height " + chHeight +" fits")
 				var scale = chHeight/cBox.height;
@@ -1059,17 +1094,24 @@ function addCharge(elem, index, number, tinct, upsideDown=false){
 				//matrix for transform (shift to 0,0 scale then shift to new position)
 				var m=SVG.createSVGMatrix()
 						.translate(translateX,translateY)
-						.scale(scale)
+						.rotate(-45*rotation);
+				if(mirror){
+					m=m.flipX();
+				}
+					m=m.scale(scale)
 						.translate(-ccx,-ccy);
-				//apply matrix transform
-				newCharge.transform.baseVal.appendItem(SVG.createSVGTransformFromMatrix(m));
-				newCharge.id=elem.id+"-charge"+"1";
+				newCharge.id=clipId+"-charge"+sequence.toString();
 				var children=newCharge.children;
 				for (var i = 0; i < children.length; i++) {
 					var childElem = children[i];
 					if(childElem.getAttribute("tinctured")==="true"){
 						childElem.setAttribute("class", "heraldry-"+tinctures[tinct]);
 					}
+					//apply matrix transform
+					childElem.transform.baseVal.appendItem(SVG.createSVGTransformFromMatrix(m));
+				}
+				if(clipId!=""){
+					setClip(newCharge, clipId);
 				}
 				break;
 			}
@@ -1094,8 +1136,8 @@ function addCharge(elem, index, number, tinct, upsideDown=false){
 		el2.setPathData(sections[1]);
 		elem.parentNode.insertBefore(el2, elem.nextSibling);
 		elem.parentNode.insertBefore(el1, elem.nextSibling);
-		addCharge(el1, index, 1, tinct);
-		addCharge(el2, index, 1, tinct);
+		addCharge(el1, clipId, index, 1, tinct, false, mirror, rotation, sequence);
+		addCharge(el2, clipId, index, 1, tinct, false, mirror, rotation, sequence+1);
 		el1.parentElement.removeChild(el1);
 		el2.parentElement.removeChild(el2);
 		
@@ -1116,8 +1158,8 @@ function addCharge(elem, index, number, tinct, upsideDown=false){
 		el2.setPathData(sections[1]);
 		elem.parentNode.insertBefore(el2, elem.nextSibling);
 		elem.parentNode.insertBefore(el1, elem.nextSibling);
-		addCharge(el1, index, numAbove, tinct, true);
-		addCharge(el2, index, numBelow, tinct, true);
+		addCharge(el1, clipId, index, numAbove, tinct, true, mirror, rotation, sequence);
+		addCharge(el2, clipId, index, numBelow, tinct, true, mirror, rotation, sequence+numAbove);
 		el1.parentElement.removeChild(el1);
 		el2.parentElement.removeChild(el2);
 	}else{
