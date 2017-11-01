@@ -60,8 +60,12 @@ img {
   flex: 0 0 33%;
 }
 #middle {
-	flex: 0 0 33%;
+	flex: 0.5;
 }
 #right {
-  flex: 1;
+  flex: 0.5;
+}
+
+.heraldry-invisible {
+	fill:none;
 }

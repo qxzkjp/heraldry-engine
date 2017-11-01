@@ -13,7 +13,7 @@
 	<body>
 		<h1>SVG Test</h1>
 		<div style="text-align:center;overflow: auto;" id="dotContainer">
-			<svg version="1.1" baseProfile="full" width="600" height="600" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="escutcheon">
+			<svg version="1.1" baseProfile="full" width="600" height="600" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="escutcheonContainer">
 				<defs id="SVGDefs">
 					<pattern id="or-bw" width="200" height="200" patternUnits="userSpaceOnUse" patternTransform="scale(0.0625)">
 						<rect width="200" height="200" fill="white" />
@@ -86,12 +86,6 @@
 					</pattern>
 					<pattern id="ermines-bend" width="100" height="100" patternUnits="userSpaceOnUse" patternTransform="scale(0.25)">
 						<rect width="100" height="100" fill="white" />
-						<!--line x1="0" y1="0" x2="100" y2="100" stroke="black" stroke-width="2" stroke-linecap="square"/>
-						<line x1="0" y1="100" x2="100" y2="0" stroke="black" stroke-width="2" stroke-linecap="square"/>
-						<line x1="0" y1="50" x2="50" y2="0" stroke="black" stroke-width="2" stroke-linecap="square"/>
-						<line x1="50" y1="0" x2="100" y2="50" stroke="black" stroke-width="2" stroke-linecap="square"/>
-						<line x1="0" y1="50" x2="50" y2="100" stroke="black" stroke-width="2" stroke-linecap="square"/>
-						<line x1="50" y1="100" x2="100" y2="50" stroke="black" stroke-width="2" stroke-linecap="square"/-->
 						<line x1="0" y1="33" x2="33" y2="0" stroke="black" stroke-width="2" stroke-linecap="square"/>
 						<line x1="0" y1="67" x2="67" y2="0" stroke="black" stroke-width="2" stroke-linecap="square"/>
 						<line x1="0" y1="100" x2="100" y2="0" stroke="black" stroke-width="2" stroke-linecap="square"/>
@@ -121,68 +115,47 @@
 						<rect x="0" y="0" width="50" height="50" fill="rgb(200,200,200)"/>
 						<rect x="50" y="50" width="50" height="50" fill="rgb(200,200,200)"/>
 					</pattern>
-					<clipPath id="shieldClip">
-						<path d="m 20,5 v 84 c 0,5 1.5,24.5 40,66 c 34,40.5 40,40 40,40 c 0,0 6,0.5 40,-40 c 38.5,-41.5 40,-61 40,-66 v -84 z" 
-							stroke-width="1"
-							stroke="white"
-							stroke-linecap="square"
-							stroke-linejoin="bevel" />
-					</clipPath>
 				</defs>
 				<rect x="0" y="0" width="100%" height="100%" fill="url(#chequeredBG)" />
-				<!--path
-					d="m 20,5 v 84 c 0,5 1.5,24.5 40,66 c 34,40.5 40,40 40,40 c 0,0 6,0.5 40,-40 c 38.5,-41.5 40,-61 40,-66 v -84 z"
-					id="shield"
-					class="heraldry-azure" /-->
-				<!--g clip-path="url(#shieldClip)" class="bend">
-					<rect id="bend" x="75" y="-50" width="50" height="300" class="heraldry-or" transform="rotate(-45 100 85)" />
-				</g-->
-				<!--path
-					d="m 20,5 v 84 c 0,5 1.5,24.5 40,66 c 34,40.5 40,40 40,40 c 0,0 6,0.5 40,-40 c 38.5,-41.5 40,-61 40,-66 v -84 z"
-					id="shieldOutline"
-					stroke-width="1"
-					stroke="black"
-					stroke-linecap="square"
-					stroke-linejoin="bevel"
-					fill="transparent" /-->
-				<!-- 172.388841 103.8342095 -->
-				<path
-					d="M 20 5 L 180 5 C 180 5 182.113598 84.825528 167.003707 137.362438 C 151.893806 189.899348 102.105477 195.000018 100 195 C 97.894524 195 48.106195 189.899348 32.996295 137.362438 C 17.886404 84.825528 20 5 20 5 Z"
-					id="shield"
-					class="heraldry-azure" />
-				<path
-					d="M 20 5 L 180 5 C 180 5 182.113598 84.825528 167.003707 137.362438 C 151.893806 189.899348 102.105477 195.000018 100 195 C 97.894524 195 48.106195 189.899348 32.996295 137.362438 C 17.886404 84.825528 20 5 20 5 Z"
-					id="shieldOutline"
-					stroke-width="1"
-					stroke="black"
-					stroke-linecap="square"
-					stroke-linejoin="bevel"
-					fill="none" />
+				<g id="escutcheon">
+					<!-- alternative shield outline (my creation) -->
+					<!--path
+						d="M 20 5 L 180 5 C 180 5 182.113598 84.825528 167.003707 137.362438 C 151.893806 189.899348 102.105477 195.000018 100 195 C 97.894524 195 48.106195 189.899348 32.996295 137.362438 C 17.886404 84.825528 20 5 20 5 Z"
+						id="shield"
+						class="heraldry-ermine" />
+					<path
+						d="M 20 5 L 180 5 C 180 5 182.113598 84.825528 167.003707 137.362438 C 151.893806 189.899348 102.105477 195.000018 100 195 C 97.894524 195 48.106195 189.899348 32.996295 137.362438 C 17.886404 84.825528 20 5 20 5 Z"
+						id="shieldOutline"
+						stroke-width="1"
+						stroke="black"
+						stroke-linecap="square"
+						stroke-linejoin="bevel"
+						fill="none" /-->
+					<!-- shield outline (adapted from Wikimedia Commons) -->
+					<path
+						d="M 20 12.5 L 179.999996 12.5 L 179.999996 81.366166 C 179.999996 157.611827 99.999998 187.500003 99.999998 187.500003 C 99.999998 187.500003 20 157.611827 20 81.366166 Z"
+						id="shield"
+						class="heraldry-ermine" />
+					<path
+						d="M 20 12.5 L 179.999996 12.5 L 179.999996 81.366166 C 179.999996 157.611827 99.999998 187.500003 99.999998 187.500003 C 99.999998 187.500003 20 157.611827 20 81.366166 Z"
+						id="shieldOutline"
+						stroke-width="1"
+						stroke="black"
+						stroke-linecap="square"
+						stroke-linejoin="bevel"
+						fill="none" />
+				</g>
 			</svg>
 			<br class="clear" />
 		</div>
 		<div id="wrapper">
 			<div id="left" style="color: yellow;">
-				<input type="radio" name="shield" value="ermine" onchange="changeTincture('shield','ermine')"> Ermine<br>
-				<input type="radio" name="shield" value="ermines" onchange="changeTincture('shield','ermines')"> Ermines<br>
-				<input type="radio" name="shield" value="or" onchange="changeTincture('shield','or')"> "Or"<br>
-				<input type="radio" name="shield" value="argent" onchange="changeTincture('shield','argent')"> "Argent"<br>
-				<input type="radio" name="shield" value="azure" onchange="changeTincture('shield','azure')" checked> "Azure"<br>
-				<input type="radio" name="shield" value="gules" onchange="changeTincture('shield','gules')"> "Gules"<br>
-				<input type="radio" name="shield" value="vert" onchange="changeTincture('shield','vert')"> "Vert"<br>
-				<input type="radio" name="shield" value="purpure" onchange="changeTincture('shield','purpure')"> "Purpure"<br>
-				<input type="radio" name="shield" value="sable" onchange="changeTincture('shield','sable')"> "Sable"<br>
+				<textarea id="blazonText" rows=5 cols=50></textarea>
 			</div>
 			<div id="middle" style="color: yellow;">
-				<input type="radio" name="bend" value="ermine" onchange="changeTincture('bend','ermine')"> Ermine<br>
-				<input type="radio" name="bend" value="ermines" onchange="changeTincture('bend','ermines')"> Ermines<br>
-				<input type="radio" name="bend" value="or" onchange="changeTincture('bend','or')" checked> "Or"<br>
-				<input type="radio" name="bend" value="argent" onchange="changeTincture('bend','argent')"> "Argent"<br>
-				<input type="radio" name="bend" value="azure" onchange="changeTincture('bend','azure')"> "Azure"<br>
-				<input type="radio" name="bend" value="gules" onchange="changeTincture('bend','gules')"> "Gules"<br>
-				<input type="radio" name="bend" value="vert" onchange="changeTincture('bend','vert')"> "Vert"<br>
-				<input type="radio" name="bend" value="purpure" onchange="changeTincture('bend','purpure')"> "Purpure"<br>
-				<input type="radio" name="bend" value="sable" onchange="changeTincture('bend','sable')"> "Sable"<br>
+				<input type="radio" name="shape" value="A" onchange="changeShield(shieldA)"> Shape A<br>
+				<input type="radio" name="shape" value="B" onchange="changeShield(shieldB)" checked> Shape B<br>
+				<button type="submit" onclick="setBlazon(document.getElementById('blazonText').value)">Display blazon</button>
 			</div>
 			<div id="right" style="color: yellow;">
 				<input type="radio" name="style" value="normal" onchange="changeHeraldryCSS('heraldry.css')" checked> Full colour<br>
@@ -201,7 +174,9 @@
 		</div>
 		<br class="clear" />
 		<script src="../path-data-polyfill.js../path-data-polyfill.js"></script>
+		<script src="scripts/cubic.js"></script>
 		<script src="scripts/main.js"></script>
 		<script src="scripts/svg.js"></script>
 	</body>
 </html>
+<object data="movables.svg" type="image/svg+xml" id="movable_charges" style="visibility: hidden" width="0" height="0" onload="setupCharges()"></object>

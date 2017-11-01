@@ -39,7 +39,7 @@
 	fill: url(#sable-bw);
 }
 
-.bend .heraldry-ermines {
+.bend .heraldry-ermines, .sinister .heraldry-ermines {
 	fill: url(#ermines-bend)
 }
 
@@ -59,6 +59,22 @@
 	fill: url(#gules-bw)
 }
 
-.bend .heraldry-sable {
+.bend .heraldry-sable, .sinister .heraldry-sable {
 	fill: url(#sable-bend)
+}
+
+.sinister .heraldry-azure {
+	fill: url(#purpure-bw)
+}
+
+.sinister .heraldry-purpure {
+	fill: url(#gules-bw)
+}
+
+.sinister .heraldry-gules {
+	fill: url(#vert-bw)
+}
+
+.sinister .heraldry-vert {
+	fill: url(#azure-bw)
 }
