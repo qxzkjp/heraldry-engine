@@ -147,28 +147,33 @@
 			<br class="clear" />
 		</div>
 		<div id="wrapper">
-			<div id="left" style="color: yellow;">
-				<textarea id="blazonText" rows=5 cols=50></textarea>
+			<div id="left">
+				<textarea id="blazonText" rows="5" style="width:100%;box-sizing: border-box"></textarea>
 			</div>
-			<div id="middle" style="color: yellow;">
-				<input type="radio" name="shape" value="A" onchange="changeShield(shieldA)"> Shape A<br>
-				<input type="radio" name="shape" value="B" onchange="changeShield(shieldB)" checked> Shape B<br>
-				<button type="submit" onclick="setBlazon(document.getElementById('blazonText').value)">Display blazon</button>
+			<div id="middle"></div>
+			<div id="right">
+				<div id="shapeSelect">
+					<input type="radio" name="shape" value="A" onchange="changeShield(shieldA)"> Shape A<br>
+					<input type="radio" name="shape" value="B" onchange="changeShield(shieldB)" checked> Shape B<br>
+				</div>
+				<div id="styleSelect">
+					<input type="radio" name="style" value="normal" onchange="changeHeraldryCSS('heraldry.css')" checked> Full colour<br>
+					<input type="radio" name="style" value="bw" onchange="changeHeraldryCSS('heraldry-bw.css')"> Line art<br>
+				</div>
 			</div>
-			<div id="right" style="color: yellow;">
-				<input type="radio" name="style" value="normal" onchange="changeHeraldryCSS('heraldry.css')" checked> Full colour<br>
-				<input type="radio" name="style" value="bw" onchange="changeHeraldryCSS('heraldry-bw.css')"> Line art<br>
-			</div>
+		</div>
+		<div id="buttonContainer">
+			<button type="submit" onclick="setBlazon(document.getElementById('blazonText').value)">Display blazon</button>
 		</div>
 		<div id="syntax">
 			<h1>Syntax Test</h1>
-			<p class="console" id="displayPara">
+			<div class="console" id="displayPara">
 				root<br>
 				-node1<br>
 				-node2<br>
 				--subnode1<br>
 				-node3<br>
-			</p>
+			</div>
 		</div>
 		<br class="clear" />
 		<script type="text/javascript" src="scripts/jquery-3.2.1.min.js"></script>

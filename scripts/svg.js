@@ -840,9 +840,10 @@ function addBend(id, tinct, rw=0.3){
 			.translate(-c[0],-c[1]);
 	//apply matrix transform to pale
 	pale.transform.baseVal.appendItem(SVG.createSVGTransformFromMatrix(m));
-	pale.setAttribute("id", id+"-bend");
+	$(pale).attr("id", id+"-bend");
+	$(pale).addClass("heraldry-rotation1");
 	var g=document.createElementNS(SVG_URI, "g");
-	g.setAttribute("class", "bend");
+	$(g).addClass("bend");
 	g.appendChild(pale);
 	setClip(g,id);
 	//insert just after given element
@@ -876,9 +877,11 @@ function addSinister(id, tinct, rw=0.3){
 			.translate(-c[0],-c[1]);
 	//apply matrix transform to pale
 	pale.transform.baseVal.appendItem(SVG.createSVGTransformFromMatrix(m));
-	pale.setAttribute("id", id+"-bend_sinister");
+	$(pale).attribute("id", id+"-bend_sinister");
+	$(pale).addClass("heraldry-rotation7");
+	$(pale).addClass("heraldry-mirrored");
 	var g=document.createElementNS(SVG_URI, "g");
-	g.setAttribute("class", "bend-sinister");
+	$(g).addClass("bend-sinister");
 	g.appendChild(pale);
 	setClip(g,id);
 	//insert just after given element
@@ -1067,9 +1070,9 @@ function addCharge(elem, clipId, index, number, tinct, upsideDown=false, mirror=
 	var aspectRatio = cBox.width / cBox.height;
 	var chHeight = 2 * bBox.height / 3;
 	var step = chHeight/50;
-	//console.log(charge.outerHTML);
 	if(number === 1){
 		var newCharge=charge.cloneNode(true);
+		var nominalHeight = cBox.height;
 		if(rotation!=0){
 			var t = SVG.createSVGTransformFromMatrix(
 				SVG.createSVGMatrix()
@@ -1077,39 +1080,43 @@ function addCharge(elem, clipId, index, number, tinct, upsideDown=false, mirror=
 					.translate(-ccx,-ccy)
 				);
 			var g=document.createElementNS(SVG_URI, "g");
-			g.appendChild(charge);
-			SVG.appendChild(g);
+			$(g).append(charge);
+			$(SVG).append(g);
 			charge.transform.baseVal.appendItem(t);
 			var tBox=g.getBBox();
 			aspectRatio = tBox.width / tBox.height;
-			SVG.removeChild(g);
+			nominalHeight=tBox.height;
+			$(g).remove();
 		}
 		var debugBox=document.createElementNS(SVG_URI, "rect");
 		$(debugBox).attr("class","heraldry-vert");
 		$(debugBox).css({"opacity":0.5});
 		$(SVG).append($(debugBox));
 		while(true){
-			//eps=0.0001;
 			var topPoints = pathLineIntersection(pathData, new Point(0, cy + chHeight/2), new Point(SVG_WIDTH, cy + chHeight/2));
 			var midPoints = pathLineIntersection(pathData, new Point(0, cy), new Point(SVG_WIDTH, cy));
 			var bottomPoints = pathLineIntersection(pathData, new Point(0, cy - chHeight/2), new Point(SVG_WIDTH, cy - chHeight/2));
-			topWidth = Math.abs(topPoints[1].x - topPoints[0].x);
+			topWidth = Math.abs(topPoints[1].x - topPoints[0].x) * 0.95;
 			midWidth = Math.abs(midPoints[1].x - midPoints[0].x);
 			bottomWidth = Math.abs(bottomPoints[1].x - bottomPoints[0].x);
 			minWidth = Math.min(topWidth, midWidth, bottomWidth);
-			$(debugBox).attr("x",cx-minWidth/2);
-			$(debugBox).attr("y",cy-chHeight/2);
-			$(debugBox).attr("width",minWidth);
+			maxWidth = Math.max(topWidth, midWidth, bottomWidth)*0.95; //leave 5% buffer space for a snug fit
+			minWidth = Math.min(minWidth,maxWidth);
+			/**********/
+			var middleX = (midPoints[0].x+midPoints[1].x)/2;
+			var Ypoints=pathLineIntersection(pathData, new Point(middleX, 0), new Point(middleX, SVG_HEIGHT));
+			Ypoints.sort(comparePointsY);
+			var middleY = (Ypoints[0].y + Ypoints[Ypoints.length-1].y)/2;
+			/**********/
+			$(debugBox).attr("x",middleX-chHeight*aspectRatio/2);
+			$(debugBox).attr("y",middleY-chHeight/2);
+			$(debugBox).attr("width",chHeight*aspectRatio);
 			$(debugBox).attr("height",chHeight);
 			if( chHeight * aspectRatio < minWidth ){
-				var middleX = (midPoints[0].x+midPoints[1].x)/2;
-				var Ypoints=pathLineIntersection(pathData, new Point(middleX, 0), new Point(middleX, SVG_HEIGHT));
-				Ypoints.sort(comparePointsY);
-				var middleY = (Ypoints[0].y + Ypoints[Ypoints.length-1].y)/2;
 				//draw charge
 				elem.parentNode.insertBefore(newCharge, elem.nextSibling);//insert just after field
 				//console.log("Charge height " + chHeight +" fits")
-				var scale = chHeight/cBox.height;
+				var scale = chHeight/nominalHeight;
 				var translateX = middleX;
 				var translateY = middleY;
 				//matrix for transform (shift to 0,0 scale then shift to new position)
@@ -1126,7 +1133,13 @@ function addCharge(elem, clipId, index, number, tinct, upsideDown=false, mirror=
 				for (var i = 0; i < children.length; i++) {
 					var childElem = children[i];
 					if(childElem.getAttribute("tinctured")==="true"){
-						childElem.setAttribute("class", "heraldry-"+tinctures[tinct]);
+						$(childElem).addClass("heraldry-"+tinctures[tinct]);
+						if(rotation!=0){
+							$(childElem).addClass("heraldry-rotation"+rotation);
+						}
+						if(mirror){
+							$(childElem).addClass("heraldry-mirrored");
+						}
 					}
 					//apply matrix transform
 					childElem.transform.baseVal.appendItem(SVG.createSVGTransformFromMatrix(m));
@@ -1187,8 +1200,7 @@ function addCharge(elem, clipId, index, number, tinct, upsideDown=false, mirror=
 	}else{
 		console.error("I don't know how to draw a group of "+number+" charges.");
 	}
-	SVG.appendChild(charge);
-	charge.parentElement.removeChild(charge);
+	$(charge).remove();
 	var rowNums = getRowNumbers(number);
 	var numRows = rowNums.length;
 }

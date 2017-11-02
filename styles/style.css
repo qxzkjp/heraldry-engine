@@ -15,28 +15,30 @@ body, html {
 }
 
 html {
-	font-size: 10px;
-	font-family: 'Open Sans', sans-serif;
+	font-size: 16px;
+	font-family: "medieval", serif;
 	background-image: url("../images/erminesmall.svg");
-	/*background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgYmFzZVByb2ZpbGU9ImZ1bGwiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBpZD0iZXNjdXRjaGVvbiI+Cgk8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ3aGl0ZSIvPgoJPGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSIzMCIgZmlsbD0iYmxhY2siLz4KCTxjaXJjbGUgY3g9IjAiIGN5PSIyMDAiIHI9IjMwIiBmaWxsPSJibGFjayIvPgoJPGNpcmNsZSBjeD0iMjAwIiBjeT0iMCIgcj0iMzAiIGZpbGw9ImJsYWNrIi8+Cgk8Y2lyY2xlIGN4PSIwIiBjeT0iMCIgcj0iMzAiIGZpbGw9ImJsYWNrIi8+Cgk8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjMwIiBmaWxsPSJibGFjayIvPgo8L3N2Zz4=");*/
 	background-color:  #FFFFFF;
 	background-size: 50px;
 	margin: 0;
+	color:#FFFFFF;
 }
 
 body {
   width: 600px;
-  /*min-height: 100%;*/
   margin: 0 auto;
   background-color: #0000FF;
   padding: 0 20px 0 20px;
-  /*border: 5px solid black;*/
 }
 
 p, li {
-  font-size: 16px;  
   line-height: 1.5;
   letter-spacing: 1px;
+}
+
+p::first-letter {
+	font-family: "mInitial","medieval",serif;
+	font-size: 35px;
 }
 
 .console {
@@ -52,7 +54,6 @@ h1 {
   padding: 20px 0;  
   color: #FFFF00;
   text-shadow: 3px 3px 1px black;
-  font-family: "medieval",serif;
   font-weight: normal;
   font-size: 60px;
   text-align: left;
@@ -68,19 +69,43 @@ img {
   margin: 0 auto;
 }
 
+input, select, textarea, button{
+	font-family:inherit;
+	font-size:inherit;
+}
+
+textarea {
+	background-color:black;
+	color:white;
+	resize: none;
+	border:6px solid black;
+	/*outline:none;*/
+}
+
 .clear { clear: both; }
 
 #wrapper {
   display: flex;
 }
 #left {
-  flex: 0 0 33%;
+  flex: 1 0 75%; /*flex-grow flex-shrink flex-basis*/
 }
 #middle {
-	flex: 0.5;
+	padding:0.5em;
 }
 #right {
-  flex: 0.5;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+#shapeSelect {
+	padding-bottom: 5px;
+}
+
+#styleSelect {
+	border-top: 2px solid black;
+	padding-top: 5px;
 }
 
 .heraldry-invisible {
