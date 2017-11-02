@@ -1,3 +1,13 @@
+@font-face {
+        font-family: "medieval";
+        src: url("../fonts/bloodandblade.ttf");
+}
+
+@font-face {
+        font-family: "mInitial";
+        src: url("../fonts/GoudyInitialen.ttf");
+}
+
 /*make body element actually cover 100% of window height*/
 body, html {
  /*height: 100%;*/
@@ -40,10 +50,17 @@ p, li {
 h1 {
   margin: 0;
   padding: 20px 0;  
-  color: #FFFFFF;
+  color: #FFFF00;
   text-shadow: 3px 3px 1px black;
+  font-family: "medieval",serif;
+  font-weight: normal;
   font-size: 60px;
-  text-align: center;
+  text-align: left;
+}
+
+h1::first-letter {
+	font-family: "mInitial","medieval",serif;
+	font-size: 100px;
 }
 
 img {

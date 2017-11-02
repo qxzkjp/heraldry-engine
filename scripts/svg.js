@@ -5,14 +5,23 @@ blazon = "";
 chargePaths=[];
 CHARGE_SPACING=0.3;
 
-scratch=document.createElementNS(SVG_URI,"svg");
-SVG=document.getElementById("escutcheonContainer");
-SVG_HEIGHT = 200;
-SVG_WIDTH = 200;
-SVG_MOVABLES=undefined;
+var scratch=document.createElementNS(SVG_URI,"svg");
+var SVG;
+var jqSVG;
+$(document).ready(function(){
+	SVG=document.getElementById("escutcheonContainer");
+	jqSVG=$("#escutcheonContainer");
+	document.getElementById('blazonText').value = "Azure, a bend Or";
+	setBlazon(document.getElementById('blazonText').value);
+});
+var SVG_HEIGHT = 200;
+var SVG_WIDTH = 200;
+var SVG_MOVABLES=undefined;
 
-//newTransform = SVG.createSVGTransformFromMatrix(SVG.createSVGMatrix().translate(150,50))
-//rect.transform.baseVal.appendItem(newTransform)
+/*******************************************************
+*PROBLEM BLAZONS:
+*ermine, a pale azure between two keys fesswise or
+********************************************************/
 
 //encode safely to base64 using open source libraries (included in head)
 function base64EncodingUTF8(str) {
@@ -1057,21 +1066,28 @@ function addCharge(elem, clipId, index, number, tinct, upsideDown=false, mirror=
 	var ccy = cBox.y + cBox.height/2;
 	var aspectRatio = cBox.width / cBox.height;
 	var chHeight = 2 * bBox.height / 3;
-	var step = chHeight/20;
+	var step = chHeight/50;
 	//console.log(charge.outerHTML);
 	if(number === 1){
 		var newCharge=charge.cloneNode(true);
 		if(rotation!=0){
-			var m=SVG.createSVGMatrix()
+			var t = SVG.createSVGTransformFromMatrix(
+				SVG.createSVGMatrix()
 					.rotate(-45*rotation)
-					.translate(-ccx,-ccy);
+					.translate(-ccx,-ccy)
+				);
 			var g=document.createElementNS(SVG_URI, "g");
 			g.appendChild(charge);
 			SVG.appendChild(g);
+			charge.transform.baseVal.appendItem(t);
 			var tBox=g.getBBox();
 			aspectRatio = tBox.width / tBox.height;
 			SVG.removeChild(g);
 		}
+		var debugBox=document.createElementNS(SVG_URI, "rect");
+		$(debugBox).attr("class","heraldry-vert");
+		$(debugBox).css({"opacity":0.5});
+		$(SVG).append($(debugBox));
 		while(true){
 			//eps=0.0001;
 			var topPoints = pathLineIntersection(pathData, new Point(0, cy + chHeight/2), new Point(SVG_WIDTH, cy + chHeight/2));
@@ -1080,7 +1096,12 @@ function addCharge(elem, clipId, index, number, tinct, upsideDown=false, mirror=
 			topWidth = Math.abs(topPoints[1].x - topPoints[0].x);
 			midWidth = Math.abs(midPoints[1].x - midPoints[0].x);
 			bottomWidth = Math.abs(bottomPoints[1].x - bottomPoints[0].x);
-			if( chHeight * aspectRatio < Math.min(topWidth, midWidth, bottomWidth) ){
+			minWidth = Math.min(topWidth, midWidth, bottomWidth);
+			$(debugBox).attr("x",cx-minWidth/2);
+			$(debugBox).attr("y",cy-chHeight/2);
+			$(debugBox).attr("width",minWidth);
+			$(debugBox).attr("height",chHeight);
+			if( chHeight * aspectRatio < minWidth ){
 				var middleX = (midPoints[0].x+midPoints[1].x)/2;
 				var Ypoints=pathLineIntersection(pathData, new Point(middleX, 0), new Point(middleX, SVG_HEIGHT));
 				Ypoints.sort(comparePointsY);
@@ -1122,6 +1143,7 @@ function addCharge(elem, clipId, index, number, tinct, upsideDown=false, mirror=
 				break;
 			}
 		}
+		$(debugBox).remove();
 		
 	}else if( number === 2){
 		var sections = [];
@@ -1525,6 +1547,3 @@ function displayPath(pd, tincture="gules"){
 	SVG.appendChild(pathElem);
 	return pathElem;
 }
-
-document.getElementById('blazonText').value = "Azure, a bend Or";
-setBlazon(document.getElementById('blazonText').value);
