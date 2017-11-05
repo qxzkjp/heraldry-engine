@@ -1,0 +1,52 @@
+*implement charges on ordinaries
+*Implement tinctures
+	tenny (-/)
+	brown (-\)
+	erminois
+	pean
+	vair
+	countervair
+	potent
+	counterpotent
+*Implement ordinaries
+	chief
+	chevron
+	cross
+	saltire
+	pallets
+	bars
+	barrulet
+	bendlet
+	riband
+	bendlet sinister
+	chevronel
+	fillet saltire
+	pall
+	fillet pall
+	fillet cross
+*Implement subordinaries
+	bordure
+	billet
+	lozenge
+	canton
+	orle
+	tressure
+	flanches
+	gyron
+	fret
+	inescutcheon!!
+*implement moveables
+	too many to list...
+*implement lines of division
+	engrailed
+	invected
+	dancetty
+	indented
+	wavy
+	embattled
+	nebuly
+	raguly
+	dovetailed
+	rayonne
+	urdy
+*implement counterchanging!!!

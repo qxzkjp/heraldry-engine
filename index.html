@@ -2,16 +2,20 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>Heraldry Syntax</title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+		<title>Heraldry Engine</title>
 		<link rel="icon" type="image/x-icon" href="logo.png" />
 		<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 		<link href="styles/style.css" rel="stylesheet" type="text/css">
 		<link id="heraldry-css" href="styles/heraldry.css" rel="stylesheet" type="text/css">
 	</head>
 	<body>
-		<h1>Rendering Test</h1>
+		<hgroup id="mainhead">
+			<h1 id="heraldryHead">Heraldry</h1>
+			<h2 id="engineHead">Engine</h2>
+		</hgroup>
 		<div style="text-align:center;overflow: auto;" id="dotContainer">
-			<svg version="1.1" baseProfile="full" width="600" height="600" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="escutcheonContainer">
+			<svg version="1.1" baseProfile="full" width="100%" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="escutcheonContainer" class="heraldry-colour">
 				<defs id="SVGDefs">
 					<pattern id="or-bw" width="200" height="200" patternUnits="userSpaceOnUse" patternTransform="scale(0.0625)">
 						<rect width="200" height="200" fill="white" />
@@ -144,16 +148,17 @@
 						fill="none" />
 				</g>
 			</svg>
-			<br class="clear" />
+			<!--br class="clear" /-->
+			<object data="movables.svg" type="image/svg+xml" id="movable_charges" width="0" height="0" onload="setupCharges();$('#movable_charges').addClass('invisible')"></object>
 		</div>
 		<div id="wrapper">
 			<div id="left">
-				<textarea id="blazonText" rows="5" style="width:100%;box-sizing: border-box"></textarea>
+				<textarea id="blazonText"></textarea>
 			</div>
 			<div id="middle"></div>
 			<div id="right">
 				<div id="shapeSelect">
-					<input type="radio" name="shape" value="A" onchange="changeShield(shieldA)"> Shape A<br>
+					<input type="radio" name="shape" value="A" onchange="changeShield(ellipsePath)"> Shape A<br>
 					<input type="radio" name="shape" value="B" onchange="changeShield(shieldB)" checked> Shape B<br>
 				</div>
 				<div id="styleSelect">
@@ -163,11 +168,11 @@
 			</div>
 		</div>
 		<div id="buttonContainer">
-			<button type="submit" onclick="setBlazon(document.getElementById('blazonText').value)">Display blazon</button>
+			<button id="blazonButton" type="submit" onclick="setBlazon(document.getElementById('blazonText').value)">Emblazon Arms</button>
 		</div>
-		<div id="syntax">
+		<div id="syntax" >
 			<h1>Syntax Test</h1>
-			<div class="console" id="displayPara">
+			<div class="console" id="displayPara" >
 				root<br>
 				-node1<br>
 				-node2<br>
@@ -175,14 +180,12 @@
 				-node3<br>
 			</div>
 		</div>
-		<br class="clear" />
 		<script type="text/javascript" src="scripts/jquery-3.2.1.min.js"></script>
 		<script type="text/javascript" src="../base64-js/base64js.min.js"></script>
 		<script type="text/javascript" src="../TextEncoderLite/index.js"></script>
-		<script src="../path-data-polyfill.js../path-data-polyfill.js"></script>
-		<script src="scripts/cubic.js"></script>
-		<script src="scripts/main.js"></script>
-		<script src="scripts/svg.js"></script>
+		<script type="text/javascript" src="../path-data-polyfill.js/path-data-polyfill.js"></script>
+		<script type="text/javascript" src="scripts/cubic.js"></script>
+		<script type="text/javascript" src="scripts/main.js"></script>
+		<script type="text/javascript" src="scripts/svg.js"></script>
 	</body>
 </html>
-<object data="movables.svg" type="image/svg+xml" id="movable_charges" style="visibility: hidden" width="0" height="0" onload="setupCharges()"></object>

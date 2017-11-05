@@ -1,6 +1,8 @@
 SVG_URI = "http://www.w3.org/2000/svg";
 shieldA = "M 20 5 L 180 5 C 180 5 182.113598 84.825528 167.003707 137.362438 C 151.893806 189.899348 102.105477 195.000018 100 195 C 97.894524 195 48.106195 189.899348 32.996295 137.362438 C 17.886404 84.825528 20 5 20 5 Z";
 shieldB = "M 20 12.5 L 179.999996 12.5 L 179.999996 81.366166 C 179.999996 157.611827 99.999998 187.500003 99.999998 187.500003 C 99.999998 187.500003 20 157.611827 20 81.366166 Z";
+ellipsePath="M 178.94395 100.00129523543559 C 178.9439486833327 152.46810013894694 143.36494999690836 195.00084836477822 99.47604000000001 195.00084836477822 C 55.58713000309162 195.00084836477822 20.008140316667298 152.46810013894694 20.008139 100.00129523543559 C 20.008137683332645 47.53448810594624 55.58712814104286 5.001736375628019 99.47604000000001 5.001736375628008 C 143.36495185895717 5.0017363756280115 178.94395131666735 47.53448810594624 178.94395 100.00129523543559 Z"
+lozengePath="M 100 5 L 195 100 L 100 195 L 5 100 Z"
 blazon = "";
 chargePaths=[];
 CHARGE_SPACING=0.3;
@@ -17,6 +19,7 @@ $(document).ready(function(){
 var SVG_HEIGHT = 200;
 var SVG_WIDTH = 200;
 var SVG_MOVABLES=undefined;
+var styleClass="heraldry-colour";
 
 /*******************************************************
 *PROBLEM BLAZONS:
@@ -635,6 +638,11 @@ function changeTincture(elem,tinct){
 function changeHeraldryCSS(fileName){
 	var elem = document.getElementById("heraldry-css");
 	elem.setAttribute("href","styles/"+fileName);
+	/*allElem = $(SVG).find("*");
+	allElem.removeClass("heraldry-colour");
+	allElem.removeClass("heraldry-line");
+	allElem.addClass(className);
+	styleClass=className;*/
 }
 
 function recentrePath(arr, x, y){
@@ -750,16 +758,16 @@ function createFess(elem, tinct, rh=0.34, c=[]){
 }
 
 function getPoints(c1, c2, c3, c4){
-	var p1=SVG.createSVGPoint();
+	var p1=scratch.createSVGPoint();
 	p1.x=c1;
 	p1.y=c2;
-	var p3=SVG.createSVGPoint();
+	var p3=scratch.createSVGPoint();
 	p3.x=p1.x+c3;
 	p3.y=p1.y+c4;
-	var p2=SVG.createSVGPoint();
+	var p2=scratch.createSVGPoint();
 	p2.x=p3.x;
 	p2.y=p1.y;
-	var p4=SVG.createSVGPoint();
+	var p4=scratch.createSVGPoint();
 	p4.x=p1.x;
 	p4.y=p3.y;
 	return [p1, p2, p3, p4];
@@ -772,40 +780,39 @@ function addFess(id, tinct, rw=0.3){
 	var fess=createFess(elem, tinct, rw, r);
 	setClip(fess, id);
 	//insert just after given element
-	elem.parentNode.insertBefore(fess, elem.nextSibling);
+	$(fess).insertAfter(elem);
 	var P=getPoints(...r.slice(2));
 	var sections=[];
+	//[chief, 2/3]
 	pathLineIntersection(pathData, P[0], P[1], sections);
 	var debug1=displayPath(sections[0]);
 	var debug2=displayPath(sections[1],"or");
-	SVG.removeChild(debug1);
-	SVG.removeChild(debug2);
+	$(debug1).remove();
+	$(debug2).remove();
 	sections.sort(comparePathDataY);
 	debug1=displayPath(sections[0]);
 	debug2=displayPath(sections[1],"or");
-	SVG.removeChild(debug1);
-	SVG.removeChild(debug2);
+	$(debug1).remove();
+	$(debug2).remove();
 	var newsections=[];
-	pathLineIntersection(sections[0], P[3], P[2], newsections);
+	pathLineIntersection(sections[1], P[3], P[2], newsections);
 	debug1=displayPath(newsections[0]);
 	debug2=displayPath(newsections[1],"or");
-	SVG.removeChild(debug1);
-	SVG.removeChild(debug2);
+	$(debug1).remove();
+	$(debug2).remove();
 	newsections.sort(comparePathDataY);
 	debug1=displayPath(newsections[0]);
 	debug2=displayPath(newsections[1],"or");
-	SVG.removeChild(debug1);
-	SVG.removeChild(debug2);
-	sections=sections.concat(newsections);
-	// [2/3, chief, base, fess]
-	sections=sections.slice(1);
-	sections.sort(comparePathDataY);
+	$(debug1).remove();
+	$(debug2).remove();
+	// [chief, fess, base]
+	sections=[sections[0],...newsections];
 	debug1=displayPath(sections[0]);
 	debug2=displayPath(sections[1],"or");
 	var debug3=displayPath(sections[2],"vert");
-	SVG.removeChild(debug1);
-	SVG.removeChild(debug2);
-	SVG.removeChild(debug3);
+	$(debug1).remove();
+	$(debug2).remove();
+	$(debug3).remove();
 	return sections;
 }
 
@@ -877,7 +884,7 @@ function addSinister(id, tinct, rw=0.3){
 			.translate(-c[0],-c[1]);
 	//apply matrix transform to pale
 	pale.transform.baseVal.appendItem(SVG.createSVGTransformFromMatrix(m));
-	$(pale).attribute("id", id+"-bend_sinister");
+	$(pale).attr("id", id+"-bend_sinister");
 	$(pale).addClass("heraldry-rotation7");
 	$(pale).addClass("heraldry-mirrored");
 	var g=document.createElementNS(SVG_URI, "g");
@@ -923,14 +930,66 @@ function addSinister(id, tinct, rw=0.3){
 
 var tree = parseString("Azure, a bend or");
 
-tinctureClasses = ["heraldry-unspecified", "heraldry-argent", "heraldry-or", "heraldry-gules", "heraldry-azure", "heraldry-vert", "heraldry-purpure", "heraldry-sable", "heraldry-tenny", "heraldry-sanguine", "heraldry-vair", "heraldry-countervair", "heraldry-potent", "heraldry-counterpotent", "heraldry-ermine", "heraldry-ermines", "heraldry-erminois", "heraldry-pean"]
+tinctureClasses = [
+	"heraldry-unspecified",
+	"heraldry-argent",
+	"heraldry-or",
+	"heraldry-gules",
+	"heraldry-azure",
+	"heraldry-vert",
+	"heraldry-purpure",
+	"heraldry-sable",
+	"heraldry-tenny",
+	"heraldry-sanguine",
+	"heraldry-vair",
+	"heraldry-countervair",
+	"heraldry-potent",
+	"heraldry-counterpotent",
+	"heraldry-ermine",
+	"heraldry-ermines",
+	"heraldry-erminois",
+	"heraldry-pean"
+	]
 
-//immovables = ["chief", "pale", "fess", "bend", "bend sinister", "chevron", "saltire", "pall", "cross", "pile", "bordure", "orle", "tressure", "canton", "flanches", "gyron", "fret"];
-//divisions = ["per pale", "per fess", "per bend", "per bend sinister", "per chevron", "per saltire", "", "", "", "", "", "", "",""];
+/*immovables = [
+	"chief",
+	"pale",
+	"fess",
+	"bend",
+	"bend sinister",
+	"chevron",
+	"saltire",
+	"pall",
+	"cross",
+	"pile",
+	"bordure",
+	"orle",
+	"tressure",
+	"canton",
+	"flanches",
+	"gyron",
+	"fret"];*/
+/*divisions = [
+	"per pale",
+	"per fess",
+	"per bend",
+	"per bend sinister",
+	"per chevron",
+	"per saltire",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",
+	"",""
+	];*/
 
 function applyTree(shieldId, tree){
 	if(tree===undefined){
-		console.error("Rendering error: no escutcheon to diaplay (probably due to a catastrophic parsing error)");
+		console.error(
+		"Rendering error: no escutcheon to diaplay (probably due to a catastrophic parsing error)"
+		);
 	}
 	//var shield=document.getElementById(shieldId);
 	var elem = document.getElementById(shieldId);
@@ -1003,10 +1062,10 @@ function applyTree(shieldId, tree){
 				sections = addFess(shieldId, tree.at(fields).at(0).tincture);
 			}else if(tree.at(fields).index===3){//bend
 				sections = addBend(shieldId, tree.at(fields).at(0).tincture);
-				upsideDownSecond=true;
+				upsideDownFirst=true;
 			}else if(tree.at(fields).index===4){//bend sinister
 				sections = addSinister(shieldId, tree.at(fields).at(0).tincture);
-				upsideDownSecond=true;
+				upsideDownFirst=true;
 			}
 			if(tree.at(fields).subnode.length > 1){
 				if(tree.at(fields).at(1) instanceof Charge){
@@ -1053,11 +1112,32 @@ function applyTree(shieldId, tree){
 						tree.at(fields).orientation
 						);
 		}
-		//movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge", "key", "phrygian cap with bells on"];
+		/*movables = [
+			"mullet",
+			"phrygian cap",
+			"fleur-de-lis",
+			"pheon",
+			"moveable-chevron",
+			"inescutcheon",
+			"billet",
+			"lozenge",
+			"key",
+			"phrygian cap with bells on"
+			];*/
 	}
 }
 
-function addCharge(elem, clipId, index, number, tinct, upsideDown=false, mirror=false, rotation=0, sequence=0){
+function addCharge(
+	elem,
+	clipId,
+	index,
+	number,
+	tinct,
+	upsideDown=false,
+	mirror=false,
+	rotation=0,
+	sequence=0
+	){
 	var bBox = elem.getBBox();
 	var charge = SVG_MOVABLES.getElementById(movables[index]).cloneNode(true);
 	charge.id="temp-1";
@@ -1096,14 +1176,22 @@ function addCharge(elem, clipId, index, number, tinct, upsideDown=false, mirror=
 			var topPoints = pathLineIntersection(pathData, new Point(0, cy + chHeight/2), new Point(SVG_WIDTH, cy + chHeight/2));
 			var midPoints = pathLineIntersection(pathData, new Point(0, cy), new Point(SVG_WIDTH, cy));
 			var bottomPoints = pathLineIntersection(pathData, new Point(0, cy - chHeight/2), new Point(SVG_WIDTH, cy - chHeight/2));
-			topWidth = Math.abs(topPoints[1].x - topPoints[0].x) * 0.95;
-			midWidth = Math.abs(midPoints[1].x - midPoints[0].x);
-			bottomWidth = Math.abs(bottomPoints[1].x - bottomPoints[0].x);
-			minWidth = Math.min(topWidth, midWidth, bottomWidth);
-			maxWidth = Math.max(topWidth, midWidth, bottomWidth)*0.95; //leave 5% buffer space for a snug fit
-			minWidth = Math.min(minWidth,maxWidth);
+			topPoints.sort(comparePointsX);
+			midPoints.sort(comparePointsX);
+			bottomPoints.sort(comparePointsX);
+			var topWidth = Math.abs(topPoints[topPoints.length-1].x - topPoints[0].x) * 0.95;
+			var midWidth = Math.abs(midPoints[midPoints.length-1].x - midPoints[0].x);
+			var bottomWidth = Math.abs(bottomPoints[bottomPoints.length-1].x - bottomPoints[0].x);
+			var maxWidth = Math.max(topWidth, midWidth, bottomWidth)*0.95; //leave 5% buffer space for a snug fit
+			var minX=Math.max(topPoints[0].x,midPoints[0].x,topPoints[0].x);
+			var maxX=Math.min(
+				topPoints[topPoints.length-1].x,
+				midPoints[midPoints.length-1].x,
+				bottomPoints[bottomPoints.length-1].x
+				);
+			var minWidth=Math.min(maxX-minX,maxWidth);
 			/**********/
-			var middleX = (midPoints[0].x+midPoints[1].x)/2;
+			var middleX = (maxX+minX)/2;
 			var Ypoints=pathLineIntersection(pathData, new Point(middleX, 0), new Point(middleX, SVG_HEIGHT));
 			Ypoints.sort(comparePointsY);
 			var middleY = (Ypoints[0].y + Ypoints[Ypoints.length-1].y)/2;
@@ -1149,7 +1237,6 @@ function addCharge(elem, clipId, index, number, tinct, upsideDown=false, mirror=
 				}
 				break;
 			}
-			//console.log("Charge height: " + chHeight + ", charge width: " + chHeight * aspectRatio);
 			chHeight -= step;
 			if(chHeight<0){
 				console.error("Could not fit charge in field!");
@@ -1191,8 +1278,8 @@ function addCharge(elem, clipId, index, number, tinct, upsideDown=false, mirror=
 		var el2 = document.createElementNS(SVG_URI, "path");
 		el1.setPathData(sections[0]);
 		el2.setPathData(sections[1]);
-		elem.parentNode.insertBefore(el2, elem.nextSibling);
-		elem.parentNode.insertBefore(el1, elem.nextSibling);
+		$(el2).insertAfter(elem);
+		$(el1).insertAfter(elem);
 		addCharge(el1, clipId, index, numAbove, tinct, true, mirror, rotation, sequence);
 		addCharge(el2, clipId, index, numBelow, tinct, true, mirror, rotation, sequence+numAbove);
 		el1.parentElement.removeChild(el1);
@@ -1244,13 +1331,13 @@ function comparePathDataX(pd1, pd2){
 function comparePathDataY(pd1, pd2){
 	var box1 = getBoundingBox(pd1);
 	var box2 = getBoundingBox(pd2);
-	if(box1.y+box1.height > box2.y+box2.height){
+	if(box1.y+box1.height < box2.y+box2.height){
 		return -1;
-	}else if(box1.y+box1.height < box2.y+box2.height){
+	}else if(box1.y+box1.height > box2.y+box2.height){
 		return 1;
-	}else if(box1.y > box2.y){
-		return -1;
 	}else if(box1.y < box2.y){
+		return -1;
+	}else if(box1.y > box2.y){
 		return 1;
 	}else{
 		return 0;
@@ -1329,6 +1416,7 @@ function setBlazon(str){
 		parseStringAndDisplay(str)
 		applyTree("shield", parseString(str))
 	}
+	$(SVG).find("*").addClass(styleClass);
 }
 
 function nearlyEqual(a, b, eps=0.000001){
@@ -1558,4 +1646,77 @@ function displayPath(pd, tincture="gules"){
 	pathElem.setAttribute("class","heraldry-"+tincture);
 	SVG.appendChild(pathElem);
 	return pathElem;
+}
+
+function transformPathData(pd, m){
+	var ret=clonePathData(pd); //deep copy
+	for(i in ret){
+		var numPoints = Math.floor(ret[i].values.length / 2);
+		for(var j =0; j<numPoints; ++j){
+			var x=ret[i].values[j*2];
+			var y=ret[i].values[j*2+1];
+			ret[i].values[j*2] = m.a * x + m.c * y + m.e;
+			ret[i].values[j*2+1] = m.b * x + m.d * y + m.f;
+		}
+	}
+	return ret;
+}
+
+function transformPoint(p, m){
+	var x=p.x;
+	var y=p.y;
+	ret=SVG.createSVGPoint();
+	ret.x = m.a * x + m.c * y + m.e;
+	ret.y = m.b * x + m.d * y + m.f;
+	return ret;
+}
+
+function transformElement(elem, m){
+	if(elem.tagName==="path"){
+		elem.setPathData(transformPathData(elem.getPathData({normalize:true}), m));
+	}else if(elem.tagName==="rect" || elem.tagName==="ellipse"){
+		var newPath = document.createElementNS(SVG_URI,"path");
+		newPath.setPathData(transformPathData(elem.getPathData({normalize:true}), m));
+		$(newPath).insertBefore(elem);
+		$(elem).remove();
+	}else if(elem.tagName==="g"){
+		var children=$(elem).children();
+		var l=children.length;
+		for(var i=0; i<l; ++i){
+			transformElement(children[i], m);
+		}
+	}else{
+		console.error("Transform Element: unknown element type");
+	}
+}
+
+function setCTM(elem,m) {
+  return elem.transform.baseVal.initialize(
+    elem.ownerSVGElement.createSVGTransformFromMatrix(m));
+}
+
+function elementCentre(elem){
+	var b=elem.getBBox();
+	var ret=SVG.createSVGPoint();
+	ret.x=b.x+b.width/2;
+	ret.y=b.y+b.height/2;
+	return ret;
+}
+
+/*JQuery extension to get a list of classes -- updated to work on SVG*/
+$.fn.classList = function() {
+	var names = this[0].className;
+	if(names.split===undefined){
+		names=this[0].className.baseVal;
+	}
+	return names.split(/\s+/);
+};
+
+function clearTransformations(elem){
+	elem.transform.baseVal.initialize(elem.ownerSVGElement.createSVGTransform());
+	var children=$(elem).children();
+	var l = children.length;
+	for(var i=0; i<l; ++i){
+		clearTransformations(children[i]);
+	}
 }
