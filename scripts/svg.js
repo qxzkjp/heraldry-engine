@@ -1,30 +1,79 @@
-SVG_URI = "http://www.w3.org/2000/svg";
-shieldA = "M 20 5 L 180 5 C 180 5 182.113598 84.825528 167.003707 137.362438 C 151.893806 189.899348 102.105477 195.000018 100 195 C 97.894524 195 48.106195 189.899348 32.996295 137.362438 C 17.886404 84.825528 20 5 20 5 Z";
-shieldB = "M 20 12.5 L 179.999996 12.5 L 179.999996 81.366166 C 179.999996 157.611827 99.999998 187.500003 99.999998 187.500003 C 99.999998 187.500003 20 157.611827 20 81.366166 Z";
-ellipsePath="M 178.94395 100.00129523543559 C 178.9439486833327 152.46810013894694 143.36494999690836 195.00084836477822 99.47604000000001 195.00084836477822 C 55.58713000309162 195.00084836477822 20.008140316667298 152.46810013894694 20.008139 100.00129523543559 C 20.008137683332645 47.53448810594624 55.58712814104286 5.001736375628019 99.47604000000001 5.001736375628008 C 143.36495185895717 5.0017363756280115 178.94395131666735 47.53448810594624 178.94395 100.00129523543559 Z"
-lozengePath="M 100 5 L 195 100 L 100 195 L 5 100 Z"
-blazon = "";
-chargePaths=[];
-CHARGE_SPACING=0.3;
+var SVG_URI = "http://www.w3.org/2000/svg";
+var shieldA = "M 20 5 L 180 5 C 180 5 182.113598 84.825528 167.003707 137.362438 C 151.893806 189.899348 102.105477 195.000018 100 195 C 97.894524 195 48.106195 189.899348 32.996295 137.362438 C 17.886404 84.825528 20 5 20 5 Z";
+var shieldB = "M 20 12.5 L 179.999996 12.5 L 179.999996 81.366166 C 179.999996 157.611827 99.999998 187.500003 99.999998 187.500003 C 99.999998 187.500003 20 157.611827 20 81.366166 Z";;
+var ellipsePath="M 178.94395 100.00129523543559 C 178.9439486833327 152.46810013894694 143.36494999690836 195.00084836477822 99.47604000000001 195.00084836477822 C 55.58713000309162 195.00084836477822 20.008140316667298 152.46810013894694 20.008139 100.00129523543559 C 20.008137683332645 47.53448810594624 55.58712814104286 5.001736375628019 99.47604000000001 5.001736375628008 C 143.36495185895717 5.0017363756280115 178.94395131666735 47.53448810594624 178.94395 100.00129523543559 Z";
+var lozengePath="M 100 5 L 195 100 L 100 195 L 5 100 Z";
+var erminePath="M 53.275904,37.171262 C 53.275904,38.896261 51.875904,40.296261 50.150905,40.296261 C 48.425906,40.296261 47.025907,38.896261 47.025907,37.171262 C 47.025907,35.446262 48.425906,34.046263 50.150905,34.046263 C 51.875904,34.046263 53.275904,35.446262 53.275904,37.171262 Z M 48.775904,42.671262 C 48.775904,44.396261 47.375904,45.796261 45.650904,45.796261 C 43.925905,45.796261 42.525906,44.396261 42.525906,42.671262 C 42.525906,40.946262 43.925905,39.546263 45.650904,39.546263 C 47.375904,39.546263 48.775904,40.946262 48.775904,42.671262 Z M 57.775904,42.671262 C 57.775904,44.396261 56.375904,45.796261 54.650905,45.796261 C 52.925906,45.796261 51.525907,44.396261 51.525907,42.671262 C 51.525907,40.946262 52.925906,39.546263 54.650905,39.546263 C 56.375904,39.546263 57.775904,40.946262 57.775904,42.671262 Z M 49.236555,41.014512 M 50.712549,41.116305 C 50.763446,50.73572 58.092524,65.953737 58.092524,65.953737 L 53.486402,61.5512 C 52.213993,63.027195 49.949104,65.953737 49.949104,65.953737 C 49.949104,65.953737 48.32042,63.001747 47.149803,61.525752 L 41.907477,65.90284 C 41.907477,65.90284 49.134761,50.837513 49.236555,41.014512 Z";
+var blazon = "";
+var chargePaths=[];
+var CHARGE_SPACING=0.3;
 
 var scratch=document.createElementNS(SVG_URI,"svg");
 var SVG;
 var jqSVG;
+var SVG_MOVABLES;
+var path;
+var box;
+var centre;
+
 $(document).ready(function(){
-	SVG=document.getElementById("escutcheonContainer");
-	jqSVG=$("#escutcheonContainer");
-	document.getElementById('blazonText').value = "Azure, a bend Or";
-	setBlazon(document.getElementById('blazonText').value);
+	//AJAX request to get the movable charges
+	var xhr = new XMLHttpRequest;
+	xhr.open('get','movables.svg',true);
+	xhr.onreadystatechange = function(){
+		if (xhr.readyState != 4) return;//4 means completed
+		//load SVG document from request
+		SVG_MOVABLES = xhr.responseXML.documentElement;
+		SVG_MOVABLES = document.importNode(SVG_MOVABLES,true);
+		SVG=document.getElementById("escutcheonContainer");
+		jqSVG=$("#escutcheonContainer");
+		//once charges are set up, draw the initial arms
+		$('#blazonText')[0].value = "Azure, a bend Or";
+		setBlazon($('#blazonText')[0].value);
+		//and finally, now that everything is ready, enable the button
+		$("#blazonButton").attr("disabled",false);
+	};
+	xhr.send();
+	//set up shield
+	path=document.getElementById("shield");
+	box=path.getBBox();
+	centre=new Point(box.x+(box.width/2), box.y+(box.height/2));
+	//from syntax.js
+	/*root=new Field(14);
+	root.append(new Charge(0, 1, new Field(4), 1));
+	root.subnode[0].subnode[0].append(new NamedNode("the words \"Syntax Test\" Argent"));
+	root.subnode[0].subnode[0].append(new Charge(0, 10, new Field(2), 1));
+	root.subnode[0].subnode[0].subnode[1].append(new NamedNode("a console Sable"));
+	document.getElementById("displayPara").innerHTML=root.display();*/
+	
+	$("#sideMenu").hide();
+	if(getSyntaxCookie()==""){
+		$("#syntax").hide();
+	}
+	$("#menuButton").on("click", function(){
+		$("#sideMenu").animate({"width":"toggle","min-width":"toggle"},350);
+		/*$("#sideMenu").fadeToggle();*/
+	});
+	$("#toggleSyntax").on("click", function(evt){
+		$("#syntax").slideToggle();
+		if(getSyntaxCookie()==""){
+			setSyntaxCookie("show");
+		}else{
+			setSyntaxCookie("");
+		}
+	});
+	$("#blazonText").keypress(function (e) {
+        if(e.which == 13) {
+            //submit form via ajax, this is not JS but server side scripting so not showing here
+            drawUserBlazon();
+            e.preventDefault();
+        }
+    });
 });
 var SVG_HEIGHT = 200;
 var SVG_WIDTH = 200;
 var SVG_MOVABLES=undefined;
 var styleClass="heraldry-colour";
-
-/*******************************************************
-*PROBLEM BLAZONS:
-*ermine, a pale azure between two keys fesswise or
-********************************************************/
 
 //encode safely to base64 using open source libraries (included in head)
 function base64EncodingUTF8(str) {
@@ -443,13 +492,6 @@ function drawBox(container, shape, boxID){
 	esc.appendChild(rect);
 }
 
-function changeErmine(arr){
-	var erminePath=document.getElementById("ermineSpot");
-	var path=reassemblePath(arr);
-	erminePath.setAttribute("d", path);
-	//drawBox("escutcheon", "ermineSpot", "ermineBox");
-}
-
 function getWidthAndHeight(path){
 	var box=getBoundingBox(path);
 	var w = box.width;
@@ -679,10 +721,6 @@ function recentreElem(id, x, y){
 //var matrix = path.getTransformToElement(root);
 //var position = point.matrixTransform(matrix);
 
-path=document.getElementById("shield");
-box=path.getBBox();
-centre=new Point(box.x+(box.width/2), box.y+(box.height/2));
-
 function createClip(id){
 	var clipId=id+"-clip";
 	var clip=document.getElementById(clipId);
@@ -845,14 +883,14 @@ function addBend(id, tinct, rw=0.3){
 			.translate(c[0],c[1])
 			.rotate(-45)
 			.translate(-c[0],-c[1]);
-	//apply matrix transform to pale
-	pale.transform.baseVal.appendItem(SVG.createSVGTransformFromMatrix(m));
-	$(pale).attr("id", id+"-bend");
-	$(pale).addClass("heraldry-rotation1");
+	//$(pale).addClass("heraldry-rotation1");
 	var g=document.createElementNS(SVG_URI, "g");
-	$(g).addClass("bend");
 	g.appendChild(pale);
 	setClip(g,id);
+	//turn pale into bend
+	pale=transformElement(pale,m);
+	$(pale).addClass("bend");
+	$(pale).attr("id", id+"-bend");
 	//insert just after given element
 	elem.parentNode.insertBefore(g, elem.nextSibling);
 	//var m=pale.getCTM();
@@ -862,13 +900,29 @@ function addBend(id, tinct, rw=0.3){
 	for( var i=0; i<P.length; ++i ){
 		P[i]=P[i].matrixTransform(m);
 	}
+	/*var debugPath=document.createElementNS(SVG_URI,"path");
+	$(debugPath).attr("fill","green");
+	$(debugPath).attr("opacity",0.5);
+	$(SVG).append(debugPath);*/
 	var sections=[];
 	pathLineIntersection(pathData, P[1], P[2], sections);
 	sections.sort(comparePathDataBendwise);
-	pathLineIntersection(sections[0], P[0], P[3], sections);
-	// [2/3, sinister-chief, dexter-base, bend]
-	sections=sections.slice(1);
+	/*debugPath.setPathData(sections[0]);
+	debugPath.setPathData(sections[1]);*/
+	//sections=[sinister-chief,2/3]
+	pathLineIntersection(sections[1], P[0], P[3], sections);
+	/*debugPath.setPathData(sections[0]);
+	debugPath.setPathData(sections[1]);
+	debugPath.setPathData(sections[2]);
+	debugPath.setPathData(sections[3]);*/
+	// [sinister-chief, 2/3, bend, dexter-base]
+	//sections=sections.slice(1);
+	sections.splice(1,1);
 	sections.sort(comparePathDataBendwise);
+	/*debugPath.setPathData(sections[0]);
+	debugPath.setPathData(sections[1]);
+	debugPath.setPathData(sections[2]);
+	$(debugPath).remove();*/
 	return sections;
 }
 
@@ -882,15 +936,13 @@ function addSinister(id, tinct, rw=0.3){
 			.translate(c[0],c[1])
 			.rotate(45)
 			.translate(-c[0],-c[1]);
-	//apply matrix transform to pale
-	pale.transform.baseVal.appendItem(SVG.createSVGTransformFromMatrix(m));
-	$(pale).attr("id", id+"-bend_sinister");
-	$(pale).addClass("heraldry-rotation7");
-	$(pale).addClass("heraldry-mirrored");
 	var g=document.createElementNS(SVG_URI, "g");
-	$(g).addClass("bend-sinister");
 	g.appendChild(pale);
 	setClip(g,id);
+	//apply matrix transform to pale
+	pale=transformElement(pale, m);
+	$(pale).addClass("bend-sinister");
+	$(pale).attr("id", id+"-bend_sinister");
 	//insert just after given element
 	elem.parentNode.insertBefore(g, elem.nextSibling);
 	//var m=pale.getCTM();
@@ -1141,7 +1193,9 @@ function addCharge(
 	var bBox = elem.getBBox();
 	var charge = SVG_MOVABLES.getElementById(movables[index]).cloneNode(true);
 	charge.id="temp-1";
-	var cBox = SVG_MOVABLES.getElementById(movables[index]).getBBox();
+	$(SVG).append(charge);
+	var cBox = charge.getBBox();
+	$(charge).remove();
 	var pathData = elem.getPathData();
 	var cx = bBox.x + bBox.width/2;
 	var cy = bBox.y + bBox.height/2;
@@ -1217,20 +1271,13 @@ function addCharge(
 					m=m.scale(scale)
 						.translate(-ccx,-ccy);
 				newCharge.id=clipId+"-charge"+sequence.toString();
+				transformElement(newCharge, m);
 				var children=newCharge.children;
 				for (var i = 0; i < children.length; i++) {
 					var childElem = children[i];
 					if(childElem.getAttribute("tinctured")==="true"){
 						$(childElem).addClass("heraldry-"+tinctures[tinct]);
-						if(rotation!=0){
-							$(childElem).addClass("heraldry-rotation"+rotation);
-						}
-						if(mirror){
-							$(childElem).addClass("heraldry-mirrored");
-						}
 					}
-					//apply matrix transform
-					childElem.transform.baseVal.appendItem(SVG.createSVGTransformFromMatrix(m));
 				}
 				if(clipId!=""){
 					setClip(newCharge, clipId);
@@ -1259,6 +1306,7 @@ function addCharge(
 		elem.parentNode.insertBefore(el2, elem.nextSibling);
 		elem.parentNode.insertBefore(el1, elem.nextSibling);
 		addCharge(el1, clipId, index, 1, tinct, false, mirror, rotation, sequence);
+		//var testFlag = testPathData($("#"+clipId+"-charge"+sequence.toString())[0]);
 		addCharge(el2, clipId, index, 1, tinct, false, mirror, rotation, sequence+1);
 		el1.parentElement.removeChild(el1);
 		el2.parentElement.removeChild(el2);
@@ -1348,13 +1396,14 @@ function comparePathDataBendwise(pd1, pd2){
 	var rot45t=SVG.createSVGTransformFromMatrix(SVG.createSVGMatrix().rotate(-45))
 	var box1 = getBoundingBox(pd1, rot45t);
 	var box2 = getBoundingBox(pd2, rot45t);
-	if(box1.y+box1.height > box2.y+box2.height){
+	//smaller y = HIGHER
+	if(box1.y+box1.height < box2.y+box2.height){
 		return -1;
-	}else if(box1.y+box1.height < box2.y+box2.height){
+	}else if(box1.y+box1.height > box2.y+box2.height){
 		return 1;
-	}else if(box1.y > box2.y){
-		return -1;
 	}else if(box1.y < box2.y){
+		return -1;
+	}else if(box1.y > box2.y){
 		return 1;
 	}else{
 		return 0;
@@ -1416,7 +1465,7 @@ function setBlazon(str){
 		parseStringAndDisplay(str)
 		applyTree("shield", parseString(str))
 	}
-	$(SVG).find("*").addClass(styleClass);
+	//$(SVG).find("*").addClass(styleClass);
 }
 
 function nearlyEqual(a, b, eps=0.000001){
@@ -1492,7 +1541,10 @@ function pathLineIntersection(pathData, p0, p1, paths=[]){
 	var pos = new Point(0, 0);
 	var fistPos = new Point(0, 0);
 	var iPoints = [];
-	//var paths=[];
+	var debugPath = document.createElementNS(SVG_URI, "path");
+	$(debugPath).attr("fill","green");
+	$(debugPath).attr("opacity",0.5);
+	$(SVG).append(debugPath);
 	var currentPath=[];
 	for( var seg of pathData ){
 		if( seg.type === "M" || seg.type === "L"){
@@ -1502,17 +1554,21 @@ function pathLineIntersection(pathData, p0, p1, paths=[]){
 				iPoints=iPoints.concat(tmpPoints);
 				if(tmpPoints.length > 0){
 					currentPath.push({ type:"L", values:[tmpPoints[0].x, tmpPoints[0].y] });
+					debugPath.setPathData(currentPath);
 					currentPath.push({ type:"Z", values:[] });
+					debugPath.setPathData(currentPath);
 					paths.push(currentPath);
 					currentPath=[{ type:"M", values:[tmpPoints[0].x, tmpPoints[0].y] }];
 					
 				}
 				currentPath.push({ type:"L", values:[seg.values[0], seg.values[1]] });
+				debugPath.setPathData(currentPath);
 			}else{
 				firstPos=tmp; //"M" command  resets the start point of the path
 				//if we have a non-empty path, add it to the list
 				if(currentPath.length>0){
 					currentPath.push({type:"Z", values:[]});
+					debugPath.setPathData(currentPath);
 					paths.push(currentPath);
 				}
 				//start a new path with this move command
@@ -1534,13 +1590,16 @@ function pathLineIntersection(pathData, p0, p1, paths=[]){
 				offset=t;
 				var bezObj=bezierPathSegmentFromPoints(...newBez.slice(0,4));//first four elements
 				currentPath.push(bezObj);
+				debugPath.setPathData(currentPath);
 				currentPath.push({ type:"Z", values:[] });
+				debugPath.setPathData(currentPath);
 				paths.push(currentPath);
 				currentPath=[ { type:"M", values:[newBez[3].x, newBez[3].y] } ]
 			}
 			//add the last bezier slice, iff it isn't infinitesimal (dropping it in this case gives minimal error)
 			if(!nearlyEqual(ts.slice(-1)[0],1)){
 				currentPath.push(bezierPathSegmentFromPoints(...oldBez));
+				debugPath.setPathData(currentPath);
 			}
 			var tmpPoints=bezierPoints(pos, tmp1, tmp2, tmp3, ts);
 			iPoints=iPoints.concat(tmpPoints)
@@ -1550,12 +1609,15 @@ function pathLineIntersection(pathData, p0, p1, paths=[]){
 			iPoints=iPoints.concat(tmpPoints);
 			if(tmpPoints.length>0){
 				currentPath.push({type:"L", values:[tmpPoints[0].x, tmpPoints[0].y]});
+				debugPath.setPathData(currentPath);
 				currentPath.push({type:"Z", values:[]});
+				debugPath.setPathData(currentPath);
 				paths.push(currentPath);
 				currentPath=[ { type:"M", values:[tmpPoints[0].x, tmpPoints[0].y] } ];
 			}
 			pos=firstPos.clone();
 			currentPath.push({type:"L", values:[firstPos.x, firstPos.y]});//first point of cut up path probably won't be the same
+			debugPath.setPathData(currentPath);
 		}
 	}
 	paths.push(currentPath);
@@ -1564,9 +1626,11 @@ function pathLineIntersection(pathData, p0, p1, paths=[]){
 		var lastPath = paths[length-1];
 		var firstPath = paths[0].slice(1);//we drop the initial move command, it's redundant
 		paths[0]=lastPath.concat(firstPath);
+		debugPath.setPathData(paths[0]);
 		paths.pop();//drop last path, it is now part of the first
 		//paths=paths.slice(1);//drop the original first path
 	}
+	$(debugPath).remove();
 	return iPoints;
 }
 
@@ -1636,10 +1700,6 @@ function getRowPositions(arr, spacing=0){
 	return ret;
 }
 
-function setupCharges(){
-	SVG_MOVABLES = document.getElementById("movable_charges").contentDocument;
-}
-
 function displayPath(pd, tincture="gules"){
 	var pathElem = document.createElementNS(SVG_URI, "path");
 	pathElem.setPathData(pd);
@@ -1672,13 +1732,17 @@ function transformPoint(p, m){
 }
 
 function transformElement(elem, m){
+	var ret=elem;
 	if(elem.tagName==="path"){
 		elem.setPathData(transformPathData(elem.getPathData({normalize:true}), m));
 	}else if(elem.tagName==="rect" || elem.tagName==="ellipse"){
 		var newPath = document.createElementNS(SVG_URI,"path");
+		var classes = $(elem).attr("class");
 		newPath.setPathData(transformPathData(elem.getPathData({normalize:true}), m));
+		$(newPath).attr("class", classes);
 		$(newPath).insertBefore(elem);
 		$(elem).remove();
+		ret = newPath;
 	}else if(elem.tagName==="g"){
 		var children=$(elem).children();
 		var l=children.length;
@@ -1687,6 +1751,26 @@ function transformElement(elem, m){
 		}
 	}else{
 		console.error("Transform Element: unknown element type");
+	}
+	return ret;
+}
+
+function testPathData(elem){
+	if(elem.tagName==="path"){
+		return !!(elem.getPathData)
+	}else if(elem.tagName==="rect" || elem.tagName==="ellipse"){
+		return !!(elem.getPathData)
+	}else if(elem.tagName==="g"){
+		var children=$(elem).children();
+		var l=children.length;
+		ret=true;
+		for(var i=0; i<l; ++i){
+			ret = ret && testPathData(children[i]);
+		}
+		return ret;
+	}else{
+		console.error("Test Path Data: unknown element type");
+		return false;
 	}
 }
 
@@ -1719,4 +1803,50 @@ function clearTransformations(elem){
 	for(var i=0; i<l; ++i){
 		clearTransformations(children[i]);
 	}
+}
+
+function crossHatch(size, number=4, width=2){
+	var outElem=document.createElementNS(SVG_URI, "g");
+	$(outElem).attr("stroke","black")
+	$(outElem).attr("stroke-width",width)
+	$(outElem).attr("stroke-linecap","square")
+	for(var i=0;i<number;++i){
+		var x=(2*i+1)*size/(2*number);
+		var lineX=document.createElementNS(SVG_URI, "line");
+		$(lineX).attr("x1",x);
+		$(lineX).attr("x2",x);
+		$(lineX).attr("y1",0);
+		$(lineX).attr("y2",size);
+		$(outElem).append(lineX);
+		var lineY=document.createElementNS(SVG_URI, "line");
+		$(lineY).attr("x1",0);
+		$(lineY).attr("x2",size);
+		$(lineY).attr("y1",x);
+		$(lineY).attr("y2",x);
+		$(outElem).append(lineY);
+	}
+	return outElem;
+}
+
+function drawUserBlazon(){
+	setBlazon(document.getElementById('blazonText').value);
+}
+
+function getSyntaxCookie(){
+	//magic incantation, do not touch
+	return document.cookie.replace(/(?:(?:^|.*;\s*)showSyntax\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+}
+
+function getCookie(name){
+	//magic incantation, do not touch
+	var regexp = new RegExp("(?:(?:^|.*;\\s*)"+name+"\\s*\\=\\s*([^;]*).*$)|^.*$");
+	return document.cookie.replace(regexp, "$1");
+}
+
+function setSyntaxCookie(val){
+	document.cookie = "showSyntax=" + val + ";max-age=31536000";
+}
+
+function setCookie(name, val){
+	document.cookie = name + "=" + val + ";max-age=31536000";
 }

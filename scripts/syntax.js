@@ -208,8 +208,8 @@ implurals = ["", "pallets", "bars", "bendlets", "bendlets sinister", "chevronels
 movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge", "key", "phrygian cap with bells on"];
 movplurals = ["mullets", "phrygian caps", "fleurs-de-lis", "pheons", "chevrons", "inescutcheons", "billets", "lozenges", "keys", "phrygian caps with bells on"];
 
-beasts = ["lion", "eagle", "bear"];
-beastplurals = ["lions", "eagles", "bears"];
+beasts = ["lion", "eagle", "bear", "dragon", "stag"];
+beastplurals = ["lions", "eagles", "bears", "dragons", "stags"];
 
 attitudes = ["rampant", "statant", "couchant", "passant", "salient", "sejant", "sejant erect", "cowed", "displayed"];
 
@@ -1479,11 +1479,4 @@ function displayTree(root){
 	document.getElementById("displayPara").innerHTML=root.display();
 }
 
-root=new Field(14);
-root.append(new Charge(0, 1, new Field(4), 1));
-//root.subnode[0].append(new Node());
-root.subnode[0].subnode[0].append(new NamedNode("the words \"Syntax Test\" Argent"));
-root.subnode[0].subnode[0].append(new Charge(0, 10, new Field(2), 1));
-root.subnode[0].subnode[0].subnode[1].append(new NamedNode("a console Sable"));
-//this works
-document.getElementById("displayPara").innerHTML=root.display();
+var root;

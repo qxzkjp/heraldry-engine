@@ -7,6 +7,14 @@
 	fill: url(#ermine);
 }
 
+.heraldry-ermine.bend {
+	fill: url(#ermine-bend);
+}
+
+.heraldry-ermine.bend-sinister {
+	fill: url(#ermine-sinister);
+}
+
 .heraldry-ermines {
 	fill: url(#ermines-bw);
 }
@@ -24,72 +32,25 @@
 /* vert = \ */
 /* purpure = / */
 
-.heraldry-azure,
-.heraldry-azure.heraldry-rotation4,
-.heraldry-vert.heraldry-rotation3,
-.heraldry-vert.heraldry-rotation7,
-.heraldry-gules.heraldry-rotation2,
-.heraldry-gules.heraldry-rotation6,
-.heraldry-purpure.heraldry-rotation1,
-.heraldry-purpure.heraldry-rotation5 {
+.heraldry-azure {
 	fill: url(#azure-bw);
 }
 
-.heraldry-azure.heraldry-rotation1,
-.heraldry-azure.heraldry-rotation5,
-.heraldry-azure.heraldry-rotation3.heraldry-mirrored,
-.heraldry-azure.heraldry-rotation7.heraldry-mirrored,
-.heraldry-vert,
-.heraldry-vert.heraldry-rotation4,
-.heraldry-vert.heraldry-rotation2.heraldry-mirrored,
-.heraldry-vert.heraldry-rotation6.heraldry-mirrored,
-.heraldry-gules.heraldry-rotation3,
-.heraldry-gules.heraldry-rotation7,
-.heraldry-gules.heraldry-rotation1.heraldry-mirrored,
-.heraldry-gules.heraldry-rotation5.heraldry-mirrored,
-.heraldry-purpure.heraldry-rotation2,
-.heraldry-purpure.heraldry-rotation6,
-.heraldry-purpure.heraldry-mirrored,
-.heraldry-purpure.heraldry-rotation4.heraldry-mirrored {
+.heraldry-vert {
 	fill: url(#vert-bw);
 }
 
-.heraldry-azure.heraldry-rotation2,
-.heraldry-azure.heraldry-rotation6,
-.heraldry-vert.heraldry-rotation1,
-.heraldry-vert.heraldry-rotation5,
-.heraldry-gules,
-.heraldry-gules.heraldry-rotation4,
-.heraldry-purpure.heraldry-rotation3,
-.heraldry-purpure.heraldry-rotation7 {
+.heraldry-gules {
 	fill: url(#gules-bw);
 }
 
-.heraldry-azure.heraldry-rotation3,
-.heraldry-azure.heraldry-rotation7,
-.heraldry-azure.heraldry-rotation1.heraldry-mirrored,
-.heraldry-azure.heraldry-rotation5.heraldry-mirrored,
-.heraldry-vert.heraldry-rotation2,
-.heraldry-vert.heraldry-rotation6,
-.heraldry-vert.heraldry-mirrored,
-.heraldry-vert.heraldry-rotation4.heraldry-mirrored,
-.heraldry-gules.heraldry-rotation1,
-.heraldry-gules.heraldry-rotation5,
-.heraldry-gules.heraldry-rotation3.heraldry-mirrored,
-.heraldry-gules.heraldry-rotation7.heraldry-mirrored,
-.heraldry-purpure,
-.heraldry-purpure.heraldry-rotation4,
-.heraldry-purpure.heraldry-rotation2.heraldry-mirrored,
-.heraldry-purpure.heraldry-rotation6.heraldry-mirrored {
+.heraldry-purpure {
 	fill: url(#purpure-bw);
 }
 
 /* sable = + */
 
-.heraldry-sable,
-.heraldry-sable.heraldry-rotation2,
-.heraldry-sable.heraldry-rotation4,
-.heraldry-sable.heraldry-rotation6 {
+.heraldry-sable {
 	fill: url(#sable-bw);
 }
 
