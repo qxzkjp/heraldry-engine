@@ -41,57 +41,420 @@
 			<div style="text-align:center;overflow: auto;" id="dotContainer">
 				<svg version="1.1" baseProfile="full" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="escutcheonContainer" class="heraldry-colour">
 					<defs id="SVGDefs">
-						<pattern id="or-bw" width="200" height="200" patternUnits="userSpaceOnUse" patternTransform="scale(0.0625)">
-							<rect width="200" height="200" fill="white" />
-							<circle cx="100" cy="100" r="15" fill="black" />
-							<circle cx="0" cy="200" r="15" fill="black" />
-							<circle cx="200" cy="0" r="15" fill="black" />
-							<circle cx="0" cy="0" r="15" fill="black" />
-							<circle cx="200" cy="200" r="15" fill="black" />
+						<!-- this is dotty(25, 16, 0.25) -->
+						<pattern id="or-bw" width="25" height="25" patternUnits="userSpaceOnUse">
+							<rect width="25" height="25" fill="white" />
+							<g>
+								<ellipse cx="0" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="1.5625" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.125" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="4.6875" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="6.25" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.8125" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="9.375" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.9375" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="12.5" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.0625" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="15.625" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.1875" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="18.75" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="20.3125" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.875" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="23.4375" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="25" cy="0" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0.78125" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="2.34375" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.90625" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="5.46875" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.03125" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="8.59375" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.15625" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="11.71875" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="13.28125" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.84375" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="16.40625" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.96875" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="19.53125" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.09375" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="22.65625" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="24.21875" cy="1.5625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="1.5625" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.125" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="4.6875" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="6.25" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.8125" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="9.375" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.9375" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="12.5" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.0625" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="15.625" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.1875" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="18.75" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="20.3125" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.875" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="23.4375" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="25" cy="3.125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0.78125" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="2.34375" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.90625" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="5.46875" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.03125" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="8.59375" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.15625" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="11.71875" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="13.28125" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.84375" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="16.40625" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.96875" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="19.53125" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.09375" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="22.65625" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="24.21875" cy="4.6875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="1.5625" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.125" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="4.6875" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="6.25" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.8125" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="9.375" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.9375" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="12.5" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.0625" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="15.625" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.1875" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="18.75" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="20.3125" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.875" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="23.4375" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="25" cy="6.25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0.78125" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="2.34375" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.90625" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="5.46875" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.03125" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="8.59375" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.15625" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="11.71875" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="13.28125" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.84375" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="16.40625" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.96875" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="19.53125" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.09375" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="22.65625" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="24.21875" cy="7.8125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="1.5625" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.125" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="4.6875" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="6.25" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.8125" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="9.375" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.9375" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="12.5" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.0625" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="15.625" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.1875" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="18.75" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="20.3125" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.875" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="23.4375" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="25" cy="9.375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0.78125" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="2.34375" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.90625" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="5.46875" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.03125" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="8.59375" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.15625" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="11.71875" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="13.28125" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.84375" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="16.40625" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.96875" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="19.53125" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.09375" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="22.65625" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="24.21875" cy="10.9375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="1.5625" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.125" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="4.6875" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="6.25" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.8125" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="9.375" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.9375" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="12.5" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.0625" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="15.625" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.1875" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="18.75" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="20.3125" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.875" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="23.4375" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="25" cy="12.5" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0.78125" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="2.34375" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.90625" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="5.46875" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.03125" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="8.59375" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.15625" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="11.71875" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="13.28125" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.84375" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="16.40625" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.96875" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="19.53125" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.09375" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="22.65625" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="24.21875" cy="14.0625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="1.5625" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.125" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="4.6875" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="6.25" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.8125" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="9.375" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.9375" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="12.5" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.0625" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="15.625" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.1875" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="18.75" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="20.3125" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.875" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="23.4375" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="25" cy="15.625" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0.78125" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="2.34375" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.90625" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="5.46875" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.03125" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="8.59375" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.15625" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="11.71875" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="13.28125" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.84375" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="16.40625" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.96875" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="19.53125" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.09375" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="22.65625" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="24.21875" cy="17.1875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="1.5625" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.125" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="4.6875" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="6.25" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.8125" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="9.375" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.9375" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="12.5" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.0625" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="15.625" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.1875" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="18.75" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="20.3125" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.875" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="23.4375" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="25" cy="18.75" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0.78125" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="2.34375" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.90625" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="5.46875" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.03125" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="8.59375" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.15625" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="11.71875" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="13.28125" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.84375" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="16.40625" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.96875" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="19.53125" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.09375" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="22.65625" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="24.21875" cy="20.3125" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="1.5625" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.125" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="4.6875" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="6.25" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.8125" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="9.375" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.9375" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="12.5" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.0625" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="15.625" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.1875" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="18.75" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="20.3125" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.875" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="23.4375" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="25" cy="21.875" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0.78125" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="2.34375" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.90625" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="5.46875" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.03125" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="8.59375" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.15625" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="11.71875" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="13.28125" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.84375" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="16.40625" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.96875" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="19.53125" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.09375" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="22.65625" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="24.21875" cy="23.4375" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="0" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="1.5625" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="3.125" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="4.6875" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="6.25" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="7.8125" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="9.375" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="10.9375" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="12.5" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="14.0625" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="15.625" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="17.1875" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="18.75" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="20.3125" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="21.875" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="23.4375" cy="25" rx="0.25" ry="0.25" fill="black"/>
+								<ellipse cx="25" cy="25" rx="0.25" ry="0.25" fill="black"/>
+							</g>
 						</pattern>
 						<pattern id="argent-bw" width="200" height="200" patternUnits="userSpaceOnUse" patternTransform="scale(0.0625)">
 							<rect width="200" height="200" fill="white" />
 						</pattern>
-						<pattern id="azure-bw" width="50" height="50" patternUnits="userSpaceOnUse" patternTransform="scale(0.0625)">
-							<rect width="50" height="50" fill="white" />
-							<line x1="0" x2="50" y1="25" y2="25" stroke="black" stroke-width="10"/>
+						<!--this is elem=crossHatch(25, 16, 0.25, false, true)-->
+						<pattern id="azure-bw" width="25" height="25" patternUnits="userSpaceOnUse">
+							<rect width="25" height="25" fill="white" />
+							<g stroke="black" stroke-width="0.25" stroke-linecap="square">
+								<line x1="0" x2="25" y1="0.78125" y2="0.78125"/>
+								<line x1="0" x2="25" y1="2.34375" y2="2.34375"/>
+								<line x1="0" x2="25" y1="3.90625" y2="3.90625"/>
+								<line x1="0" x2="25" y1="5.46875" y2="5.46875"/>
+								<line x1="0" x2="25" y1="7.03125" y2="7.03125"/>
+								<line x1="0" x2="25" y1="8.59375" y2="8.59375"/>
+								<line x1="0" x2="25" y1="10.15625" y2="10.15625"/>
+								<line x1="0" x2="25" y1="11.71875" y2="11.71875"/>
+								<line x1="0" x2="25" y1="13.28125" y2="13.28125"/>
+								<line x1="0" x2="25" y1="14.84375" y2="14.84375"/>
+								<line x1="0" x2="25" y1="16.40625" y2="16.40625"/>
+								<line x1="0" x2="25" y1="17.96875" y2="17.96875"/>
+								<line x1="0" x2="25" y1="19.53125" y2="19.53125"/>
+								<line x1="0" x2="25" y1="21.09375" y2="21.09375"/>
+								<line x1="0" x2="25" y1="22.65625" y2="22.65625"/>
+								<line x1="0" x2="25" y1="24.21875" y2="24.21875"/>
+							</g>
 						</pattern>
-						<pattern id="gules-bw" width="50" height="50" patternUnits="userSpaceOnUse" patternTransform="scale(0.0625)">
-							<rect width="50" height="50" fill="white" />
-							<line x1="25" x2="25" y1="0" y2="50" stroke="black" stroke-width="10"/>
+						<!--this is elem=crossHatch(25, 16, 0.25, true, false)-->
+						<pattern id="gules-bw" width="25" height="25" patternUnits="userSpaceOnUse">
+							<rect width="25" height="25" fill="white" />
+							<g stroke="black" stroke-width="0.25" stroke-linecap="square">
+								<line x1="0.78125" x2="0.78125" y1="0" y2="25"/>
+								<line x1="2.34375" x2="2.34375" y1="0" y2="25"/>
+								<line x1="3.90625" x2="3.90625" y1="0" y2="25"/>
+								<line x1="5.46875" x2="5.46875" y1="0" y2="25"/>
+								<line x1="7.03125" x2="7.03125" y1="0" y2="25"/>
+								<line x1="8.59375" x2="8.59375" y1="0" y2="25"/>
+								<line x1="10.15625" x2="10.15625" y1="0" y2="25"/>
+								<line x1="11.71875" x2="11.71875" y1="0" y2="25"/>
+								<line x1="13.28125" x2="13.28125" y1="0" y2="25"/>
+								<line x1="14.84375" x2="14.84375" y1="0" y2="25"/>
+								<line x1="16.40625" x2="16.40625" y1="0" y2="25"/>
+								<line x1="17.96875" x2="17.96875" y1="0" y2="25"/>
+								<line x1="19.53125" x2="19.53125" y1="0" y2="25"/>
+								<line x1="21.09375" x2="21.09375" y1="0" y2="25"/>
+								<line x1="22.65625" x2="22.65625" y1="0" y2="25"/>
+								<line x1="24.21875" x2="24.21875" y1="0" y2="25"/>
+							</g>
 						</pattern>
-						<pattern id="vert-bw" width="50" height="50" patternUnits="userSpaceOnUse" patternTransform="scale(0.0625) scale(1.414)">
-							<rect width="50" height="50" fill="white" />
-							<line x1="0" x2="50" y1="0" y2="50" stroke="black" stroke-width="7.1" stroke-linecap="square"/>
-							<line x1="-10" x2="10" y1="40" y2="60" stroke="black" stroke-width="7.1" stroke-linecap="square"/>
-							<line x1="40" x2="60" y1="-10" y2="10" stroke="black" stroke-width="7.1" stroke-linecap="square"/>
+						<!--this is elem=crossHatch(25, 16, 0.25, true, false)-->
+						<pattern id="vert-bw" width="25" height="25" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+							<rect width="25" height="25" fill="white" />
+							<g stroke="black" stroke-width="0.25" stroke-linecap="square">
+								<line x1="0.78125" x2="0.78125" y1="0" y2="25"/>
+								<line x1="2.34375" x2="2.34375" y1="0" y2="25"/>
+								<line x1="3.90625" x2="3.90625" y1="0" y2="25"/>
+								<line x1="5.46875" x2="5.46875" y1="0" y2="25"/>
+								<line x1="7.03125" x2="7.03125" y1="0" y2="25"/>
+								<line x1="8.59375" x2="8.59375" y1="0" y2="25"/>
+								<line x1="10.15625" x2="10.15625" y1="0" y2="25"/>
+								<line x1="11.71875" x2="11.71875" y1="0" y2="25"/>
+								<line x1="13.28125" x2="13.28125" y1="0" y2="25"/>
+								<line x1="14.84375" x2="14.84375" y1="0" y2="25"/>
+								<line x1="16.40625" x2="16.40625" y1="0" y2="25"/>
+								<line x1="17.96875" x2="17.96875" y1="0" y2="25"/>
+								<line x1="19.53125" x2="19.53125" y1="0" y2="25"/>
+								<line x1="21.09375" x2="21.09375" y1="0" y2="25"/>
+								<line x1="22.65625" x2="22.65625" y1="0" y2="25"/>
+								<line x1="24.21875" x2="24.21875" y1="0" y2="25"/>
+							</g>
 						</pattern>
-						<pattern id="purpure-bw" width="50" height="50" patternUnits="userSpaceOnUse" patternTransform="scale(0.0625) scale(1.414)">
-							<rect width="50" height="50" fill="white" />
-							<line x1="50" x2="0" y1="0" y2="50" stroke="black" stroke-width="7.1" stroke-linecap="square"/>
-							<line x1="-10" x2="10" y1="10" y2="-10" stroke="black" stroke-width="7.1" stroke-linecap="square"/>
-							<line x1="40" x2="60" y1="60" y2="40" stroke="black" stroke-width="7.1" stroke-linecap="square"/>
+						<!--this is elem=crossHatch(25, 16, 0.25, true, false)-->
+						<pattern id="purpure-bw" width="25" height="25" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+							<rect width="25" height="25" fill="white" />
+							<g stroke="black" stroke-width="0.25" stroke-linecap="square">
+								<line x1="0.78125" x2="0.78125" y1="0" y2="25"/>
+								<line x1="2.34375" x2="2.34375" y1="0" y2="25"/>
+								<line x1="3.90625" x2="3.90625" y1="0" y2="25"/>
+								<line x1="5.46875" x2="5.46875" y1="0" y2="25"/>
+								<line x1="7.03125" x2="7.03125" y1="0" y2="25"/>
+								<line x1="8.59375" x2="8.59375" y1="0" y2="25"/>
+								<line x1="10.15625" x2="10.15625" y1="0" y2="25"/>
+								<line x1="11.71875" x2="11.71875" y1="0" y2="25"/>
+								<line x1="13.28125" x2="13.28125" y1="0" y2="25"/>
+								<line x1="14.84375" x2="14.84375" y1="0" y2="25"/>
+								<line x1="16.40625" x2="16.40625" y1="0" y2="25"/>
+								<line x1="17.96875" x2="17.96875" y1="0" y2="25"/>
+								<line x1="19.53125" x2="19.53125" y1="0" y2="25"/>
+								<line x1="21.09375" x2="21.09375" y1="0" y2="25"/>
+								<line x1="22.65625" x2="22.65625" y1="0" y2="25"/>
+								<line x1="24.21875" x2="24.21875" y1="0" y2="25"/>
+							</g>
 						</pattern>
 						<!-- this is crossHatch(25,8,0.5) -->
 						<pattern id="sable-bw" width="25" height="25" patternUnits="userSpaceOnUse">
 							<rect width="25" height="25" fill="white" />
-							<g stroke="black" stroke-width="0.5" stroke-linecap="square">
-								<line x1="1.5625" x2="1.5625" y1="0" y2="25"/>
-								<line x1="0" x2="25" y1="1.5625" y2="1.5625"/>
-								<line x1="4.6875" x2="4.6875" y1="0" y2="25"/>
-								<line x1="0" x2="25" y1="4.6875" y2="4.6875"/>
-								<line x1="7.8125" x2="7.8125" y1="0" y2="25"/>
-								<line x1="0" x2="25" y1="7.8125" y2="7.8125"/>
-								<line x1="10.9375" x2="10.9375" y1="0" y2="25"/>
-								<line x1="0" x2="25" y1="10.9375" y2="10.9375"/>
-								<line x1="14.0625" x2="14.0625" y1="0" y2="25"/>
-								<line x1="0" x2="25" y1="14.0625" y2="14.0625"/>
-								<line x1="17.1875" x2="17.1875" y1="0" y2="25"/>
-								<line x1="0" x2="25" y1="17.1875" y2="17.1875"/>
-								<line x1="20.3125" x2="20.3125" y1="0" y2="25"/>
-								<line x1="0" x2="25" y1="20.3125" y2="20.3125"/>
-								<line x1="23.4375" x2="23.4375" y1="0" y2="25"/>
-								<line x1="0" x2="25" y1="23.4375" y2="23.4375"/>
+							<g stroke="black" stroke-width="0.25" stroke-linecap="square">
+								<line x1="0.78125" x2="0.78125" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="0.78125" y2="0.78125"/>
+								<line x1="2.34375" x2="2.34375" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="2.34375" y2="2.34375"/>
+								<line x1="3.90625" x2="3.90625" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="3.90625" y2="3.90625"/>
+								<line x1="5.46875" x2="5.46875" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="5.46875" y2="5.46875"/>
+								<line x1="7.03125" x2="7.03125" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="7.03125" y2="7.03125"/>
+								<line x1="8.59375" x2="8.59375" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="8.59375" y2="8.59375"/>
+								<line x1="10.15625" x2="10.15625" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="10.15625" y2="10.15625"/>
+								<line x1="11.71875" x2="11.71875" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="11.71875" y2="11.71875"/>
+								<line x1="13.28125" x2="13.28125" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="13.28125" y2="13.28125"/>
+								<line x1="14.84375" x2="14.84375" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="14.84375" y2="14.84375"/>
+								<line x1="16.40625" x2="16.40625" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="16.40625" y2="16.40625"/>
+								<line x1="17.96875" x2="17.96875" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="17.96875" y2="17.96875"/>
+								<line x1="19.53125" x2="19.53125" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="19.53125" y2="19.53125"/>
+								<line x1="21.09375" x2="21.09375" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="21.09375" y2="21.09375"/>
+								<line x1="22.65625" x2="22.65625" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="22.65625" y2="22.65625"/>
+								<line x1="24.21875" x2="24.21875" y1="0" y2="25"/>
+								<line x1="0" x2="25" y1="24.21875" y2="24.21875"/>
 							</g>
 						</pattern>
 						<pattern id="ermine" width="100" height="100" patternUnits="userSpaceOnUse" patternTransform="scale(0.25)">

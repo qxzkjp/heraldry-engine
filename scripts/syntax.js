@@ -5,17 +5,17 @@
 **display functions.                                  **
 ********************************************************/
 
-function Node()
+function TreeNode()
 {
 	this.subnode= [];
 }
 
-Node.prototype.getName= function (){
+TreeNode.prototype.getName= function (){
 	return "(unnamed)";
 }
 
 //depth puts hyphens before the name, for tree-printing
-Node.prototype.display=function (depth=0)
+TreeNode.prototype.display=function (depth=0)
 {
 	//console.log("name="+this.getName()+", depth="+depth+", # of subnodes: "+this.subnode.length);
 	var str="";
@@ -35,23 +35,23 @@ Node.prototype.display=function (depth=0)
 	return str;
 }
 
-Node.prototype.append = function(newNode)
+TreeNode.prototype.append = function(newTreeNode)
 {
-	this.subnode.push(newNode);
+	this.subnode.push(newTreeNode);
 }
 
-Node.prototype.at = function(index)
+TreeNode.prototype.at = function(index)
 {
 	return this.subnode[index];
 }
 
-Node.prototype.clone = function(newNode)
+TreeNode.prototype.clone = function(newTreeNode)
 {
 	var ret;
-	if(newNode instanceof Node){
-		ret = newNode;
+	if(newTreeNode instanceof TreeNode){
+		ret = newTreeNode;
 	}else{
-		ret = new Node();
+		ret = new TreeNode();
 	}
 	ret.subnode = cloneSubnode(this.subnode);
 }
@@ -64,17 +64,17 @@ function cloneSubnode(arr){
 	return ret;
 }
 
-function NamedNode(name)
+function NamedTreeNode(name)
 {
-	Node.call(this);
+	TreeNode.call(this);
 	this.name=name;
 }
 
 //set up inheritance
-NamedNode.prototype=Object.create(Node.prototype);
-NamedNode.prototype.constructor=NamedNode;
+NamedTreeNode.prototype=Object.create(TreeNode.prototype);
+NamedTreeNode.prototype.constructor=NamedTreeNode;
 
-NamedNode.prototype.getName= function (){
+NamedTreeNode.prototype.getName= function (){
 	return this.name;
 }
 
@@ -383,18 +383,18 @@ attitudesMap=mapProduct(attMap, facMap, facings.length);
 **PROTOTYPES (CHARGES ETC.)                           **
 **prototypes for all of the objects used in heraldry: **
 **charges (ordinary and moveable), divisions, fields  **
-**all inheriting from the Node prototype              **
+**all inheriting from the TreeNode prototype          **
 ********************************************************/
 
 function Division(type,number=2)
 {
-	Node.call(this);
+	TreeNode.call(this);
 	this.type=type;
 	this.number=number;
 }
 
 //set up inheritance
-Division.prototype=Object.create(Node.prototype);
+Division.prototype=Object.create(TreeNode.prototype);
 Division.prototype.constructor=Division;
 
 Division.prototype.getName= function (){
@@ -418,18 +418,18 @@ Division.prototype.getName= function (){
 
 Division.prototype.clone = function(){
 	var ret = new Division(this.type, this.number);
-	Node.prototype.clone.call(this, ret);
+	TreeNode.prototype.clone.call(this, ret);
 	//ret.subnode = cloneSubnode(this.subnode);
 }
 
 function Field(tincture)
 {
-	Node.call(this);
+	TreeNode.call(this);
 	this.tincture=tincture;
 }
 
 //set up inheritance
-Field.prototype=Object.create(Node.prototype);
+Field.prototype=Object.create(TreeNode.prototype);
 Field.prototype.constructor=Field;
 
 Field.prototype.getName= function (){
@@ -438,13 +438,13 @@ Field.prototype.getName= function (){
 
 Field.prototype.clone = function(){
 	var ret = new Field(this.tincture);
-	Node.prototype.clone.call(this, ret);
+	TreeNode.prototype.clone.call(this, ret);
 	return ret;
 }
 
 function Charge(type, index, tincture, number = 1, orientation=0, mirrored=false, arrangement=0)
 {
-	Node.call(this);
+	TreeNode.call(this);
 	this.setatt(type, index, number, orientation, mirrored, arrangement);
 	//if we have a charge group, there is no tincture
 	if( type!==TYPE_GROUP ){
@@ -459,7 +459,7 @@ function Charge(type, index, tincture, number = 1, orientation=0, mirrored=false
 }
 
 //set up inheritance
-Charge.prototype=Object.create(Node.prototype);
+Charge.prototype=Object.create(TreeNode.prototype);
 Charge.prototype.constructor=Charge;
 
 Charge.prototype.setatt = function(type, index, number, orientation, mirrored, arrangement)
@@ -486,7 +486,7 @@ Charge.prototype.setatt = function(type, index, number, orientation, mirrored, a
 
 Charge.prototype.clone= function(){
 	var ret = new Charge(this.type, this.index, null, this.number, this.orientation, this.mirrored, this.arrangement);
-	Node.prototype.clone.call(this, ret);
+	TreeNode.prototype.clone.call(this, ret);
 	return ret;
 }
 
@@ -539,7 +539,7 @@ ChargeGroup.prototype.constructor=ChargeGroup;
 
 ChargeGroup.prototype.clone = function(){
 	var ret = new ChargeGroup(this.arrangement);
-	Node.prototype.clone.call(this, ret);
+	TreeNode.prototype.clone.call(this, ret);
 	return ret;
 }
 
@@ -566,7 +566,7 @@ Beast.prototype.constructor=Beast;
 
 Beast.prototype.clone = function(){
 	var ret = new Beast(this.index, null, this.number, this.orientation, this.direction, this.arrangement);
-	Node.prototype.clone.call(this, ret);
+	TreeNode.prototype.clone.call(this, ret);
 	return ret;
 }
 

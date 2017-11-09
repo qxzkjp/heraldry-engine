@@ -238,7 +238,7 @@ svg, div {
 	display: block;
 	line-height: 1.5;
 	letter-spacing: 1px;
-	transition: margin 0.4s, box-shadow 0.4s;
+	transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
 	box-sizing: border-box;
 }
 
@@ -246,7 +246,7 @@ svg, div {
 	background-color: rgb(110,110,110);
 	box-shadow: 0 0 10px 5px rgba(0, 0, 0, .5);
 	margin: 10px 0px 10px 20px;
-	transition: margin 0.4s, box-shadow 0.4s;
+	transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
 }
 
 .menu-item.active {
@@ -255,24 +255,21 @@ svg, div {
 	margin: 10px 0px 10px 20px;
 }
 
+/*
 #toggleSyntax {
 	background-color: rgb(100,100,120);
-	transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
 }
 
 #toggleSyntax:hover {
 	background-color: rgb(110,110,140);
-	transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
-}
+}*/
 
 .showing#toggleSyntax {
 	background-color: rgb(100,120,100);
-	transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
 }
 
 .showing#toggleSyntax:hover {
 	background-color: rgb(110,140,110);
-	transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
 }
 
 #topMenuSpacer {

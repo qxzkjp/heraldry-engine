@@ -46,13 +46,6 @@ $(document).ready(function(){
 	path=document.getElementById("shield");
 	box=path.getBBox();
 	centre=new Point(box.x+(box.width/2), box.y+(box.height/2));
-	//from syntax.js
-	/*root=new Field(14);
-	root.append(new Charge(0, 1, new Field(4), 1));
-	root.subnode[0].subnode[0].append(new NamedNode("the words \"Syntax Test\" Argent"));
-	root.subnode[0].subnode[0].append(new Charge(0, 10, new Field(2), 1));
-	root.subnode[0].subnode[0].subnode[1].append(new NamedNode("a console Sable"));
-	document.getElementById("displayPara").innerHTML=root.display();*/
 	
 	$("#sideMenu").hide();
 	if(getSyntaxCookie()==""){
@@ -774,7 +767,6 @@ function setClip(elem, clipToId){
 
 //c comes back containing [centre x, centre y, rect x, rect y, rect height, rect width]
 function createPale(elem, tinct, rw=0.34, c=[]){
-	//var path=document.getElementById(id);
 	var box=elem.getBBox();
 	var h=box.height;
 	var w=box.width;
@@ -912,7 +904,6 @@ function addBend(id, tinct, rw=0.3){
 			.translate(c[0],c[1])
 			.rotate(-45)
 			.translate(-c[0],-c[1]);
-	//$(pale).addClass("heraldry-rotation1");
 	var g=document.createElementNS(SVG_URI, "g");
 	g.appendChild(pale);
 	setClip(g,id);
@@ -922,36 +913,19 @@ function addBend(id, tinct, rw=0.3){
 	$(pale).attr("id", id+"-bend");
 	//insert just after given element
 	elem.parentNode.insertBefore(g, elem.nextSibling);
-	//var m=pale.getCTM();
 	//turn rectangle x,y,h,w into four SVG points (clockwise from top left)
 	var P=getPoints(...c.slice(2));
 	//apply 45 deg rotation to get true points
 	for( var i=0; i<P.length; ++i ){
 		P[i]=P[i].matrixTransform(m);
 	}
-	//var debugPath=document.createElementNS(SVG_URI,"path");
-	//$(debugPath).attr("fill","green");
-	//$(debugPath).attr("opacity",0.5);
-	//$(SVG).append(debugPath);
 	var sections=[];
 	pathLineIntersection(pathData, P[1], P[2], sections);
 	sections.sort(comparePathDataBendwise);
-	//debugPath.setPathData(sections[0]);
-	//debugPath.setPathData(sections[1]);
 	//sections=[sinister-chief,2/3]
 	pathLineIntersection(sections[1], P[0], P[3], sections);
-	//debugPath.setPathData(sections[0]);
-	//debugPath.setPathData(sections[1]);
-	//debugPath.setPathData(sections[2]);
-	//debugPath.setPathData(sections[3]);
-	// [sinister-chief, 2/3, bend, dexter-base]
-	//sections=sections.slice(1);
 	sections.splice(1,1);
 	sections.sort(comparePathDataBendwise);
-	//debugPath.setPathData(sections[0]);
-	//debugPath.setPathData(sections[1]);
-	//debugPath.setPathData(sections[2]);
-	//$(debugPath).remove();
 	return sections;
 }
 
@@ -1305,7 +1279,7 @@ function addCharge(
 				var children=newCharge.children;
 				for (var i = 0; i < children.length; i++) {
 					var childElem = children[i];
-					if(childElem.getAttribute("tinctured")==="true"){
+					if(childElem.dataset.tinctured==="true"){
 						$(childElem).addClass("heraldry-"+tinctures[tinct]);
 					}else{
 						$(childElem).addClass("heraldry-charge");
@@ -1922,27 +1896,56 @@ function clearTransformations(elem){
 	}
 }
 
-function crossHatch(size, number=4, width=2){
+
+/*use
+elem.outerHTML.replace(/><\/line>/g,"/>").replace(/></g,">\n<")
+to get nicely formatted output*/
+function crossHatch(size, number=4, width=2, vertical=true, horizontal=true){
 	var outElem=document.createElementNS(SVG_URI, "g");
 	$(outElem).attr("stroke","black")
 	$(outElem).attr("stroke-width",width)
 	$(outElem).attr("stroke-linecap","square")
 	for(var i=0;i<number;++i){
 		var x=(2*i+1)*size/(2*number);
-		var lineX=document.createElementNS(SVG_URI, "line");
-		$(lineX).attr("x1",x);
-		$(lineX).attr("x2",x);
-		$(lineX).attr("y1",0);
-		$(lineX).attr("y2",size);
-		$(outElem).append(lineX);
-		var lineY=document.createElementNS(SVG_URI, "line");
-		$(lineY).attr("x1",0);
-		$(lineY).attr("x2",size);
-		$(lineY).attr("y1",x);
-		$(lineY).attr("y2",x);
-		$(outElem).append(lineY);
+		if(vertical){
+			var lineX=document.createElementNS(SVG_URI, "line");
+			$(lineX).attr("x1",x);
+			$(lineX).attr("x2",x);
+			$(lineX).attr("y1",0);
+			$(lineX).attr("y2",size);
+			$(outElem).append(lineX);
+		}
+		if(horizontal){
+			var lineY=document.createElementNS(SVG_URI, "line");
+			$(lineY).attr("x1",0);
+			$(lineY).attr("x2",size);
+			$(lineY).attr("y1",x);
+			$(lineY).attr("y2",x);
+			$(outElem).append(lineY);
+		}
 	}
 	return outElem;
+}
+
+/*use
+elem.outerHTML.replace(/><\/ellipse>/g,"/>").replace(/></g,">\n<")
+to get nicely formatted output*/
+function dotty(size, number, radius){
+	var g=document.createElementNS(SVG_URI,"g");
+	for(var i=0;i<number+1;++i){
+		y=i*size/number;
+		for(var j=0;j<number+(i+1)%2;++j){
+			x=j*size/number + (size/(2*number))*(i%2);
+			var elem=document.createElementNS(SVG_URI,"ellipse");
+			$(elem).attr("cx",x);
+			$(elem).attr("cy",y);
+			$(elem).attr("rx",radius);
+			$(elem).attr("ry",radius);
+			$(elem).attr("fill","black");
+			$(g).append(elem);
+		}
+	}
+	return g;
 }
 
 function drawUserBlazon(){
