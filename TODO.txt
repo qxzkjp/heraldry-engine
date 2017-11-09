@@ -1,0 +1,71 @@
+(UI)
+*investigate button text sizing
+(RENDERING)
+*fix furs on bends (ermines)
+*make bends draw at a reasonable angle in most cases
+*change charge drawing code to do arrangements
+	in particular, draw charges either side of a bend slightly more consistently
+*implement charge groups
+*implement charges on ordinaries
+(SYNTAX)
+*implement secondary charges
+	allow a second ordanary to be plainly stated
+		eg "Azure, a bend or on a chief argent three mullets gules"
+	allow secondary moveables to be introduced with prepositions (above, beside, etc)
+	allow moveable to be introduced with positions
+		eg "Vert, in chief a mullet or, in base a fleur-de-lys argent"
+*implement armed, langued, attired, unguled
+(RENDERING)
+*implement at least one beast (preferably lion)
+*Implement tinctures
+	tenny (-/)
+	brown (-\)
+	erminois
+	pean
+	vair
+	countervair
+	potent
+	counterpotent
+*Implement ordinaries
+	chief
+	chevron
+	cross
+	saltire
+	pallets
+	bars
+	barrulet
+	bendlet
+	riband
+	bendlet sinister
+	chevronel
+	fillet saltire
+	pall
+	fillet pall
+	fillet cross
+*Implement subordinaries
+	bordure
+	billet
+	lozenge
+	canton
+	orle
+	tressure
+	flanches
+	gyron
+	fret
+	inescutcheon!!
+*implement moveables
+	too many to list...
+(SYNTAX+RENDERING)
+*implement lines of division
+	engrailed
+	invected
+	dancetty
+	indented
+	wavy
+	embattled
+	nebuly
+	raguly
+	dovetailed
+	rayonne
+	urdy
+*implement counterchanging!!!

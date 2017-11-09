@@ -45,3 +45,7 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+scripts/jquery-3.2.1.min.js
+
+#don't include fonts in repo (I don't own them)
+#fonts
