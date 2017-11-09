@@ -1,11 +1,11 @@
 @font-face {
-        font-family: "medieval";
-        src: url("../fonts/bloodandblade.ttf");
+	font-family: "medieval";
+	src: url("../fonts/bloodandblade.ttf");
 }
 
 @font-face {
-        font-family: "mInitial";
-        src: url("../fonts/GoudyInitialen.ttf");
+	font-family: "mInitial";
+	src: url("../fonts/GoudyInitialen.ttf");
 }
 
 /*make body element actually cover 100% of window height* /
@@ -26,9 +26,9 @@ html {
 }
 
 body {
-  margin: 0 auto;
-  background-color: #0000FF;
-  position: relative;
+	margin: 0 auto;
+	background-color: #0000FF;
+	position: relative;
 }
 
 body, #menuContainer {
@@ -42,8 +42,8 @@ body, #menuContainer {
 }
 
 p, li, a {
-  line-height: 1.5;
-  letter-spacing: 1px;
+	line-height: 1.5;
+	letter-spacing: 1px;
 }
 
 /*p::first-letter {
@@ -60,12 +60,12 @@ p, li, a {
 }
 
 h1 {
-  margin: 0;
-  color: #FFFF00;
-  text-shadow: 3px 3px 1px black;
-  font-weight: normal;
-  font-size: 60px;
-  text-align: left;
+	margin: 0;
+	color: #FFFF00;
+	text-shadow: 3px 3px 1px black;
+	font-weight: normal;
+	font-size: 60px;
+	text-align: left;
 }
 
 h1::first-letter {
@@ -78,12 +78,12 @@ h1::first-letter {
 }
 
 h2 {
-  margin: 20px 0;
-  color: #FFFF00;
-  text-shadow: 3px 3px 1px black;
-  font-weight: normal;
-  font-size: 50px;
-  text-align: left;
+	margin: 20px 0;
+	color: #FFFF00;
+	text-shadow: 3px 3px 1px black;
+	font-weight: normal;
+	font-size: 50px;
+	text-align: left;
 }
 
 h2::first-letter {
@@ -97,8 +97,8 @@ h2::first-letter {
 }
 
 img {
-  display: block;
-  margin: 0 auto;
+	display: block;
+	margin: 0 auto;
 }
 
 input, select, textarea, button{
@@ -113,11 +113,11 @@ input, select, textarea, button{
 }
 
 #wrapper {
-  display: flex;
-  margin: 5px 0;
+	display: flex;
+	margin: 5px 0;
 }
 #left {
-  flex: 1 1 75%; /*flex-grow flex-shrink flex-basis*/
+	flex: 1 1 75%; /*flex-grow flex-shrink flex-basis*/
 }
 #middle {
 	flex: 0 0 auto;

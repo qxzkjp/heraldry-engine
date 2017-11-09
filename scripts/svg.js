@@ -78,15 +78,15 @@ $(document).ready(function(){
 	$("#blazonText").keypress(function (e) {
         if(e.which == 13) {
 			e.preventDefault();
+			e.stopPropagation();
             drawUserBlazon();
         }
     });
 	//hide menu when "focus" is lost
 	$("html").on("click", function(evt) {
-		if($.contains($("#menuContainer")[0],evt.target)){
-			return true;
+		if(!$.contains($("#menuContainer")[0],evt.target)){
+			animateSideMenu("hide");
 		}
-        animateSideMenu("hide");
     });
 });
 
@@ -990,14 +990,14 @@ function addSinister(id, tinct, rw=0.3){
 	updateDebugDisplay(sections[0],0);
 	updateDebugDisplay(sections[1],1);
 	clearDebugDisplay();
-	pathLineIntersection(sections[0], P[1], P[2], sections);
-	// [2/3, sinister-chief, dexter-base, bend]
+	pathLineIntersection(sections[1], P[1], P[2], sections);
+	// [sinister-chief, 2/3, bend, dexter-base]
 	updateDebugDisplay(sections[0],0);
 	updateDebugDisplay(sections[1],1);
 	updateDebugDisplay(sections[2],2);
 	updateDebugDisplay(sections[3],3);
 	clearDebugDisplay();
-	sections=sections.slice(1);
+	sections.splice(1,1);
 	updateDebugDisplay(sections[0],0);
 	updateDebugDisplay(sections[1],1);
 	updateDebugDisplay(sections[2],2);
@@ -1147,7 +1147,7 @@ function applyTree(shieldId, tree){
 				upsideDownSecond=true;
 			}else if(tree.at(fields).index===4){//bend sinister
 				sections = addSinister(shieldId, tree.at(fields).at(0).tincture);
-				upsideDownFirst=true;
+				upsideDownSecond=true;
 			}
 			if(tree.at(fields).subnode.length > 1){
 				if(tree.at(fields).at(1) instanceof Charge){
@@ -1452,13 +1452,13 @@ function comparePathDataSinister(pd1, pd2){
 	updateDebugDisplay(box1,0);
 	updateDebugDisplay(box2,0);
 	clearDebugDisplay();
-	if(box1.y > box2.y){
+	if(box1.y < box2.y){
 		return -1;
-	}else if(box1.y < box2.y){
+	}else if(box1.y > box2.y){
 		return 1;
-	}else if(box1.y+box1.height > box2.y+box2.height){
-		return -1;
 	}else if(box1.y+box1.height < box2.y+box2.height){
+		return -1;
+	}else if(box1.y+box1.height > box2.y+box2.height){
 		return 1;
 	}else{
 		return 0;
