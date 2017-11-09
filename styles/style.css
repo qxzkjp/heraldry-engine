@@ -22,17 +22,26 @@ html {
 	background-size: 50px;
 	margin: 0;
 	color:#FFFFFF;
+	overflow-y: scroll;
 }
 
 body {
-  max-width: 600px;
-  min-height: 100vh;
   margin: 0 auto;
   background-color: #0000FF;
   position: relative;
 }
 
-p, li {
+body, #menuContainer {
+	max-width: 600px;
+}
+
+#content {
+	min-height:100vh;
+	box-sizing: border-box;
+	padding: 15px 20px 5px 20px;
+}
+
+p, li, a {
   line-height: 1.5;
   letter-spacing: 1px;
 }
@@ -175,22 +184,22 @@ input, select, textarea, button{
 }
 
 #menuContainer {
-	position: sticky;
+	position: fixed;
 	top: 0px;
-	width:100%;
+	width: 100%;
 	z-index: 1;
 }
 
 #menuButton {
 	position: absolute;
-	top:0;
-	right:0;
+	top: 0;
+	right: 0;
 	width: 30px;
-	opacity:0.35;
+	opacity: 0.35;
 	margin: 5px 5px;
 	z-index: 2;
 	cursor: pointer;
-	fill:black;
+	fill: black;
 	transition: fill 0.4s;
 }
 
@@ -209,11 +218,6 @@ input, select, textarea, button{
 	overflow: hidden;
 	box-shadow: -10px 0 10px 1px rgba(0, 0, 0, .5);
 	font-family: serif;
-}
-
-#content {
-	box-sizing: border-box;
-	padding: 15px 20px 5px 20px;
 }
 
 svg, div {
@@ -235,6 +239,7 @@ svg, div {
 	line-height: 1.5;
 	letter-spacing: 1px;
 	transition: margin 0.4s, box-shadow 0.4s;
+	box-sizing: border-box;
 }
 
 .menu-item:hover {
@@ -250,10 +255,34 @@ svg, div {
 	margin: 10px 0px 10px 20px;
 }
 
+#toggleSyntax {
+	background-color: rgb(100,100,120);
+	transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
+}
+
+#toggleSyntax:hover {
+	background-color: rgb(110,110,140);
+	transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
+}
+
+.showing#toggleSyntax {
+	background-color: rgb(100,120,100);
+	transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
+}
+
+.showing#toggleSyntax:hover {
+	background-color: rgb(110,140,110);
+	transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
+}
+
 #topMenuSpacer {
 	padding:30px;
 }
 
 #innerMenu {
 	width: 300px;
+}
+
+.heraldry-charge {
+	stroke-width: 0.3;
 }

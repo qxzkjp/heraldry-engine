@@ -16,7 +16,15 @@ var path;
 var box;
 var centre;
 
+var debugStarts=[];
+var debugPaths=[];
+var debugEnds=[];
+
 $(document).ready(function(){
+	var debugCookie = getCookie("debug");
+	if(debugCookie!=""){
+		enableDebugging();
+	}
 	//AJAX request to get the movable charges
 	var xhr = new XMLHttpRequest;
 	xhr.open('get','movables.svg',true);
@@ -49,27 +57,43 @@ $(document).ready(function(){
 	$("#sideMenu").hide();
 	if(getSyntaxCookie()==""){
 		$("#syntax").hide();
+	}else{
+		$("#toggleSyntax").addClass("showing");
 	}
 	$("#menuButton").on("click", function(){
-		$("#sideMenu").animate({"width":"toggle","min-width":"toggle"},350);
+		animateSideMenu();
 		/*$("#sideMenu").fadeToggle();*/
 	});
 	$("#toggleSyntax").on("click", function(evt){
 		$("#syntax").slideToggle();
 		if(getSyntaxCookie()==""){
 			setSyntaxCookie("show");
+			$("#toggleSyntax").addClass("showing");
 		}else{
 			setSyntaxCookie("");
+			$("#toggleSyntax").removeClass("showing");
 		}
 	});
+	//draw blazon when enter is pressed
 	$("#blazonText").keypress(function (e) {
         if(e.which == 13) {
-            //submit form via ajax, this is not JS but server side scripting so not showing here
+			e.preventDefault();
             drawUserBlazon();
-            e.preventDefault();
         }
     });
+	//hide menu when "focus" is lost
+	$("html").on("click", function(evt) {
+		if($.contains($("#menuContainer")[0],evt.target)){
+			return true;
+		}
+        animateSideMenu("hide");
+    });
 });
+
+function animateSideMenu(method="toggle"){
+	$("#sideMenu").animate({"width":method},350);
+}
+
 var SVG_HEIGHT = 200;
 var SVG_WIDTH = 200;
 var SVG_MOVABLES=undefined;
@@ -394,34 +418,39 @@ BoundingBox.prototype.finalise= function(){
 
 //NOTE: this function cannot deal with arc commands
 //TODO: make this function deal with arc commands
-function getBoundingBox(arr, transform=undefined){
+function getBoundingBox(arr, transform=undefined, centred=false){
 	var secElem = document.createElementNS(SVG_URI, "path");
 	var ret;
 	secElem.setPathData(arr);
-	SVG.appendChild(secElem);
 	if(transform!==undefined){
-		var bb=secElem.getBBox();
-		var cx = bb.x+bb.width/2;
-		var cy = bb.y+bb.height/2;
-		secElem.transform.baseVal.appendItem(
-			SVG.createSVGTransformFromMatrix(
-				SVG.createSVGMatrix()
-					.translate(cx,cy)
-				)
-			);
+		var cx;
+		var cy;
+		if(centred){
+			$(SVG).append(secElem)
+			var cBox=secElem.getBBox();
+			cx=cBox.x+cBox.width/2;
+			cy=cBox.y+cBox.height/2;
+			secElem.transform.baseVal.appendItem(
+				SVG.createSVGTransformFromMatrix(
+					SVG.createSVGMatrix().translate(cx,cy)
+					)
+				);
+		}
 		secElem.transform.baseVal.appendItem(transform);
-		secElem.transform.baseVal.appendItem(
-			SVG.createSVGTransformFromMatrix(
-				SVG.createSVGMatrix()
-					.translate(-cx,-cy)
-				)
-			);
+		if(centred){
+			secElem.transform.baseVal.appendItem(
+				SVG.createSVGTransformFromMatrix(
+					SVG.createSVGMatrix().translate(-cx,-cy)
+					)
+				);
+		}
 		var g=document.createElementNS(SVG_URI, "g");
 		g.appendChild(secElem);
 		SVG.appendChild(g);
 		ret=g.getBBox();
 		SVG.removeChild(g);
 	}else{
+		SVG.appendChild(secElem);
 		ret=secElem.getBBox();
 		SVG.removeChild(secElem);
 	}
@@ -900,29 +929,29 @@ function addBend(id, tinct, rw=0.3){
 	for( var i=0; i<P.length; ++i ){
 		P[i]=P[i].matrixTransform(m);
 	}
-	/*var debugPath=document.createElementNS(SVG_URI,"path");
-	$(debugPath).attr("fill","green");
-	$(debugPath).attr("opacity",0.5);
-	$(SVG).append(debugPath);*/
+	//var debugPath=document.createElementNS(SVG_URI,"path");
+	//$(debugPath).attr("fill","green");
+	//$(debugPath).attr("opacity",0.5);
+	//$(SVG).append(debugPath);
 	var sections=[];
 	pathLineIntersection(pathData, P[1], P[2], sections);
 	sections.sort(comparePathDataBendwise);
-	/*debugPath.setPathData(sections[0]);
-	debugPath.setPathData(sections[1]);*/
+	//debugPath.setPathData(sections[0]);
+	//debugPath.setPathData(sections[1]);
 	//sections=[sinister-chief,2/3]
 	pathLineIntersection(sections[1], P[0], P[3], sections);
-	/*debugPath.setPathData(sections[0]);
-	debugPath.setPathData(sections[1]);
-	debugPath.setPathData(sections[2]);
-	debugPath.setPathData(sections[3]);*/
+	//debugPath.setPathData(sections[0]);
+	//debugPath.setPathData(sections[1]);
+	//debugPath.setPathData(sections[2]);
+	//debugPath.setPathData(sections[3]);
 	// [sinister-chief, 2/3, bend, dexter-base]
 	//sections=sections.slice(1);
 	sections.splice(1,1);
 	sections.sort(comparePathDataBendwise);
-	/*debugPath.setPathData(sections[0]);
-	debugPath.setPathData(sections[1]);
-	debugPath.setPathData(sections[2]);
-	$(debugPath).remove();*/
+	//debugPath.setPathData(sections[0]);
+	//debugPath.setPathData(sections[1]);
+	//debugPath.setPathData(sections[2]);
+	//$(debugPath).remove();
 	return sections;
 }
 
@@ -954,29 +983,30 @@ function addSinister(id, tinct, rw=0.3){
 	}
 	var sections=[];
 	pathLineIntersection(pathData, P[0], P[3], sections);
+	updateDebugDisplay(sections[0],0);
+	updateDebugDisplay(sections[1],1);
+	clearDebugDisplay();
 	sections.sort(comparePathDataSinister);
-	var debug1=displayPath(sections[0]);
-	var debug2=displayPath(sections[1],"or");
-	SVG.removeChild(debug1);
-	SVG.removeChild(debug2);
+	updateDebugDisplay(sections[0],0);
+	updateDebugDisplay(sections[1],1);
+	clearDebugDisplay();
 	pathLineIntersection(sections[0], P[1], P[2], sections);
 	// [2/3, sinister-chief, dexter-base, bend]
-	debug1=displayPath(sections[0]);
-	debug2=displayPath(sections[1],"or");
-	var debug3=displayPath(sections[2],"vert");
-	var debug4=displayPath(sections[3],"ermine");
-	SVG.removeChild(debug1);
-	SVG.removeChild(debug2);
-	SVG.removeChild(debug3);
-	SVG.removeChild(debug4);
+	updateDebugDisplay(sections[0],0);
+	updateDebugDisplay(sections[1],1);
+	updateDebugDisplay(sections[2],2);
+	updateDebugDisplay(sections[3],3);
+	clearDebugDisplay();
 	sections=sections.slice(1);
+	updateDebugDisplay(sections[0],0);
+	updateDebugDisplay(sections[1],1);
+	updateDebugDisplay(sections[2],2);
+	clearDebugDisplay();
 	sections.sort(comparePathDataSinister);
-	debug1=displayPath(sections[0]);
-	debug2=displayPath(sections[1],"or");
-	debug3=displayPath(sections[2],"vert");
-	SVG.removeChild(debug1);
-	SVG.removeChild(debug2);
-	SVG.removeChild(debug3);
+	updateDebugDisplay(sections[0],0);
+	updateDebugDisplay(sections[1],1);
+	updateDebugDisplay(sections[2],2);
+	clearDebugDisplay();
 	return sections;
 }
 
@@ -1114,7 +1144,7 @@ function applyTree(shieldId, tree){
 				sections = addFess(shieldId, tree.at(fields).at(0).tincture);
 			}else if(tree.at(fields).index===3){//bend
 				sections = addBend(shieldId, tree.at(fields).at(0).tincture);
-				upsideDownFirst=true;
+				upsideDownSecond=true;
 			}else if(tree.at(fields).index===4){//bend sinister
 				sections = addSinister(shieldId, tree.at(fields).at(0).tincture);
 				upsideDownFirst=true;
@@ -1277,6 +1307,8 @@ function addCharge(
 					var childElem = children[i];
 					if(childElem.getAttribute("tinctured")==="true"){
 						$(childElem).addClass("heraldry-"+tinctures[tinct]);
+					}else{
+						$(childElem).addClass("heraldry-charge");
 					}
 				}
 				if(clipId!=""){
@@ -1411,13 +1443,15 @@ function comparePathDataBendwise(pd1, pd2){
 }
 
 function comparePathDataSinister(pd1, pd2){
-	var debug1=displayPath(pd1);
-	var debug2=displayPath(pd2,"vert");
-	SVG.removeChild(debug1);
-	SVG.removeChild(debug2);
-	var rot45t=SVG.createSVGTransformFromMatrix(SVG.createSVGMatrix().rotate(45));
+	updateDebugDisplay(pd1,0);
+	updateDebugDisplay(pd2,1);
+	clearDebugDisplay();
+	var rot45t=SVG.createSVGTransformFromMatrix(SVG.createSVGMatrix().translate(100,100).rotate(45).translate(-100,-100));
 	var box1 = getBoundingBox(pd1, rot45t);
 	var box2 = getBoundingBox(pd2, rot45t);
+	updateDebugDisplay(box1,0);
+	updateDebugDisplay(box2,0);
+	clearDebugDisplay();
 	if(box1.y > box2.y){
 		return -1;
 	}else if(box1.y < box2.y){
@@ -1535,16 +1569,89 @@ function bezierIntersectionParameters(p0, p1, p2, p3, p4, p5){
 	return t;
 }
 
+function updateDebugDisplay(currentPath, index){
+}
+
+function updateDebugDisplayBackup(currentPath, index, transparent=false){
+	var colours=["purple","brown","orange","pink","blue"];
+	if(currentPath===undefined){
+		debugger;
+	}
+	if(currentPath instanceof SVGRect){
+		var x = currentPath.x;
+		var y = currentPath.y;
+		var width = currentPath.width;
+		var height = currentPath.height;
+		currentPath=[{type:"M",values:[x,y]},{type:"L",values:[x+width,y]},{type:"L",values:[x+width,y+height]},{type:"L",values:[x,y+height]},{type:"Z",values:[]}];
+	}
+	if(index===undefined){
+		clearDebugDisplay();
+		index=0;
+	}
+	if(debugPaths[index]===undefined){
+		debugPaths.push(document.createElementNS(SVG_URI,"path"));
+		$(debugPaths[index]).attr("fill",colours[index]);
+		debugStarts.push(document.createElementNS(SVG_URI,"ellipse"));
+		$(debugStarts[index]).attr("fill",colours[index]);
+		$(debugStarts[index]).attr("rx",5);
+		$(debugStarts[index]).attr("ry",5);
+		$(debugStarts[index]).attr("stroke","green");
+		$(debugStarts[index]).attr("stroke-width",0.5);
+		debugEnds.push(document.createElementNS(SVG_URI,"ellipse"));
+		$(debugEnds[index]).attr("fill",colours[index]);
+		$(debugEnds[index]).attr("rx",5);
+		$(debugEnds[index]).attr("ry",5);
+		$(debugEnds[index]).attr("stroke","red");
+		$(debugEnds[index]).attr("stroke-width",0.5);
+		$(SVG).append(debugPaths[index]);
+		$(SVG).append(debugEnds[index]);
+		$(SVG).append(debugStarts[index]);
+	}
+	if(transparent){
+		$(debugPaths[index]).attr("opacity",0.5);
+	}else{
+		$(debugPaths[index]).attr("opacity",1);
+	}
+	debugPaths[index].setPathData(currentPath);
+	var l=currentPath.length;
+	if(currentPath[l-1].type!="Z"){
+		var vlen= currentPath[l-1].values.length;
+		$(debugEnds[index]).attr("cx",currentPath[l-1].values[vlen-2]);
+		$(debugEnds[index]).attr("cy",currentPath[l-1].values[vlen-1]);
+		$(debugEnds[index]).attr("fill","red");
+		$(debugEnds[index]).show();
+	}else{
+		$(debugEnds[index]).hide();
+	}
+	$(debugStarts[index]).attr("cx",currentPath[0].values[0]);
+	$(debugStarts[index]).attr("cy",currentPath[0].values[1]);
+}
+
+function clearDebugDisplay(){
+}
+
+function clearDebugDisplayBackup(){
+	for( p of debugPaths){
+		$(p).remove();
+	}
+	for( p of debugStarts){
+		$(p).remove();
+	}
+	for( p of debugEnds){
+		$(p).remove();
+	}
+	debugPaths=[];
+	debugStarts=[];
+	debugEnds=[];
+}
+
 //path data *must* be normalised, or garbage will result
 //this function changes p0 and p1. I should probably change this.
 function pathLineIntersection(pathData, p0, p1, paths=[]){
+	var indexOffset = paths.length;
 	var pos = new Point(0, 0);
 	var fistPos = new Point(0, 0);
 	var iPoints = [];
-	var debugPath = document.createElementNS(SVG_URI, "path");
-	$(debugPath).attr("fill","green");
-	$(debugPath).attr("opacity",0.5);
-	$(SVG).append(debugPath);
 	var currentPath=[];
 	for( var seg of pathData ){
 		if( seg.type === "M" || seg.type === "L"){
@@ -1554,21 +1661,21 @@ function pathLineIntersection(pathData, p0, p1, paths=[]){
 				iPoints=iPoints.concat(tmpPoints);
 				if(tmpPoints.length > 0){
 					currentPath.push({ type:"L", values:[tmpPoints[0].x, tmpPoints[0].y] });
-					debugPath.setPathData(currentPath);
+					updateDebugDisplay(currentPath)
 					currentPath.push({ type:"Z", values:[] });
-					debugPath.setPathData(currentPath);
+					updateDebugDisplay(currentPath)
 					paths.push(currentPath);
 					currentPath=[{ type:"M", values:[tmpPoints[0].x, tmpPoints[0].y] }];
 					
 				}
 				currentPath.push({ type:"L", values:[seg.values[0], seg.values[1]] });
-				debugPath.setPathData(currentPath);
+				updateDebugDisplay(currentPath)
 			}else{
 				firstPos=tmp; //"M" command  resets the start point of the path
 				//if we have a non-empty path, add it to the list
 				if(currentPath.length>0){
 					currentPath.push({type:"Z", values:[]});
-					debugPath.setPathData(currentPath);
+					updateDebugDisplay(currentPath)
 					paths.push(currentPath);
 				}
 				//start a new path with this move command
@@ -1590,16 +1697,16 @@ function pathLineIntersection(pathData, p0, p1, paths=[]){
 				offset=t;
 				var bezObj=bezierPathSegmentFromPoints(...newBez.slice(0,4));//first four elements
 				currentPath.push(bezObj);
-				debugPath.setPathData(currentPath);
+				updateDebugDisplay(currentPath)
 				currentPath.push({ type:"Z", values:[] });
-				debugPath.setPathData(currentPath);
+				updateDebugDisplay(currentPath)
 				paths.push(currentPath);
 				currentPath=[ { type:"M", values:[newBez[3].x, newBez[3].y] } ]
 			}
 			//add the last bezier slice, iff it isn't infinitesimal (dropping it in this case gives minimal error)
 			if(!nearlyEqual(ts.slice(-1)[0],1)){
 				currentPath.push(bezierPathSegmentFromPoints(...oldBez));
-				debugPath.setPathData(currentPath);
+				updateDebugDisplay(currentPath)
 			}
 			var tmpPoints=bezierPoints(pos, tmp1, tmp2, tmp3, ts);
 			iPoints=iPoints.concat(tmpPoints)
@@ -1609,28 +1716,38 @@ function pathLineIntersection(pathData, p0, p1, paths=[]){
 			iPoints=iPoints.concat(tmpPoints);
 			if(tmpPoints.length>0){
 				currentPath.push({type:"L", values:[tmpPoints[0].x, tmpPoints[0].y]});
-				debugPath.setPathData(currentPath);
+				updateDebugDisplay(currentPath)
 				currentPath.push({type:"Z", values:[]});
-				debugPath.setPathData(currentPath);
+				updateDebugDisplay(currentPath)
 				paths.push(currentPath);
 				currentPath=[ { type:"M", values:[tmpPoints[0].x, tmpPoints[0].y] } ];
 			}
 			pos=firstPos.clone();
 			currentPath.push({type:"L", values:[firstPos.x, firstPos.y]});//first point of cut up path probably won't be the same
-			debugPath.setPathData(currentPath);
+			updateDebugDisplay(currentPath)
 		}
+	}
+	var l=currentPath.length;
+	if(currentPath[l-1].type!="Z"){
+		currentPath.push({type:"Z",values:[]});
+		updateDebugDisplay(currentPath)
 	}
 	paths.push(currentPath);
 	if(pathData.slice(-1)[0].type=="Z" && paths.length>1){//if the path was closed, we append the first segment to the last
 		var length=paths.length;
-		var lastPath = paths[length-1];
-		var firstPath = paths[0].slice(1);//we drop the initial move command, it's redundant
-		paths[0]=lastPath.concat(firstPath);
-		debugPath.setPathData(paths[0]);
+		//we drop the ending "Z" command, as this is no longer the end of the path
+		var lastPath = paths[length-1].slice(0,-1);
+		updateDebugDisplay(lastPath);
+		var firstPath = paths[indexOffset];
+		updateDebugDisplay(firstPath);
+		//change the initial positioning command into a command to draw a line to that point
+		firstPath[0].type="L";
+		paths[indexOffset]=lastPath.concat(firstPath);
+		updateDebugDisplay(paths[indexOffset]);
 		paths.pop();//drop last path, it is now part of the first
 		//paths=paths.slice(1);//drop the original first path
 	}
-	$(debugPath).remove();
+	clearDebugDisplay();
 	return iPoints;
 }
 
@@ -1849,4 +1966,16 @@ function setSyntaxCookie(val){
 
 function setCookie(name, val){
 	document.cookie = name + "=" + val + ";max-age=31536000";
+}
+
+function enableDebugging(){
+	updateDebugDisplay=updateDebugDisplayBackup;
+	clearDebugDisplay=clearDebugDisplayBackup;
+	setCookie("debug","true");
+}
+
+function disableDebugging(){
+	updateDebugDisplay=function(){};
+	clearDebugDisplay=function(){};
+	setCookie("debug","");
 }

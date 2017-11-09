@@ -1,10 +1,6 @@
-(RENDERING)
-*FIX BENDS BETWEEN CHARGES!!
-	pathlineIntersection is failing
-PROBLEM BLAZONS:
-	Azure, a bend argent between three keys or (FIREFOX)
 (UI)
 *investigate button text sizing
+*close side menu when it "loses focus"
 (RENDERING)
 *fix furs on bends (ermines)
 *make bends draw at a reasonable angle in most cases
