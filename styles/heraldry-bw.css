@@ -1,0 +1,80 @@
+.heraldry-super {
+	stroke: black;
+	stroke-width: 5;
+}
+
+.heraldry-ermine {
+	fill: url(#ermine);
+}
+
+.heraldry-ermines {
+	fill: url(#ermines-bw);
+}
+
+.heraldry-or {
+	fill: url(#or-bw);
+}
+
+.heraldry-argent {
+	fill: white;
+}
+
+.heraldry-azure {
+	fill: url(#azure-bw);
+}
+
+.heraldry-gules {
+	fill: url(#gules-bw);
+}
+
+.heraldry-vert {
+	fill: url(#vert-bw);
+}
+
+.heraldry-purpure {
+	fill: url(#purpure-bw);
+}
+
+.heraldry-sable {
+	fill: url(#sable-bw);
+}
+
+.bend .heraldry-ermines, .sinister .heraldry-ermines {
+	fill: url(#ermines-bend)
+}
+
+.bend .heraldry-azure {
+	fill: url(#vert-bw)
+}
+
+.bend .heraldry-purpure {
+	fill: url(#azure-bw)
+}
+
+.bend .heraldry-gules {
+	fill: url(#purpure-bw)
+}
+
+.bend .heraldry-vert {
+	fill: url(#gules-bw)
+}
+
+.bend .heraldry-sable, .sinister .heraldry-sable {
+	fill: url(#sable-bend)
+}
+
+.sinister .heraldry-azure {
+	fill: url(#purpure-bw)
+}
+
+.sinister .heraldry-purpure {
+	fill: url(#gules-bw)
+}
+
+.sinister .heraldry-gules {
+	fill: url(#vert-bw)
+}
+
+.sinister .heraldry-vert {
+	fill: url(#azure-bw)
+}

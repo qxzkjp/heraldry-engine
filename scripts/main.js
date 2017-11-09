@@ -351,10 +351,10 @@ addSynonym(attMap, "sejant erect", "sejant rampant");
 addSynonym(attMap, "sejant erect", "sejant-rampant");
 
 //possibly not the most elegant way of handling the orientations, but we only need eight manual synonyms so it'll do
-addSynonym(mirrorOrientMap, "fesswise inverted", "inverted");
-addSynonym(mirrorOrientMap, "fesswise reversed", "reversed");
-addSynonym(halfOrientMap, "fesswise inverted and reversed", "inverted and reversed");
-addSynonym(halfOrientMap, "fesswise inverted and reversed", "reversed and inverted");
+addSynonym(mirrorOrientMap, "palewise inverted", "inverted");
+addSynonym(mirrorOrientMap, "palewise reversed", "reversed");
+addSynonym(halfOrientMap, "palewise inverted and reversed", "inverted and reversed");
+addSynonym(halfOrientMap, "palewise inverted and reversed", "reversed and inverted");
 
 addSynonym(halfOrientMap, "fesswise inverted and reversed", "fesswise reversed and inverted");
 addSynonym(halfOrientMap, "palewise inverted and reversed", "palewise reversed and inverted");
@@ -592,9 +592,9 @@ Beast.prototype.getName= function (){
 	if(this.direction !== 0){
 		out += " " + directions[this.direction];
 	}
-	if( arrangement !== 0 )
+	if(this.arrangement !== 0 )
 	{
-		out += " " + arrangements[arrangement];
+		out += " " + arrangements[this.arrangement];
 	}
 	return out;
 }
@@ -1422,6 +1422,10 @@ function getImmovable(str)
 
 function getEscutcheon(str){
 	var tmp=getFieldOrDivision(str);
+	if(tmp===undefined){
+		console.error("Syntax error: no field (or division) where one was expected");
+		return undefined;
+	}
 	var flag=false;
 	//skip a comma if one is present after the field
 	if( isPunct(str.peek()) ){
@@ -1464,7 +1468,11 @@ function parseStringAndDisplay(str)
 {
 	var tokstr=tokStrFromStr(str);
 	var root=getEscutcheon(tokstr);
-	document.getElementById("displayPara").innerHTML=root.display();
+	if(root===undefined){
+		console.error("Debug error: no tree to print (probably due to a catastrophic parsing error)");
+	}else{
+		document.getElementById("displayPara").innerHTML=root.display();
+	}
 }
 
 function displayTree(root){
