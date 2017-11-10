@@ -1,3 +1,6 @@
+(PROBLEM BLAZONS)
+none atm :)
+
 (UI)
 *investigate button text sizing
 (RENDERING)
