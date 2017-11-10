@@ -58,40 +58,52 @@ p, li, a {
 }
 
 h1 {
-	margin: 0;
-	color: #FFFF00;
-	text-shadow: 3px 3px 1px black;
-	font-weight: normal;
-	font-size: 60px;
-	text-align: left;
+    margin: 0;
+    text-shadow: 3px 3px 1px black;
+    font-weight: normal;
+    font-size: 60px;
+    text-align: left;
+    color: yellow;
 }
 
 h1::first-letter {
-	font-family: "mInitial","medieval",serif;
+	font-family: "mInitial","medieval",monospace;
 	font-size: 100px;
 }
 
-#heraldryHead {
-	padding: 0px 0 0 0;
-}
-
 h2 {
-	margin: 20px 0;
-	color: #FFFF00;
-	text-shadow: 3px 3px 1px black;
-	font-weight: normal;
-	font-size: 50px;
-	text-align: left;
+    margin: 20px 0;
+    text-shadow: 3px 3px 1px black;
+    font-weight: normal;
+    font-size: 50px;
+    text-align: left;
+    color: yellow;
 }
 
 h2::first-letter {
-	font-family: "mInitial","medieval",serif;
+	font-family: "mInitial","medieval",monospace;
 	font-size: 85px;
+}
+
+#heraldryHead {
+    padding: 0px 0 0 0;
 }
 
 #engineHead {
 	margin: 0 0 15px 0;
 	text-indent:1.75em;
+}
+
+#pleaseHeading,#waitHeading{
+    color: white;
+}
+
+#pleaseHeading {
+    margin: 0 0 0 -100px;
+}
+
+#waitHeading {
+    margin: 0 0 0 100px;
 }
 
 img {
@@ -295,4 +307,22 @@ svg, div {
 
 .noOverflow {
     overflow: hidden;
+}
+
+.loadingScreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+#dotContainer {
+    position:relative;
 }

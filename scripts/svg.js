@@ -20,13 +20,18 @@ var debugStarts=[];
 var debugPaths=[];
 var debugEnds=[];
 var pageDisabled = false;
+var debugEnabled = false;
 
 $(document).ready(function(){
 	var debugCookie = getCookie("debug");
 	if(debugCookie!=""){
 		enableDebugging();
-	}
-	//AJAX request to get the movable charges
+    }
+    //set up shield
+    path = document.getElementById("shield");
+    box = path.getBBox();
+    centre = new Point(box.x + (box.width / 2), box.y + (box.height / 2));
+	//AJAX request to get the movable charges and draw initial arms
 	var xhr = new XMLHttpRequest;
 	xhr.open('get','movables.svg',true);
 	xhr.onreadystatechange = function(){
@@ -39,19 +44,14 @@ $(document).ready(function(){
 		//once charges are set up, draw the initial arms
 		$('#blazonText')[0].value = "Azure, a bend Or";
 		setBlazon($('#blazonText')[0].value);
-		//and finally, now that everything is ready, enable the button
+		//and finally, now that everything is ready, enable input
 		$("#blazonButton").attr("disabled",false);
+        $("#blazonText").attr("disabled", false);
 	};
 	xhr.send();
-	//set up shield
-	path=document.getElementById("shield");
-	box=path.getBBox();
-	centre=new Point(box.x+(box.width/2), box.y+(box.height/2));
-	
-	$("#sideMenu").hide();
-	if(getSyntaxCookie()==""){
-		$("#syntax").hide();
-	}else{
+
+	if(getSyntaxCookie()!=""){
+        $("#syntax").show();
 		$("#toggleSyntax").addClass("showing");
 	}
 	$("#menuButton").on("click", function(){
@@ -1493,12 +1493,17 @@ function clearShield(){
 	changeTincture(shield, "ermine");
 }
 
-function setBlazon(str){
+function setBlazon(str) {
+    if (!debugEnabled) {
+        $("#shieldCover").show();
+    }
 	blazon=str;
-	clearShield();
+    clearShield();
     var tree = parseStringAndDisplay(str);
     applyTree("shield", tree);
-	//$(SVG).find("*").addClass(styleClass);
+    if (!debugEnabled) {
+        $("#shieldCover").hide();
+    }
 }
 
 function nearlyEqual(a, b, eps=0.000001){
@@ -1996,13 +2001,15 @@ function setCookie(name, val){
 	document.cookie = name + "=" + val + ";max-age=31536000";
 }
 
-function enableDebugging(){
+function enableDebugging() {
+    debugEnabled = true;
 	updateDebugDisplay=updateDebugDisplayBackup;
 	clearDebugDisplay=clearDebugDisplayBackup;
 	setCookie("debug","true");
 }
 
-function disableDebugging(){
+function disableDebugging() {
+    debugEnabled = false;
 	updateDebugDisplay=function(){};
 	clearDebugDisplay=function(){};
 	setCookie("debug","");

@@ -1,15 +1,17 @@
 (PROBLEM BLAZONS)
-none atm :)
+Azure, three fleurs-de-lys Or (on the oval shield)
+	top two carges are worryingly asymmetric
 
 (UI)
 *investigate button text sizing
 (RENDERING)
 *fix furs on bends (ermines)
-*make bends draw at a reasonable angle in most cases
 *change charge drawing code to do arrangements
 	in particular, draw charges either side of a bend slightly more consistently
 *implement charge groups
 *implement charges on ordinaries
+* implement geometric charges: lozenge, billet, roundel, annulet
+	implement cross couped; this requires implementing the syntax of the word "couped"
 (SYNTAX)
 *implement secondary charges
 	allow a second ordanary to be plainly stated
