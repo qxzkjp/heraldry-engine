@@ -7,6 +7,7 @@
 
 function TreeNode()
 {
+    this.active = -1;
 	this.subnode= [];
 }
 
@@ -37,6 +38,9 @@ TreeNode.prototype.display=function (depth=0)
 
 TreeNode.prototype.append = function(newTreeNode)
 {
+    if (this.active == this.subnode.length - 1) {
+        ++this.active;
+    }
 	this.subnode.push(newTreeNode);
 }
 
@@ -53,7 +57,9 @@ TreeNode.prototype.clone = function(newTreeNode)
 	}else{
 		ret = new TreeNode();
 	}
-	ret.subnode = cloneSubnode(this.subnode);
+    ret.subnode = cloneSubnode(this.subnode);
+    ret.active = this.active;
+    return ret;
 }
 
 function cloneSubnode(arr){
