@@ -7,8 +7,24 @@
 	fill: url(#ermine);
 }
 
+.heraldry-ermine.bend {
+	fill: url(#ermine-bend);
+}
+
+.heraldry-ermine.bend-sinister {
+	fill: url(#ermine-sinister);
+}
+
 .heraldry-ermines {
 	fill: url(#ermines);
+}
+
+.heraldry-ermines.bend {
+	fill: url(#ermines-bend);
+}
+
+.heraldry-ermines.bend-sinister {
+	fill: url(#ermines-sinister);
 }
 
 .heraldry-or {
@@ -38,3 +54,5 @@
 .heraldry-sable {
 	fill: black;
 }
+
+
