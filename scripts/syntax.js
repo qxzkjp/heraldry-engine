@@ -62,6 +62,14 @@ TreeNode.prototype.clone = function(newTreeNode)
     return ret;
 }
 
+TreeNode.prototype.getActiveNode = function () {
+    if (this.active < 0) {
+        return this;
+    } else {
+        return this.subnode[this.active].getActiveNode();
+    }
+}
+
 function cloneSubnode(arr){
 	var ret=[];
 	for (var node of arr){
