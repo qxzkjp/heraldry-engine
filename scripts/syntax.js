@@ -1472,7 +1472,8 @@ function parseStringAndDisplay(str)
 		console.error("Debug error: no tree to print (probably due to a catastrophic parsing error)");
 	}else{
 		document.getElementById("displayPara").innerHTML=root.display();
-	}
+    }
+    return root;
 }
 
 function displayTree(root){

@@ -19,13 +19,19 @@ var centre;
 var debugStarts=[];
 var debugPaths=[];
 var debugEnds=[];
+var pageDisabled = false;
+var debugEnabled = false;
 
 $(document).ready(function(){
 	var debugCookie = getCookie("debug");
 	if(debugCookie!=""){
 		enableDebugging();
-	}
-	//AJAX request to get the movable charges
+    }
+    //set up shield
+    path = document.getElementById("shield");
+    box = path.getBBox();
+    centre = new Point(box.x + (box.width / 2), box.y + (box.height / 2));
+	//AJAX request to get the movable charges and draw initial arms
 	var xhr = new XMLHttpRequest;
 	xhr.open('get','movables.svg',true);
 	xhr.onreadystatechange = function(){
@@ -38,19 +44,14 @@ $(document).ready(function(){
 		//once charges are set up, draw the initial arms
 		$('#blazonText')[0].value = "Azure, a bend Or";
 		setBlazon($('#blazonText')[0].value);
-		//and finally, now that everything is ready, enable the button
+		//and finally, now that everything is ready, enable input
 		$("#blazonButton").attr("disabled",false);
+        $("#blazonText").attr("disabled", false);
 	};
 	xhr.send();
-	//set up shield
-	path=document.getElementById("shield");
-	box=path.getBBox();
-	centre=new Point(box.x+(box.width/2), box.y+(box.height/2));
-	
-	$("#sideMenu").hide();
-	if(getSyntaxCookie()==""){
-		$("#syntax").hide();
-	}else{
+
+	if(getSyntaxCookie()!=""){
+        $("#syntax").show();
 		$("#toggleSyntax").addClass("showing");
 	}
 	$("#menuButton").on("click", function(){
@@ -76,8 +77,9 @@ $(document).ready(function(){
         }
     });
 	//hide menu when "focus" is lost
-	$("html").on("click", function(evt) {
-		if(!$.contains($("#menuContainer")[0],evt.target)){
+    $("html").on("click", function (evt) {
+        var isMenuClick = $.contains($("#menuContainer")[0], evt.target);
+       if (!isMenuClick && !pageDisabled){
 			animateSideMenu("hide");
 		}
     });
@@ -766,17 +768,35 @@ function setClip(elem, clipToId){
 }
 
 //c comes back containing [centre x, centre y, rect x, rect y, rect height, rect width]
-function createPale(elem, tinct, rw=0.34, c=[]){
+function createPale(elem, tinct, rw = 0.34, c = [], angle) {
+    //convert angle to radians
+    if (angle !== undefined) {
+        angle = angle * Math.PI / 180;
+    }
 	var box=elem.getBBox();
 	var h=box.height;
 	var w=box.width;
-	rw=w*rw;
-	var rh=1.2*Math.ceil(Math.sqrt(h*h+w*w));//diagonal length times a bit extra
+    rw = w * rw;
+    var rh=h;
+    if (angle !== undefined) {
+        //the rw/... term is to make sure the bottom edge crosses the boundary
+        rh = w / Math.sin(angle) + rw / (2 * Math.tan(angle));
+    }
 	var rx=box.x+(w-rw)/2;
-	var ry=box.y+(h-rh)/2;
-	var cx=box.x+w/2;
-	var cy=box.y+w/2;
-	c.push(cx);
+	var ry=box.y;
+    if (angle !== undefined) {
+        ry = box.y + w * (Math.cos(angle) - 1) / (2 * Math.sin(angle));
+    }
+    var cx = box.x + w / 2;
+    var cy = box.x + h / 2;
+    if (angle !== undefined) {
+        cy = box.y + (w / Math.tan(angle)) / 2;
+    }
+    //add a little bit of padding to make sure there's an intersection
+    var paddingScale = 0.01;
+    ry -= paddingScale * rh / 2;
+    rh *= 1 + paddingScale;
+    c.push(cx);
 	c.push(cy);
 	c.push(rx);
 	c.push(ry);
@@ -878,11 +898,11 @@ function addFess(id, tinct, rw=0.3){
 function addPale(id, tinct, rw=0.3){
 	var r=[];
 	var elem=document.getElementById(id);
-	var pale=createPale(elem, tinct, rw, r);
-	var pathData = elem.getPathData();
+    var pathData = elem.getPathData();
+    var pale = createPale(elem, tinct, rw, r);
+    //insert just after given element
+    $(pale).insertAfter(elem);
 	setClip(pale, id);
-	//insert just after given element
-	elem.parentNode.insertBefore(pale, elem.nextSibling);
 	var P=getPoints(...r.slice(2));
 	var sections=[];
 	pathLineIntersection(pathData, P[1], P[2], sections);
@@ -897,22 +917,28 @@ function addPale(id, tinct, rw=0.3){
 function addBend(id, tinct, rw=0.3){
 	var elem=document.getElementById(id);
 	var pathData = elem.getPathData();
-	var c=[];
-	var pale=createPale(elem, tinct, rw, c);
+    var c = [];
+    var bendAngle = 45;
+    var usedHeight = getBendHeightFraction(elem, bendAngle);
+    if (usedHeight <= 0.5) {
+        var box = elem.getBBox();
+        bendAngle = Math.atan(box.width / (0.75 * box.height) ) * 180 / Math.PI;
+    }
+	var pale=createPale(elem, tinct, rw, c, bendAngle);
 	//matrix for rotation by 45deg about centre
 	var m=SVG.createSVGMatrix()
 			.translate(c[0],c[1])
-			.rotate(-45)
+			.rotate(-bendAngle)
 			.translate(-c[0],-c[1]);
 	var g=document.createElementNS(SVG_URI, "g");
-	g.appendChild(pale);
-	setClip(g,id);
+    g.appendChild(pale);
+    //insert just after given element
+    $(g).insertAfter(elem);
+    setClip(g, id);
 	//turn pale into bend
 	pale=transformElement(pale,m);
 	$(pale).addClass("bend");
 	$(pale).attr("id", id+"-bend");
-	//insert just after given element
-	elem.parentNode.insertBefore(g, elem.nextSibling);
 	//turn rectangle x,y,h,w into four SVG points (clockwise from top left)
 	var P=getPoints(...c.slice(2));
 	//apply 45 deg rotation to get true points
@@ -933,7 +959,7 @@ function addSinister(id, tinct, rw=0.3){
 	var elem=document.getElementById(id);
 	var pathData = elem.getPathData();
 	var c=[];
-	var pale=createPale(elem, tinct, rw, c);
+	var pale=createPale(elem, tinct, rw, c, 45);
 	//matrix for rotation by 45deg about centre
 	var m=SVG.createSVGMatrix()
 			.translate(c[0],c[1])
@@ -1044,8 +1070,9 @@ tinctureClasses = [
 function applyTree(shieldId, tree){
 	if(tree===undefined){
 		console.error(
-		"Rendering error: no escutcheon to diaplay (probably due to a catastrophic parsing error)"
-		);
+		"Rendering error: no escutcheon to display (probably due to a catastrophic parsing error)"
+        );
+        return false;
 	}
 	//var shield=document.getElementById(shieldId);
 	var elem = document.getElementById(shieldId);
@@ -1466,14 +1493,17 @@ function clearShield(){
 	changeTincture(shield, "ermine");
 }
 
-function setBlazon(str){
+function setBlazon(str) {
+    if (!debugEnabled) {
+        $("#shieldCover").show();
+    }
 	blazon=str;
-	clearShield();
-	if(str!="" && str!=undefined){
-		parseStringAndDisplay(str)
-		applyTree("shield", parseString(str))
-	}
-	//$(SVG).find("*").addClass(styleClass);
+    clearShield();
+    var tree = parseStringAndDisplay(str);
+    applyTree("shield", tree);
+    if (!debugEnabled) {
+        $("#shieldCover").hide();
+    }
 }
 
 function nearlyEqual(a, b, eps=0.000001){
@@ -1971,14 +2001,35 @@ function setCookie(name, val){
 	document.cookie = name + "=" + val + ";max-age=31536000";
 }
 
-function enableDebugging(){
+function enableDebugging() {
+    debugEnabled = true;
 	updateDebugDisplay=updateDebugDisplayBackup;
 	clearDebugDisplay=clearDebugDisplayBackup;
 	setCookie("debug","true");
 }
 
-function disableDebugging(){
+function disableDebugging() {
+    debugEnabled = false;
 	updateDebugDisplay=function(){};
 	clearDebugDisplay=function(){};
 	setCookie("debug","");
+}
+
+function getBendHeightFraction(elem, angle) {
+    var box = elem.getBBox();
+    var w = box.width;
+    var h = box.height;
+    return w / (Math.tan(angle) * h);
+}
+
+function disablePage() {
+    $("body").append('<div id="disableBackground"></div>')
+    $("html").addClass("noOverflow");
+    pageDisabled = true;
+}
+
+function enablePage() {
+    $("#disableBackground").remove();
+    $("html").removeClass("noOverflow");
+    pageDisabled = false;
 }
