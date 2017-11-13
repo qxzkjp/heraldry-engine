@@ -54,9 +54,14 @@
 	fill: url(#sable-bw);
 }
 
-.heraldry-sable.heraldry-rotation1,
-.heraldry-sable.heraldry-rotation3,
-.heraldry-sable.heraldry-rotation5,
-.heraldry-sable.heraldry-rotation7 {
-	fill: url(#sable-bend);
+.heraldry-tenny {
+    fill: url(#tenny-bw);
+}
+
+.heraldry-brown {
+    fill: url(#brown-bw);
+}
+
+.heraldry-sanguine {
+    fill: url(#sanguine-bw);
 }
