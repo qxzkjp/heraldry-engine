@@ -2,21 +2,23 @@ Favourite problems:
 *implement counterchanging (syntax+rendering)
 *implement strewn charges (syntax+rendering)
 *implement arrangements (rendering)
+*implement charges on ordinaries (rendering)
 
 (PROBLEM BLAZONS)
 Azure, three fleurs-de-lys Or (on the oval shield)
 	top two carges are worryingly asymmetric
+per pale gules a bend or and azure a roundel argent
+	does not parse!!!
 
 (UI)
 *investigate button text sizing
 (RENDERING)
-*fix furs on bends (ermines
+*fix furs on bends (ermines)
 	do this by implementing strewn charges (semé of...)
 *change charge drawing code to do arrangements
 	in particular, draw charges either side of a bend slightly more consistently
 *implement charge groups
-*implement charges on ordinaries
-* implement geometric charges: lozenge, billet, roundel, annulet
+* implement geometric charges: annulet
 	implement cross couped; this requires implementing the syntax of the word "couped"
 (SYNTAX)
 *implement secondary charges
@@ -29,8 +31,6 @@ Azure, three fleurs-de-lys Or (on the oval shield)
 (RENDERING)
 *implement at least one beast (preferably lion)
 *Implement tinctures
-	tenny (-/)
-	brown (-\)
 	erminois
 	pean
 	vair

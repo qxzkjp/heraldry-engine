@@ -75,9 +75,16 @@ TreeNode.prototype.pop = function () {
 }
 
 TreeNode.prototype.replace = function (index, nodeIn) {
-    this.subnode[index].parent = null;
-    this.subnode[index] = nodeIn;
-    this.subnode[index].parent = this;
+    if (index instanceof TreeNode) {
+        var parent = index.parent;
+        parent.replace(parent.subnode.indexOf(index), nodeIn);
+    } else {
+        if (this.subnode[index] !== undefined) {
+            this.subnode[index].parent = null;
+        }
+        this.subnode[index] = nodeIn;
+        this.subnode[index].parent = this;
+    }
 }
 
 TreeNode.prototype.at = function(index)
@@ -312,7 +319,7 @@ divisions = ["per pale", "per fess", "per bend", "per bend sinister", "per chevr
 plurals = ["paly", "barry", "bendy", "bendy sinister", "chevronny", "gyronny", "quarterly", "chequy", "lozengy", "barry bendy", "paly bendy", "pily", "pily bendy", "pily bendy sinister"]
 
 //"unspecified" is not a real tincture (duh), but is used as a placeholder. It must be in position 0.
-tinctures = ["unspecified", "argent", "or", "gules", "azure", "vert", "purpure", "sable", "tenny", "sanguine", "vair", "countervair", "potent", "counterpotent", "ermine", "ermines", "erminois", "pean"];
+tinctures = ["unspecified", "argent", "or", "gules", "azure", "vert", "purpure", "sable", "tenny", "brown", "sanguine", "vair", "countervair", "potent", "counterpotent", "ermine", "ermines", "erminois", "pean", "counterchanged"];
 
 var TINCT_UNSPECIFIED = 0;
 
@@ -320,8 +327,11 @@ var TINCT_UNSPECIFIED = 0;
 immovables = ["chief", "pale", "fess", "bend", "bend sinister", "chevron", "saltire", "pall", "cross", "pile", "bordure", "orle", "tressure", "canton", "flanches", "gyron", "fret"];
 implurals = ["", "pallets", "bars", "bendlets", "bendlets sinister", "chevronels", "", "", "", "pile", "", "", "", "", "", "", ""];
 
-movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge", "key", "phrygian cap with bells on"];
-movplurals = ["mullets", "phrygian caps", "fleurs-de-lis", "pheons", "chevrons", "inescutcheons", "billets", "lozenges", "keys", "phrygian caps with bells on"];
+var CHARGE_BEND = 3;
+var CHARGE_SINISTER = 4;
+
+movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge", "key", "phrygian cap with bells on", "roundel"];
+movplurals = ["mullets", "phrygian caps", "fleurs-de-lis", "pheons", "chevrons", "inescutcheons", "billets", "lozenges", "keys", "phrygian caps with bells on", "roundels"];
 
 beasts = ["lion", "eagle", "bear", "dragon", "stag"];
 beastplurals = ["lions", "eagles", "bears", "dragons", "stags"];
@@ -1168,7 +1178,7 @@ function getField(str, tree, success)
         nxt = tinctureIndex(nxt);
         str.pop();
         if (tree !== undefined) {
-            tree.getActiveNode().replace(0, new Field(nxt));
+            tree.getActiveNode().push(new Field(nxt));
             tree.setUnspecifiedTinctures(nxt);
         } else {
             tree = new Field(nxt);
@@ -1316,7 +1326,8 @@ function getFieldOrDivision(str, tree, success, bare=false)
 }
 
 //type is optional and should not generally be used explicitly
-function getCharge(str, tree, success, type)
+//default orient/mirror are to be used where the assumption of 
+function getCharge(str, tree, success, type, defaultOrient=0, defaultMirror=false)
 {
     success[0] = true;
     var ret = tree.clone();
@@ -1324,8 +1335,8 @@ function getCharge(str, tree, success, type)
 	var number=0; //not possible, error if this does not change
 	var index;
 	var tincture=new Field(TINCT_UNSPECIFIED); //defaults to "specified later"
-	var orientation;
-	var mirrored=false;
+    var orientation = defaultOrient;
+	var mirrored=defaultMirror;
 	var direction=0;
 	var arrangement=0;
 	var pos=str.savePos(); //save our place in the token stream so we can exit without changing anything
@@ -1337,9 +1348,11 @@ function getCharge(str, tree, success, type)
             type = name[0];
             index = name[1];
             if (type === TYPE_BEAST) {
-                ret.getActiveNode().push(new Beast(name[1], TINCT_UNSPECIFIED, number, undefined, direction, 0));
+                //index, tincture, number = 1, orientation=0, direction=0, arrangement=0
+                ret.getActiveNode().push(new Beast(name[1], null, number, 0, direction, 0));//beasts not affected by default orientation
             } else {
-                ret.getActiveNode().push(new Charge(name[0], name[1], TINCT_UNSPECIFIED, number, undefined, false, 0));
+                //type, index, tincture, number = 1, orientation = 0, mirrored = false, arrangement = 0)
+                ret.getActiveNode().push(new Charge(name[0], name[1], null, number, orientation, mirrored, 0));
             }
             ret.setActiveNode(ret.getActiveNode().at(-1));
 			//then parse through modifiers in a loop
@@ -1420,6 +1433,10 @@ function getCharge(str, tree, success, type)
 				}
 				//if no token was recognised, end the charge
 				break;
+            }
+            //if we didn't pick up a tincture, push the undefined tincture
+            if (ret.getActiveNode().at(0) === undefined) {
+                ret.getActiveNode().push(tincture);
             }
 			//if we have a dual arrangement, replace the single charge with a charge group of two charges
             if (isDualArrangement(arrangement)) {
@@ -1542,12 +1559,26 @@ function getCharge(str, tree, success, type)
 		if( !succ[0] ){
             str.rewind();//un-pop the "on"
             success[0] = false;
-		}
+        }
+        ret.setActiveNode(ret.getActiveNode().at(-1))
+        var type = ret.getActiveNode().type;
+        var index = ret.getActiveNode().index;
+        var orient = 0;
+        var mirror = false;
+        //by default, charges on a bend are bendwise
+        if (type === TYPE_IMMOVABLE && index === CHARGE_BEND) {
+            orient = ORIENT_BEND;
+            mirror = BEND_MIRRORED;
+        }
+        if (type === TYPE_IMMOVABLE && index === CHARGE_SINISTER) {
+            orient = ORIENT_SINISTER;
+            mirror = SINISTER_MIRRORED;
+        }
 		//charge on the ordinary itself becomes a subnode of its tincture
         //so set the tincture of the appended charge as the active node
-        ret.setActiveNode(ret.getActiveNode().at(-1).at(0));
+        ret.setActiveNode(ret.getActiveNode().at(0));
         succ[0] = false;
-        var ret = getMovableOrBeast(str, ret, succ);
+        var ret = getMovableOrBeast(str, ret, succ, orient, mirror);
 		if(!succ[0]){
             console.error("Word " + str.pos.toString() + ": no movable charge where one was expected");
         }
@@ -1580,9 +1611,9 @@ function createCharge(type, index, tincture, number, orientation, mirrored, dire
 	return ret;
 }
 
-function getMovable(str, tree, success)
+function getMovable(str, tree, success, defaultOrient = 0, defaultMirror = false)
 {
-    return getCharge(str, tree, success, TYPE_MOVABLE);
+    return getCharge(str, tree, success, TYPE_MOVABLE, defaultOrient, defaultMirror);
 }
 
 function getBeast(str, tree, success)
@@ -1590,25 +1621,37 @@ function getBeast(str, tree, success)
     return getCharge(str, tree, success, TYPE_BEAST);
 }
 
-function getMovableOrBeast(str, tree, success)
+function getMovableOrBeast(str, tree, success, defaultOrient = 0, defaultMirror = false)
 {
     var succ = [false];
-    var ret = getMovable(str, tree, succ);
+    var ret = getMovable(str, tree, succ, defaultOrient, defaultMirror);
 	if(!succ[0]){
-        ret = getBeast(str, tree, succ)
+        ret = getBeast(str, tree, succ, defaultOrient, defaultMirror)
     }
     success[0] = succ[0];
 	return ret;
 }
 
-function getImmovable(str, tree, success)
+function getImmovable(str, tree, success, defaultOrient = 0, defaultMirror = false)
 {
-    return getCharge(str, tree, success, TYPE_IMMOVABLE);
+    return getCharge(str, tree, success, TYPE_IMMOVABLE, defaultOrient, defaultMirror);
 }
 
 function getEscutcheon(str, tree, success=[]) {
     var succ = [false];
-	var tmp=getFieldOrDivision(str, tree, succ);
+    var wasEmpty = (tree === undefined);
+    var tmp;
+    if (!wasEmpty) {
+        tmp = tree.clone();
+    }
+    tmp = getFieldOrDivision(str, tmp, succ);
+    if (tmp === undefined) {
+        return; //return an empty blazon (as was passed in)
+    }
+    var oldActive = tmp.saveActiveNode();
+    if (!wasEmpty) {
+        tmp.setActiveNode(tmp.getActiveNode().at(-1));//set new field/division as active
+    }
     if (!succ[0]) {
         console.error("Syntax error: no field (or division) where one was expected");
     } else {
@@ -1624,6 +1667,7 @@ function getEscutcheon(str, tree, success=[]) {
         }
         success[0] = true;
     }
+    tmp.restoreActiveNode(oldActive);
     if (success[0]) {
         return tmp;
     } else {

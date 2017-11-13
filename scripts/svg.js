@@ -1958,6 +1958,41 @@ function crossHatch(size, number=4, width=2, vertical=true, horizontal=true){
 }
 
 /*use
+elem.outerHTML.replace(/><\/line>/g,"/>").replace(/></g,">\n<")
+to get nicely formatted output*/
+function diagonalCrossHatch(size, number = 4, width = 2, sinister = true) {
+    if (number % 2 == 1) {
+        --number;
+    }
+    var spacing = size / number;
+    var x1 = 0;
+    var x2 = size;
+    var y1 = sinister ? size : 0;
+    var y2 = sinister ? 0 : size;
+    var g = document.createElementNS(SVG_URI, "g");
+    $(g).attr("stroke", "black")
+    $(g).attr("stroke-width", width)
+    $(g).attr("stroke-linecap", "square")
+    for (var i = 0; i <= number; ++i) {
+        var line = document.createElementNS(SVG_URI, "line")
+        var line2 = document.createElementNS(SVG_URI, "line")
+        $(line).attr("x1", x1 + i * spacing);
+        $(line).attr("x2", x2 + i * spacing);
+        $(line).attr("y1", y1);
+        $(line).attr("y2", y2);
+        $(g).append(line);
+        if (i != 0) {
+            $(line2).attr("x1", x1);
+            $(line2).attr("x2", x2);
+            $(line2).attr("y1", y1 + (sinister ? (- i * spacing) : (i * spacing)));
+            $(line2).attr("y2", y2 + (sinister ? (- i * spacing) : (i * spacing)));
+            $(g).append(line2);
+        }
+    }
+    return g;
+}
+
+/*use
 elem.outerHTML.replace(/><\/ellipse>/g,"/>").replace(/></g,">\n<")
 to get nicely formatted output*/
 function dotty(size, number, radius){
