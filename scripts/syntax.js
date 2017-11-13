@@ -5,10 +5,30 @@
 **display functions.                                  **
 ********************************************************/
 
-function TreeNode()
+function TreeNode(a)
 {
-    this.active = -1;
-	this.subnode= [];
+    if (a instanceof TreeNode) {
+        var hasActive = false;
+        var activePos = [];
+        if (a.active === a) {
+            this.active = this;
+        } else {
+            hasActive = true;
+            activePos = a.saveActiveNode();
+        }
+        this.subnode=[]
+        for (var node of a.subnode) {
+            this.append(node.clone());
+        }
+        if (hasActive) {
+            this.restoreActiveNode(activePos);
+        }
+        this.parent = null;
+    } else {
+        this.active = this;
+        this.subnode = [];
+        this.parent = null;
+    }
 }
 
 TreeNode.prototype.getName= function (){
@@ -36,52 +56,131 @@ TreeNode.prototype.display=function (depth=0)
 	return str;
 }
 
-TreeNode.prototype.append = function(newTreeNode)
+TreeNode.prototype.append = function(other)
 {
-    if (this.active == this.subnode.length - 1) {
-        ++this.active;
+    if (other.parent !== null) {
+        var index = other.parent.subnode.indexOf(other);
+        other.parent.subnode.splice(index, 1);
     }
-	this.subnode.push(newTreeNode);
+    other.parent = this;
+	this.subnode.push(other);
+}
+
+TreeNode.prototype.push = TreeNode.prototype.append;
+
+TreeNode.prototype.pop = function () {
+    var ret = this.subnode.pop();
+    ret.parent = null;
+    return ret;
+}
+
+TreeNode.prototype.replace = function (index, nodeIn) {
+    this.subnode[index].parent = null;
+    this.subnode[index] = nodeIn;
+    this.subnode[index].parent = this;
 }
 
 TreeNode.prototype.at = function(index)
 {
-	return this.subnode[index];
-}
-
-TreeNode.prototype.clone = function(newTreeNode)
-{
-	var ret;
-	if(newTreeNode instanceof TreeNode){
-		ret = newTreeNode;
-	}else{
-		ret = new TreeNode();
-	}
-    ret.subnode = cloneSubnode(this.subnode);
-    ret.active = this.active;
-    return ret;
-}
-
-TreeNode.prototype.getActiveNode = function () {
-    if (this.active < 0) {
-        return this;
+    if (index >= 0) {
+        return this.subnode[index];
     } else {
-        return this.subnode[this.active].getActiveNode();
+        return this.subnode[this.subnode.length + index];
     }
 }
 
-function cloneSubnode(arr){
-	var ret=[];
-	for (var node of arr){
-		ret.push(node.clone());
-	}
-	return ret;
+TreeNode.prototype.clone = function(other)
+{
+    if (other === undefined) {
+        return new this.constructor(this);
+    }
+    return other.cloneOnto(this);
+}
+
+TreeNode.prototype.cloneOnto = function(other) {
+    this.constructor.call(other, this);
+    Object.setPrototypeOf(other, this.constructor.prototype);
+}
+
+TreeNode.prototype.findNode = function (child) {
+    var ret = [];
+    var currentNode = child;
+    var nextNode;
+    while (true) {
+        if (currentNode == this) {
+            return ret;
+        }
+        nextNode = currentNode.parent;
+        if (nextNode === null) {
+            return false;
+        }
+        ret.push(nextNode.subnode.indexOf(currentNode));
+        currentNode = nextNode;
+    }
+}
+
+TreeNode.prototype.isParentOf = function (child) {
+    if (!(child instanceof TreeNode)) {
+        return false;
+    }
+    var currentNode = child;
+    while (true) {
+        if (currentNode.parent == this) {
+            return true;
+        }
+        if (currentNode.parent === null) {
+            return false;
+        }
+        currentNode = currentNode.parent;
+    }
+}
+
+TreeNode.prototype.saveActiveNode = function () {
+    return this.findNode(this.active);
+}
+
+TreeNode.prototype.restoreActiveNode = function (arr) {
+    var tmp = arr.slice(0);
+    var currentNode = this;
+    while (true) {
+        if (tmp.length === 0) {
+            this.active = currentNode;
+            return;
+        }
+        currentNode = currentNode.at(tmp.pop());
+    }
+}
+
+TreeNode.prototype.setActiveNode = function(child) {
+    if (child instanceof Array) {
+        this.restoreActiveNode(child);
+    } else if( this.isParentOf(child) || child === this) {
+        this.active = child;
+    }
+}
+
+TreeNode.prototype.getActiveNode = function () {
+    return this.active;
+}
+
+TreeNode.prototype.setUnspecifiedTinctures = function (index) {
+    if (this.tincture === TINCT_UNSPECIFIED) {
+        this.tincture = index;
+    }
+    for (node of this.subnode) {
+        node.setUnspecifiedTinctures(index);
+    }
 }
 
 function NamedTreeNode(name)
 {
-	TreeNode.call(this);
-	this.name=name;
+    if (name instanceof NamedTreeNode) {
+        TreeNode.call(this, name);
+        this.name = name.name;
+    } else {
+        TreeNode.call(this);
+        this.name = name;
+    }
 }
 
 //set up inheritance
@@ -214,6 +313,8 @@ plurals = ["paly", "barry", "bendy", "bendy sinister", "chevronny", "gyronny", "
 
 //"unspecified" is not a real tincture (duh), but is used as a placeholder. It must be in position 0.
 tinctures = ["unspecified", "argent", "or", "gules", "azure", "vert", "purpure", "sable", "tenny", "sanguine", "vair", "countervair", "potent", "counterpotent", "ermine", "ermines", "erminois", "pean"];
+
+var TINCT_UNSPECIFIED = 0;
 
 //chevron is immovable, while "chevrons" is moveable: strange hack, but it might work
 immovables = ["chief", "pale", "fess", "bend", "bend sinister", "chevron", "saltire", "pall", "cross", "pile", "bordure", "orle", "tressure", "canton", "flanches", "gyron", "fret"];
@@ -402,9 +503,15 @@ attitudesMap=mapProduct(attMap, facMap, facings.length);
 
 function Division(type,number=2)
 {
-	TreeNode.call(this);
-	this.type=type;
-	this.number=number;
+    if (type instanceof Division) {
+        TreeNode.call(this, type);
+        this.type = type.type;
+        this.number = type.number;
+    } else {
+        TreeNode.call(this);
+        this.type = type;
+        this.number = number;
+    }
 }
 
 //set up inheritance
@@ -430,16 +537,15 @@ Division.prototype.getName= function (){
 	return out;
 }
 
-Division.prototype.clone = function(){
-	var ret = new Division(this.type, this.number);
-	TreeNode.prototype.clone.call(this, ret);
-	//ret.subnode = cloneSubnode(this.subnode);
-}
-
 function Field(tincture)
 {
-	TreeNode.call(this);
-	this.tincture=tincture;
+    if (tincture instanceof Field) {
+        TreeNode.call(this, tincture);
+        this.tincture = tincture.tincture;
+    } else {
+        TreeNode.call(this);
+        this.tincture = tincture;
+    }
 }
 
 //set up inheritance
@@ -450,24 +556,25 @@ Field.prototype.getName= function (){
 	return tinctureName(this.tincture);
 }
 
-Field.prototype.clone = function(){
-	var ret = new Field(this.tincture);
-	TreeNode.prototype.clone.call(this, ret);
-	return ret;
-}
-
 function Charge(type, index, tincture, number = 1, orientation=0, mirrored=false, arrangement=0)
 {
-	TreeNode.call(this);
-	this.setatt(type, index, number, orientation, mirrored, arrangement);
-	//if we have a charge group, there is no tincture
-	if( type!==TYPE_GROUP ){
-		if(tincture===undefined){
-			this.append( new Field(0) )
-		}else if(tincture!==null){
-			this.append( tincture );
-		}
-	}
+    if (type instanceof Charge) {
+        TreeNode.call(this, type);//this clones all the subnodes as well
+        this.setatt(type.type, type.index, type.number, type.orientation, type.mirrored, type.arrangement);
+    } else {
+        TreeNode.call(this);
+        this.setatt(type, index, number, orientation, mirrored, arrangement);
+        //if we have a charge group, there is no tincture
+        if (type !== TYPE_GROUP) {
+            if (tincture === undefined) {
+                this.append(new Field(0))
+            } else if (typeof tincture === "number") {
+                this.append(new Field(tincture));
+            } else if (tincture !== null) {
+                this.append(tincture);
+            }
+        }
+    }
 	//tincture === null means "do not append tincture".
 	//Do not use this unless you are manually constructing a tincture immediately afterwards
 }
@@ -496,12 +603,6 @@ Charge.prototype.setatt = function(type, index, number, orientation, mirrored, a
 	if( arrangement!==undefined ){
 		this.arrangement = arrangement;
 	}
-}
-
-Charge.prototype.clone= function(){
-	var ret = new Charge(this.type, this.index, null, this.number, this.orientation, this.mirrored, this.arrangement);
-	TreeNode.prototype.clone.call(this, ret);
-	return ret;
 }
 
 Charge.prototype.getName= function (){
@@ -544,18 +645,16 @@ Charge.prototype.getName= function (){
 //"orientation" is attitude
 function ChargeGroup(arrangement=0)
 {
-	Charge.call(this, TYPE_GROUP, 0, null, 0, 0, false, arrangement);
+    if (arrangement instanceof ChargeGroup) {
+        Charge.call(this, arrangement);
+    } else {
+        Charge.call(this, TYPE_GROUP, 0, null, 0, 0, false, arrangement);
+    }
 }
 
 //set up inheritance
 ChargeGroup.prototype=Object.create(Charge.prototype);
 ChargeGroup.prototype.constructor=ChargeGroup;
-
-ChargeGroup.prototype.clone = function(){
-	var ret = new ChargeGroup(this.arrangement);
-	TreeNode.prototype.clone.call(this, ret);
-	return ret;
-}
 
 ChargeGroup.prototype.getName = function(){
 	var out="";
@@ -570,19 +669,18 @@ ChargeGroup.prototype.getName = function(){
 //"orientation" is attitude
 function Beast(index, tincture, number = 1, orientation=0, direction=0, arrangement=0)
 {
-	Charge.call(this, TYPE_BEAST, index, tincture, number, orientation, false, arrangement);
-	this.direction = direction;
+    if (index instanceof Beast) {
+        Charge.call(this, index);
+        this.direction = index.direction;
+    } else {
+        Charge.call(this, TYPE_BEAST, index, tincture, number, orientation, false, arrangement);
+        this.direction = direction;
+    }
 }
 
 //set up inheritance
 Beast.prototype=Object.create(Charge.prototype);
 Beast.prototype.constructor=Beast;
-
-Beast.prototype.clone = function(){
-	var ret = new Beast(this.index, null, this.number, this.orientation, this.direction, this.arrangement);
-	TreeNode.prototype.clone.call(this, ret);
-	return ret;
-}
 
 Beast.prototype.getName= function (){
 	var out="";
@@ -1061,86 +1159,107 @@ function tryArrangementName(str)
 }
 
 //either return a field, or leave the stream semantically unchanged
-function getField(str)
+function getField(str, tree, success)
 {
+    success[0] = false;
 	var nxt=str.peek();
 	//if the next word is a tincture, we have a field
-	if( isTincture(nxt) ){
-		str.pop();
-		return new Field( tinctureIndex(nxt) );
+    if (isTincture(nxt)) {
+        nxt = tinctureIndex(nxt);
+        str.pop();
+        if (tree !== undefined) {
+            tree.getActiveNode().replace(0, new Field(nxt));
+            tree.setUnspecifiedTinctures(nxt);
+        } else {
+            tree = new Field(nxt);
+        }
+        success[0] = true;
 	}else if(nxt===undefined){
 		console.error("Word "+str.pos.toString()+": unexpected end of blazon")
-	}
+    }
+    return tree;
 }
 
 //either return a division, or leave the stream semantically unchanged
-function getDivision(str)
+function getDivision(str, tree, success)
 {
+    success[0] = false;
 	if(str.peek()===undefined)
 	{
 		console.error("Word "+str.pos.toString()+": unexpected end of blazon")
-		return
+        return tree;
 	}
 	var number=0;
 	var type=TOK_WORD;
 	var pos=str.savePos();
-	if( isThisWord(str.peek(), "tierced") ){
-		str.pop();
-		var tmp=getDivision(str);
-		if(tmp !== undefined)
-		{
-			tmp.number=3;
-			return tmp;
-		}else{
-			console.error("Word "+str.pos.toString()+": no such division")
-			str.rewind(); //un-pop "tierced" if no division
-			return;
-		}
-	}
-	var name=tryDivisionName(str);
-	if( name!==undefined ){
-		type=name[1];
-		if( !name[2] )//if this is a single division
-		{
-			//number defaults to two, saltire as a special case handled later
-			number=2;
-			return new Division(type,number);
-		}else if( isThisWord(str.peek(), "of") ){ //if we have "of X"
-			str.pop();//take "of" off the stack
-			if( isNumber(str.peek()) )
-			{
-				number=str.pop().value; //we don't pop unless we see a number
-			}else{
-				console.error("Word "+str.pos.toString()+": not a number")
-				//we return a division anyway if there is no number, disregarding the "of"
-				//default number is 0, which means "an arbitrary amount"
-			}
-		}
-		return new Division(type,number);
-	}
+    if (isThisWord(str.peek(), "tierced")) {
+        str.pop();
+        var succ = [false];
+        tree = getDivision(str, tree, succ);
+        if (succ[0]) {
+            tree.getActiveNode.at(0).number = 3;
+            success[0] = true;
+        } else {
+            console.error("Word " + str.pos.toString() + ": no such division")
+            str.rewind(); //un-pop "tierced" if no division
+        }
+    } else {
+        var name = tryDivisionName(str);
+        if (name !== undefined) {
+            type = name[1];
+            if (!name[2])//if this is a single division
+            {
+                //number defaults to two, saltire as a special case to be handled later
+                number = 2;
+            } else if (isThisWord(str.peek(), "of")) { //if we have "of X"
+                str.pop();//take "of" off the stack
+                if (isNumber(str.peek())) {
+                    number = str.pop().value; //we don't pop unless we see a number
+                } else {
+                    console.error("Word " + str.pos.toString() + ": not a number")
+                    //we return a division anyway if there is no number, disregarding the "of"
+                    //default number is 0, which means "an arbitrary amount"
+                }
+            }
+            if (tree !== undefined) {
+                tree.getActiveNode().replace(0, new Division(type, number));
+            } else {
+                tree=new Division(type, number);
+            }
+            success[0] = true;
+        }
+    }
+    return tree;
 }
 
 //takes a token stream
-function getFieldOrDivision(str, bare=false)
+function getFieldOrDivision(str, tree, success, bare=false)
 {
+    success[0] = true;
 	var pos=str.savePos();
-	
-	var tmp=getField(str);
-	if(tmp!==undefined)
+    var ret;
+    var oldActive;
+    if (tree !== undefined) {
+        ret = tree.clone();
+    }
+    var succ = [false];
+    ret = getField(str, ret, succ);
+	if(succ[0])
 	{
-		return tmp;
-	}
-	tmp=getDivision(str)
-	if(tmp!==undefined)
-	{
-		var subf=getEscutcheon(str); //get first tincture/sub-blazon
-		if(subf!==undefined){
+		return ret;
+    }
+    ret = getDivision(str, ret, succ);
+	if(succ[0])
+    {
+        var oldActive = ret.saveActiveNode();
+        ret.setActiveNode(ret.getActiveNode().at(0)); //set gotten division as active
+		ret=getEscutcheon(str, ret, succ); //get first tincture/sub-blazon
+		if(succ[0]){
 			//if we're parsing a bare division and find a sub-escutcheon, abort
-			if(bare===true && subf.subnode.length!==0){
+			if(bare===true && ret.getActiveNode().at(0).subnode.length!==0){
 				str.loadPos(pos);
-				return;
+				return tree;
 			}
-			tmp.append(subf);
 			i=2;
 			while(i>0){ //if we have a tierced field, check for *two* more fields
 				//if we have a linking word or punctuation, look for a second/third tincture
@@ -1148,52 +1267,63 @@ function getFieldOrDivision(str, bare=false)
 					str.pop();
 					//if the previous sub-blazon was only a tincture, we only get a tincture. Otherwise an entire sub-blazon.
 					//note that if bare===true then the previous sub-blazon was a bare tincture or we'd have aborted
-					if(subf.subnode.length > 0){
-						subf=getEscutcheon(str);
+                    if (ret.getActiveNode().at(0).subnode.length > 0){
+                        ret = getEscutcheon(str, ret, succ);
 					}else{
-						subf=getField(str);
+                        ret = getField(str, ret, succ);
 					}
-					if(subf!==undefined){
+					if(succ[0]){
 						//if this is a tierced shield, the *middle* field comes first, then the dexter
-						if(tmp.number===3 && i===2){
-							tmp.append(tmp.subnode[0]);
-							tmp.subnode[0]=subf;
-						}else{
-							tmp.append(subf);
+                        if (ret.getActiveNode().number === 3 && i === 2){
+                            var tmp1 = ret.getActiveNode().pop();
+                            var tmp2 = ret.getActiveNode().pop();
+                            ret.getActiveNode().push(tmp1);
+                            ret.getActiveNode().push(tmp2);
 						}
 					}else{
 						//if we can't parse enough fields, reset the token stream and abort
 						str.loadPos(pos);
-						return;
+                        success = [false];
+                        break;
 					}
 				}else{
 					//if there is no linking word, reset the token stream and abort
 					str.loadPos(pos);
-					return;
+                    success = [false];
+                    break;
 				}
 				//don't check for a third field if not tierced
-				if(tmp.number===3){
+				if(ret.getActiveNode().number===3){
 					i-=1;
 				}else{
 					i=0;
 				}
-			}
+            }
+            ret.restoreActiveNode(oldActive);
 		}else{
 			//if there is no valid tincture, reset the token stream and abort
 			str.loadPos(pos);
-			return;
-		}
-		return tmp;
-	}
+            success = [false];
+        }
+    } else {
+        success[0] = false;
+    }
+    if (success[0]) {
+        return ret;
+    } else {
+        return tree;
+    }
 }
 
 //type is optional and should not generally be used explicitly
-function getCharge(str, type)
+function getCharge(str, tree, success, type)
 {
-	var ret;
+    success[0] = true;
+    var ret = tree.clone();
+    var oldActive = ret.saveActiveNode();
 	var number=0; //not possible, error if this does not change
 	var index;
-	var tincture=new Field(0); //defaults to "specified later"
+	var tincture=new Field(TINCT_UNSPECIFIED); //defaults to "specified later"
 	var orientation;
 	var mirrored=false;
 	var direction=0;
@@ -1202,18 +1332,25 @@ function getCharge(str, type)
 	if( isNumber(str.peek()) ){
 		number=str.pop().value;
 		var name = tryChargeName(str, type);//if type is undefined, we'll get any charge
-		if( name!==undefined ){
-			//if we found a charge, set type and index...
-			type=name[0];
-			index=name[1];
-			//...then parse through modifiers in a loop
+        if (name !== undefined) {
+			//if we found a charge, create empty node (with type and index) and set it as active
+            type = name[0];
+            index = name[1];
+            if (type === TYPE_BEAST) {
+                ret.getActiveNode().push(new Beast(name[1], TINCT_UNSPECIFIED, number, undefined, direction, 0));
+            } else {
+                ret.getActiveNode().push(new Charge(name[0], name[1], TINCT_UNSPECIFIED, number, undefined, false, 0));
+            }
+            ret.setActiveNode(ret.getActiveNode().at(-1));
+			//then parse through modifiers in a loop
 			while( isWord(str.peek()) ){
 				//check for a colouring
-				var tmp=getFieldOrDivision(str,true);
+                var succ = [false];
+                var ret = getFieldOrDivision(str, ret, succ, true);
 				//colouring is optional, but ends the charge if it exists
-				if( tmp!==undefined )
-				{
-					tincture=tmp;
+				if( succ[0] )
+                {
+                    tincture = ret.getActiveNode().at(0);
 					break;
 				}
 				
@@ -1223,13 +1360,16 @@ function getCharge(str, type)
 					if(type===TYPE_IMMOVABLE){
 						console.error("Semantic error: immovable charges cannot be arranged");
 					}else{
-						arrangement=tmp[1];
+                        arrangement = tmp[1];
+                        ret.getActiveNode().arrangement = arrangement;
 						//if a group is arranged bendwise or bendwise sinister, by default the charges should be oriented likewise
 						if(orientation === undefined){
 							if(arrangement === ARR_BEND){
-								orientation = ORIENT_BEND;
+                                orientation = ORIENT_BEND;
+                                ret.getActiveNode().orientation = orientation;
 							}else if(arrangement === ARR_SINISTER){
 								orientation = ORIENT_SINISTER;
+                                ret.getActiveNode().orientation = orientation;
 							}
 						}
 					}
@@ -1243,7 +1383,9 @@ function getCharge(str, type)
 						console.error("Semantic error: beasts and immovable charges cannot be oriented");
 					}else{
 						orientation=tmp[1];
-						mirrored=tmp[2];
+                        mirrored = tmp[2];
+                        ret.getActiveNode().orientation = orientation;
+                        ret.getActiveNode().mirrored = mirrored;
 					}
 					continue;
 				}
@@ -1254,7 +1396,8 @@ function getCharge(str, type)
 					if(type!==TYPE_BEAST){
 						console.error("Semantic error: only beasts can have attitude");
 					}else{
-						orientation=tmp[1];
+                        orientation = tmp[1];
+                        ret.getActiveNode().orientation = orientation;
 					}
 					continue;
 				}
@@ -1265,7 +1408,8 @@ function getCharge(str, type)
 					if(type!==TYPE_BEAST){
 						console.error("Semantic error: only beasts can have attitude");
 					}else{
-						direction=tmp[1];
+                        direction = tmp[1];
+                        ret.getActiveNode().direction = direction;
 					}
 					continue;
 				}
@@ -1276,21 +1420,21 @@ function getCharge(str, type)
 				}
 				//if no token was recognised, end the charge
 				break;
-			}
-			//if we have a dual arrangement, create a charge group with two charges
-			if( isDualArrangement(arrangement) ){
-				ret=new ChargeGroup();
+            }
+			//if we have a dual arrangement, replace the single charge with a charge group of two charges
+            if (isDualArrangement(arrangement)) {
+                var newChrg = new ChargeGroup();
+                ret.setActiveNode(ret.getActiveNode().parent);//set active node to parent of apended charge
 				var orientA, orientB, mirrorA, mirrorB, directA, directB;
 				if( arrangement===ARR_SALTIRE ){
 					orientA = ORIENT_BEND;
 					mirrorA = BEND_MIRRORED;
 					orientB = ORIENT_SINISTER;
 					mirrorB = SINISTER_MIRRORED;
-					ret.arrangement=ARR_COMBINED;
+					newChrg.arrangement=ARR_COMBINED;
 					if(type===TYPE_BEAST){
 						console.error("Semantic error: beasts cannot be in saltire");
-						str.loadPos(pos);
-						return;
+                        success[0] = false;
 					}
 				}else if( arrangement===ARR_ADDORSED ){
 					orientA = ORIENT_PALE;
@@ -1299,7 +1443,7 @@ function getCharge(str, type)
 					orientB = ORIENT_PALE_REV;
 					mirrorB = PALE_REV_MIRRORED;
 					directB = DIR_SINISTER;
-					ret.arrangement=ARR_FESS;
+					newChrg.arrangement=ARR_FESS;
 				}else if( arrangement===ARR_CONFRONTE ){
 					orientA = ORIENT_PALE_REV;
 					mirrorA = PALE_REV_MIRRORED;
@@ -1307,101 +1451,127 @@ function getCharge(str, type)
 					orientB = ORIENT_PALE;
 					mirrorB = PALE_MIRRORED;
 					directB = DIR_DEXTER;
-					ret.arrangement=ARR_FESS;
-				}
-				ret.append( createCharge(type, index, tincture, 1, orientA, mirrorA, direction, 0) );
-				ret.append( createCharge(type, index, tincture, 1, orientB, mirrorB, direction, 0) );
-			}else{
-				//all attributes read, create the actual charge
-				ret = createCharge(type, index, tincture, number, orientation, mirrored, direction, arrangement);
+					newChrg.arrangement=ARR_FESS;
+                }
+                if (success[0]) {
+                    newChrg.append(createCharge(type, index, tincture, 1, orientA, mirrorA, directA, 0));
+                    newChrg.append(createCharge(type, index, tincture, 1, orientB, mirrorB, directB, 0));
+                    ret.getActiveNode().pop();
+                    ret.getActiveNode().push(newChrg);
+                    ret.setActiveNode(ret.getActiveNode().at(-1)); //set appended charge group as active
+                }
 			}
 			//if we see a linking word
 			if( isLinking( str.peek() ) )
 			{
 				var linkpos=str.savePos();
-				var lwrd = str.pop();
-				var crg=getMovableOrBeast(str);
-				var scrg;
-				if( crg===undefined ){
+                var lwrd = str.pop();
+                var succ = [false];
+                ret = getMovableOrBeast(str, ret, succ);
+				if( !succ[0] ){
 					str.rewind();//un-pop the linking word
-				}else if( isThisWord(lwrd, "between") ){
+                } else if (isThisWord(lwrd, "between") /*&& type === TYPE_IMMOVABLE*/) {
+                    //this now only works for ordinaries!!
 					//check for a second charge for it to be between
+                    var andSuccess = false;
 					if( isThisWord(str.peek(), "and") ){
 						str.pop();
-						var scrg=getMovableOrBeast(str);
-						if( scrg===undefined )
+						ret=getMovableOrBeast(str, ret, succ);
+						if( !succ[0] )
 						{
-							str.pop();//un-pop the conjunction
-						}
-					}
-					
-					//if the ordinary is amidst one group of charges, split the group in half as  evenly as possible
-					if(scrg===undefined){
+                            str.rewind();//un-pop the conjunction
+                        } else {
+                            andSuccess = true;
+                        }
+                    }
+                    if( ! andSuccess ){
+                        //if the ordinary is amidst one group of charges, split the group in half as evenly as possible
 						//if we have a charge group, take the individual charges
+                        var crg = ret.getActiveNode().at(-1);
 						if(crg.type===TYPE_GROUP){
-							if(crg.subnode.length === 2){
-								scrg = crg.at(1);
-								crg=crg.at(0);
+                            if (crg.subnode.length === 2) {
+                                var grp = ret.getActiveNode().pop();
+                                ret.getActiveNode().push(grp.at(0));
+                                ret.getActiveNode().push(grp.at(1));
 							}else{
-								console.error("Parsing error: can only split group with two charges");
-								scrg=newChargeGroup();
+                                console.error("Parsing error: can only split group with two charges");
+                                ret.getActiveNode().push(new ChargeGroup());
 							}
 						}else{
-							var hlf=Math.floor(crg.number/2);
-							var gtr=crg.number-hlf;
-							scrg = crg.clone();
-							//place larger half above/dexter of the ordinary, lesser half below/sinister
-							crg.number = gtr;
-							scrg.number = hlf;
+                            var hlf = Math.floor(crg.number/2);
+                            var gtr = crg.number - hlf;
+                            if (hlf > 0) {
+                                var scrg = crg.clone();
+                                //place larger half above/dexter of the ordinary, lesser half below/sinister
+                                crg.number = gtr;
+                                scrg.number = hlf;
+                                ret.getActiveNode().push(scrg);
+                            } else {
+                                ret.getActiveNode().push(new ChargeGroup());
+                            }
 						}
-					}
-					//immovable charges can just have sub-charges on them, otherwise create a charge group
-					if(type===TYPE_IMMOVABLE){
-						ret.append( crg );
-						ret.append( scrg );
-					}else{
-						tmp=ret;
-						ret=new ChargeGroup(ARR_FESS);
-						ret.append( crg );
-						ret.append( tmp );
-						ret.append( scrg );
-					}
-				}else if( isThisWord(lwrd, "and") ){
-					str.loadPos(linkpos); //rewind to the word "and", deal with second charge later
+                    }
+                    //move secondary charges from children of primary to siblings within a charge group
+                    if (type !== TYPE_IMMOVABLE) {
+                        ret.setActiveNode(ret.getActiveNode().parent);
+                        var superCharge = ret.getActiveNode().pop();
+                        ret.getActiveNode().push(new ChargeGroup());
+                        ret.setActiveNode(ret.getActiveNode().at(-1));
+                        ret.getActiveNode().push(superCharge.at(1));
+                        ret.getActiveNode().push(superCharge);
+                        ret.getActiveNode().push(superCharge.at(1));
+                    }
+                } else if (isThisWord(lwrd, "and")) {
+                    //TODO: construct a charge group in this case, if primary charge is immovable
+                    str.loadPos(linkpos); //rewind to the word "and"
+                    ret.getActiveNode().pop(); //discard secondary charge
 				}else{
 					str.loadPos(linkpos); //rewind to linking word
-					console.error("Word "+str.pos.toString()+": preposition not implemented");
-				}
-				
-			}
-			return ret;
+                    console.error("Word " + str.pos.toString() + ": preposition not implemented");
+                    success[0] = false;
+				}	
+            }
 		}else{
-			str.rewind(); //un-pop the number
-			return;
+            str.rewind(); //un-pop the number
+            success[0] = false;
 		}
 	}else if( isThisWord(str.peek(), "on") ){
-		str.pop();
-		ret=getCharge(str);
-		if( ret===undefined ){
-			str.rewind();//un-pop the "on"
-			return;
+        str.pop();
+        var succ=[false];
+		ret=getCharge(str, ret, succ);
+		if( !succ[0] ){
+            str.rewind();//un-pop the "on"
+            success[0] = false;
 		}
 		//charge on the ordinary itself becomes a subnode of its tincture
-		var mov=getMovableOrBeast(str);
-		if(mov!==undefined){
-			ret.subnode[0].append(mov);
-			return ret;
-		}else{
-			console.error("Word "+str.pos.toString()+": no movable charge where one was expected");
-		}
+        //so set the tincture of the appended charge as the active node
+        ret.setActiveNode(ret.getActiveNode().at(-1).at(0));
+        succ[0] = false;
+        var ret = getMovableOrBeast(str, ret, succ);
+		if(!succ[0]){
+            console.error("Word " + str.pos.toString() + ": no movable charge where one was expected");
+        }
 	}else{
 		//console.error("Word "+str.pos.toString()+": no number where one was expected");
-		return;
-	}
+        success[0] = false;
+    }
+    
+    if (success[0]) {
+        ret.restoreActiveNode(oldActive);
+        return ret;
+    } else {
+        str.loadPos(pos);
+        return tree;
+    }
 }
 
 function createCharge(type, index, tincture, number, orientation, mirrored, direction, arrangement){
-	var ret;
+    var ret;
+    if (tincture instanceof Field) {
+        tincture = tincture.tincture;
+    } else {
+        tincture = tincture.clone();
+    }
 	if(type!==TYPE_BEAST){
 		ret = new Charge(type, index, tincture, number, orientation, mirrored, arrangement);
 	}else{
@@ -1410,49 +1580,55 @@ function createCharge(type, index, tincture, number, orientation, mirrored, dire
 	return ret;
 }
 
-function getMovable(str)
+function getMovable(str, tree, success)
 {
-	return getCharge(str, TYPE_MOVABLE);
+    return getCharge(str, tree, success, TYPE_MOVABLE);
 }
 
-function getBeast(str)
+function getBeast(str, tree, success)
 {
-	return getCharge(str, TYPE_BEAST);
+    return getCharge(str, tree, success, TYPE_BEAST);
 }
 
-function getMovableOrBeast(str)
+function getMovableOrBeast(str, tree, success)
 {
-	var ret = getMovable(str);
-	if(ret === undefined){
-		ret = getBeast(str)
-	}
+    var succ = [false];
+    var ret = getMovable(str, tree, succ);
+	if(!succ[0]){
+        ret = getBeast(str, tree, succ)
+    }
+    success[0] = succ[0];
 	return ret;
 }
 
-function getImmovable(str)
+function getImmovable(str, tree, success)
 {
-	return getCharge(str, TYPE_IMMOVABLE);
+    return getCharge(str, tree, success, TYPE_IMMOVABLE);
 }
 
-function getEscutcheon(str){
-	var tmp=getFieldOrDivision(str);
-	if(tmp===undefined){
-		console.error("Syntax error: no field (or division) where one was expected");
-		return undefined;
-	}
-	var flag=false;
-	//skip a comma if one is present after the field
-	if( isPunct(str.peek()) ){
-		str.pop();
-		flag=true;
-	}
-	var crg=getCharge(str);
-	if(crg!==undefined){
-		tmp.append(crg);
-	}else if(flag) {
-		str.rewind(); //un-pop the comma if there was no charge and one was popped
-	}
-	return tmp;
+function getEscutcheon(str, tree, success=[]) {
+    var succ = [false];
+	var tmp=getFieldOrDivision(str, tree, succ);
+    if (!succ[0]) {
+        console.error("Syntax error: no field (or division) where one was expected");
+    } else {
+        var flag = false;
+        //skip a comma if one is present after the field
+        if (isPunct(str.peek())) {
+            str.pop();
+            flag = true;
+        }
+        tmp = getCharge(str, tmp, succ);
+        if (flag && !succ[0]) {
+            str.rewind(); //un-pop the comma if there was no charge and one was popped
+        }
+        success[0] = true;
+    }
+    if (success[0]) {
+        return tmp;
+    } else {
+        return tree;
+    }
 }
 
 /*****************
