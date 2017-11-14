@@ -3,12 +3,14 @@ Favourite problems:
 *implement strewn charges (syntax+rendering)
 *implement arrangements (rendering)
 *implement charges on ordinaries (rendering)
+	done pale and bends, need to implement fess
+	single charges on bends should be in honour point
 
 (PROBLEM BLAZONS)
 Azure, three fleurs-de-lys Or (on the oval shield)
 	top two carges are worryingly asymmetric
-per pale gules a bend or and azure a roundel argent
-	does not parse!!!
+per pale gules a bend or and azure a billet argent
+	billet too close to border
 
 (UI)
 *investigate button text sizing

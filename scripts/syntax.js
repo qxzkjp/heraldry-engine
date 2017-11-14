@@ -1175,13 +1175,23 @@ function getField(str, tree, success)
 	var nxt=str.peek();
 	//if the next word is a tincture, we have a field
     if (isTincture(nxt)) {
-        nxt = tinctureIndex(nxt);
+        var tinct = tinctureIndex(nxt);
         str.pop();
-        if (tree !== undefined) {
-            tree.getActiveNode().push(new Field(nxt));
-            tree.setUnspecifiedTinctures(nxt);
+        var tIdx;
+        if (tinct != TINCT_UNSPECIFIED) {
+            tinctureStack.push(tinct);
+            tIdx = tinctureStack.length - 1;
         } else {
-            tree = new Field(nxt);
+            //if tincture is unspecified, we give the index to the *next* tincture to be parsed (one after the current end of the stack)
+            tIdx = tinctureStack.length;
+        }
+        if (tree !== undefined) {
+            tree.getActiveNode().push(new Field(tIdx));
+            //tree.getActiveNode().push(new Field(nxt));
+            //tree.setUnspecifiedTinctures(nxt);
+        } else {
+            tree = new Field(tIdx);
+            //tree = new Field(nxt);
         }
         success[0] = true;
 	}else if(nxt===undefined){
@@ -1201,13 +1211,14 @@ function getDivision(str, tree, success)
 	}
 	var number=0;
 	var type=TOK_WORD;
-	var pos=str.savePos();
+    var pos = str.savePos();
+    var oldStack = tinctureStack.slice(0);
     if (isThisWord(str.peek(), "tierced")) {
         str.pop();
         var succ = [false];
         tree = getDivision(str, tree, succ);
         if (succ[0]) {
-            tree.getActiveNode.at(0).number = 3;
+            tree.getActiveNode.at(-1).number = 3;
             success[0] = true;
         } else {
             console.error("Word " + str.pos.toString() + ": no such division")
@@ -1232,95 +1243,129 @@ function getDivision(str, tree, success)
                 }
             }
             if (tree !== undefined) {
-                tree.getActiveNode().replace(0, new Division(type, number));
+                tree.getActiveNode().push(new Division(type, number));
             } else {
                 tree=new Division(type, number);
             }
             success[0] = true;
         }
     }
+    if (!success[0]){
+        str.loadPos(pos);
+        tinctureStack = oldStack.slice(0);
+    }
     return tree;
+}
+
+function isBareFieldOrDivision(tree) {
+    if (tree instanceof Field) {
+        return tree.subnode.length === 0;
+    } else if (tree instanceof Division) {
+        flag = true;
+        for (field of tree.subnode) {
+            flag = flag && (field instanceof Field) && isBareFieldOrDivision(field);
+        }
+        return flag;
+    } else {
+        return false;
+    }
+}
+
+function isBareField(tree) {
+    if (tree instanceof Field) {
+        return tree.subnode.length === 0;
+    } else {
+        return false;
+    }
 }
 
 //takes a token stream
 function getFieldOrDivision(str, tree, success, bare=false)
 {
     success[0] = true;
+    var oldStack = tinctureStack.slice(0);
 	var pos=str.savePos();
     var ret;
     var oldActive;
+    var wasEmpty = true;
+    var isBare;
     if (tree !== undefined) {
         ret = tree.clone();
+        wasEmpty = false;
     }
     var succ = [false];
     ret = getField(str, ret, succ);
-	if(succ[0])
-	{
-		return ret;
-    }
-    ret = getDivision(str, ret, succ);
-	if(succ[0])
-    {
-        var oldActive = ret.saveActiveNode();
-        ret.setActiveNode(ret.getActiveNode().at(0)); //set gotten division as active
-		ret=getEscutcheon(str, ret, succ); //get first tincture/sub-blazon
-		if(succ[0]){
-			//if we're parsing a bare division and find a sub-escutcheon, abort
-			if(bare===true && ret.getActiveNode().at(0).subnode.length!==0){
-				str.loadPos(pos);
-				return tree;
-			}
-			i=2;
-			while(i>0){ //if we have a tierced field, check for *two* more fields
-				//if we have a linking word or punctuation, look for a second/third tincture
-				if( isLinking(str.peek()) || isPunct(str.peek()) ){
-					str.pop();
-					//if the previous sub-blazon was only a tincture, we only get a tincture. Otherwise an entire sub-blazon.
-					//note that if bare===true then the previous sub-blazon was a bare tincture or we'd have aborted
-                    if (ret.getActiveNode().at(0).subnode.length > 0){
-                        ret = getEscutcheon(str, ret, succ);
-					}else{
-                        ret = getField(str, ret, succ);
-					}
-					if(succ[0]){
-						//if this is a tierced shield, the *middle* field comes first, then the dexter
-                        if (ret.getActiveNode().number === 3 && i === 2){
-                            var tmp1 = ret.getActiveNode().pop();
-                            var tmp2 = ret.getActiveNode().pop();
-                            ret.getActiveNode().push(tmp1);
-                            ret.getActiveNode().push(tmp2);
-						}
-					}else{
-						//if we can't parse enough fields, reset the token stream and abort
-						str.loadPos(pos);
-                        success = [false];
-                        break;
-					}
-				}else{
-					//if there is no linking word, reset the token stream and abort
-					str.loadPos(pos);
-                    success = [false];
-                    break;
-				}
-				//don't check for a third field if not tierced
-				if(ret.getActiveNode().number===3){
-					i-=1;
-				}else{
-					i=0;
-				}
+    if (!succ[0]){ //if no field, try for a division
+        ret = getDivision(str, ret, succ);
+        if (succ[0]) {
+            var oldActive = ret.saveActiveNode();
+            ret.setActiveNode(ret.getActiveNode().at(-1)); //set gotten division as active
+            ret = getEscutcheon(str, ret, succ); //get first tincture/sub-blazon
+            isBare = isBareField(ret.getActiveNode().at(-1)); //did we fetch a bare field?
+            //skip a comma if one is present after the first tincture/sub-blazon
+            if (succ[0]) {
+                //if we're parsing a bare division and find a sub-escutcheon, abort
+                if (bare === true && !isBare) {
+                    ret.getActiveNode().pop();
+                    success[0] = false;
+                } else {
+                    var i;
+                    //if we have a tierced field, check for *two* more fields
+                    if (ret.getActiveNode().number === 3) {
+                        i = 2;
+                    } else {
+                        i = 1;
+                    }
+                    for (; i > 0; --i) {
+                        //if we have a linking word, look for a second/third tincture
+                        if (isLinking(str.peek()) || isPunct(str.peek())) {
+                            str.pop();
+                            // if we have a string like "first, and second", we pop both the punctuation and the "and"
+                            if (isLinking(str.peek())) {
+                                str.pop();
+                            }
+                            //if the previous sub-blazon was only a tincture, we only get a tincture. Otherwise an entire sub-blazon.
+                            //note that if bare===true then the previous sub-blazon was a bare tincture or we'd have aborted
+                            if (isBare) {
+                                ret = getField(str, ret, succ);
+                            } else {
+                                ret = getEscutcheon(str, ret, succ);
+                            }
+                            if (succ[0]) {
+                                //if this is a tierced shield, the *middle* field comes first, then the dexter
+                                if (ret.getActiveNode().number === 3 && i === 2) {
+                                    var tmp1 = ret.getActiveNode().pop();
+                                    var tmp2 = ret.getActiveNode().pop();
+                                    ret.getActiveNode().push(tmp1);
+                                    ret.getActiveNode().push(tmp2);
+                                }
+                            } else {
+                                //if we can't parse enough fields, reset the token stream and abort
+                                success = [false];
+                                break;
+                            }
+                        } else {
+                            //if there is no linking word, reset the token stream and abort
+                            success = [false];
+                            break;
+                        }
+                    }
+                    ret.restoreActiveNode(oldActive);
+                }
+            } else {
+                //if there is no valid tincture, reset the token stream and abort
+                str.loadPos(pos);
+                success = [false];
             }
-            ret.restoreActiveNode(oldActive);
-		}else{
-			//if there is no valid tincture, reset the token stream and abort
-			str.loadPos(pos);
-            success = [false];
+        } else { //if fetching both a field and a division have failed, then fail
+            success[0] = false;
         }
-    } else {
-        success[0] = false;
     }
     if (success[0]) {
         return ret;
     } else {
+        str.loadPos(pos);
+        tinctureStack = oldStack.slice(0);
         return tree;
     }
 }
@@ -1334,12 +1379,13 @@ function getCharge(str, tree, success, type, defaultOrient=0, defaultMirror=fals
     var oldActive = ret.saveActiveNode();
 	var number=0; //not possible, error if this does not change
 	var index;
-	var tincture=new Field(TINCT_UNSPECIFIED); //defaults to "specified later"
+	var tincture=new Field(tinctureStack.length); //defaults to "specified later" (one past the end of the current tincture stack)
     var orientation = defaultOrient;
 	var mirrored=defaultMirror;
 	var direction=0;
 	var arrangement=0;
-	var pos=str.savePos(); //save our place in the token stream so we can exit without changing anything
+    var pos = str.savePos(); //save our place in the token stream so we can exit without changing anything
+    var oldStack = tinctureStack.slice(0);
 	if( isNumber(str.peek()) ){
 		number=str.pop().value;
 		var name = tryChargeName(str, type);//if type is undefined, we'll get any charge
@@ -1586,12 +1632,13 @@ function getCharge(str, tree, success, type, defaultOrient=0, defaultMirror=fals
 		//console.error("Word "+str.pos.toString()+": no number where one was expected");
         success[0] = false;
     }
-    
+
     if (success[0]) {
         ret.restoreActiveNode(oldActive);
         return ret;
     } else {
         str.loadPos(pos);
+        tinctureStack = oldStack.slice(0);
         return tree;
     }
 }
@@ -1640,17 +1687,18 @@ function getImmovable(str, tree, success, defaultOrient = 0, defaultMirror = fal
 function getEscutcheon(str, tree, success=[]) {
     var succ = [false];
     var wasEmpty = (tree === undefined);
-    var tmp;
+    var ret;
+    var oldStack = tinctureStack.slice(0);
     if (!wasEmpty) {
-        tmp = tree.clone();
+        ret = tree.clone();
     }
-    tmp = getFieldOrDivision(str, tmp, succ);
-    if (tmp === undefined) {
+    ret = getFieldOrDivision(str, ret, succ);
+    if (ret === undefined) {
         return; //return an empty blazon (as was passed in)
     }
-    var oldActive = tmp.saveActiveNode();
+    var oldActive = ret.saveActiveNode();
     if (!wasEmpty) {
-        tmp.setActiveNode(tmp.getActiveNode().at(-1));//set new field/division as active
+        ret.setActiveNode(ret.getActiveNode().at(-1));//set new field/division as active
     }
     if (!succ[0]) {
         console.error("Syntax error: no field (or division) where one was expected");
@@ -1661,23 +1709,57 @@ function getEscutcheon(str, tree, success=[]) {
             str.pop();
             flag = true;
         }
-        tmp = getCharge(str, tmp, succ);
+        ret = getCharge(str, ret, succ);
         if (flag && !succ[0]) {
             str.rewind(); //un-pop the comma if there was no charge and one was popped
         }
         success[0] = true;
     }
-    tmp.restoreActiveNode(oldActive);
+
     if (success[0]) {
-        return tmp;
+        ret.restoreActiveNode(oldActive);
+        return ret;
     } else {
+        str.loadPos(pos);
+        tinctureStack = oldStack.slice(0);
         return tree;
     }
+}
+
+function tokStrFromStr(str) {
+    return new TokenStream(new Buffer(str));
+}
+
+//get AST from source string
+function parseString(str) {
+    tinctureStack = [];
+    var tokstr = tokStrFromStr(str);
+    var root = getEscutcheon(tokstr);
+    secondParse(root);
+    return root;
+}
+
+//performs second pass of syntax parsing
+function secondParse(tree) {
+    if (tree.tincture !== undefined) {
+        if (tree.tincture < tinctureStack.length) {
+            tree.tincture = tinctureStack[tree.tincture];
+        } else {
+            //this branch should only be reached if the last object in a blazon has an unspecified tincture
+            tree.tincture = TINCT_UNSPECIFIED;
+        }
+    }
+    for (node of tree.subnode) {
+        secondParse(node);
+    }
+    return tree;
 }
 
 /*****************
 **MISC FUNCTIONS**
 ******************/
+
+var tinctureStack = [];
 
 function titleCase(str){
 	return str.charAt(0).toUpperCase() + str.slice(1);
@@ -1687,21 +1769,9 @@ function titleCase(str){
 **DEBUG FUNCTIONS**
 *******************/
 
-function tokStrFromStr(str)
-{
-	return new TokenStream(new Buffer(str));
-}
-
-function parseString(str)
-{
-	var tokstr=tokStrFromStr(str);
-	return getEscutcheon(tokstr);
-}
-
 function parseStringAndDisplay(str)
 {
-	var tokstr=tokStrFromStr(str);
-	var root=getEscutcheon(tokstr);
+    var root = parseString(str);
 	if(root===undefined){
 		console.error("Debug error: no tree to print (probably due to a catastrophic parsing error)");
 	}else{

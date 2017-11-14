@@ -45,8 +45,8 @@ body, #menuContainer {
 }
 
 p, li, a {
-	line-height: 1.5;
-	letter-spacing: 1px;
+	line-height: 1.1;
+	/* letter-spacing: 1px; */
 }
 
 .console {
@@ -230,6 +230,33 @@ input, select, textarea, button{
 	font-family: serif;
 }
 
+.menu-list > * {
+    padding-left: 25px;
+    margin-left: 40px;
+    overflow:hidden;
+}
+
+.demoBlazon {
+    margin: 5px 5px 5px 0;
+    cursor: pointer;
+    transition: color 0.4s;
+    /* background-color: rgb(150,150,150); */
+    /* border-radius: 10px; */
+    /* padding: 5px; */
+}
+
+#exampleContainer > .demoBlazon + .demoBlazon::before {
+    display:block;
+    content:"";
+    border-top: 1px solid black;
+    margin: 5px 0;
+}
+
+.demoBlazon:hover {
+    color: rgb(132, 173, 216);
+    transition: color 0.4s;
+}
+
 svg, div {
 	margin: 0;
 	padding: 0;
@@ -275,11 +302,11 @@ svg, div {
 }*/
 
 .showing#toggleSyntax {
-	background-color: rgb(100,120,100);
+    background-color: rgb(123, 136, 150);
 }
 
 .showing#toggleSyntax:hover {
-	background-color: rgb(110,140,110);
+    background-color: rgb(133, 146, 170);
 }
 
 #topMenuSpacer {

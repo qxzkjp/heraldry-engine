@@ -21,44 +21,64 @@ var debugPaths=[];
 var debugEnds=[];
 var pageDisabled = false;
 var debugEnabled = false;
+var inputEnabled = false;
 
-$(document).ready(function(){
-	var debugCookie = getCookie("debug");
-	if(debugCookie!=""){
-		enableDebugging();
+$(document).ready(function () {
+    var debugCookie = getCookie("debug");
+    if (debugCookie != "") {
+        enableDebugging();
+        $("#shieldCover").hide();
     }
     //set up shield
     path = document.getElementById("shield");
     box = path.getBBox();
     centre = new Point(box.x + (box.width / 2), box.y + (box.height / 2));
-	//AJAX request to get the movable charges and draw initial arms
-	var xhr = new XMLHttpRequest;
-	xhr.open('get','movables.svg',true);
-	xhr.onreadystatechange = function(){
-		if (xhr.readyState != 4) return;//4 means completed
-		//load SVG document from request
-		SVG_MOVABLES = xhr.responseXML.documentElement;
-		SVG_MOVABLES = document.importNode(SVG_MOVABLES,true);
-		SVG=document.getElementById("escutcheonContainer");
-		jqSVG=$("#escutcheonContainer");
-		//once charges are set up, draw the initial arms
-		$('#blazonText')[0].value = "Azure, a bend Or";
-		setBlazon($('#blazonText')[0].value);
-		//and finally, now that everything is ready, enable input
-		$("#blazonButton").attr("disabled",false);
-        $("#blazonText").attr("disabled", false);
-	};
-	xhr.send();
+    //AJAX request to get the movable charges and draw initial arms
+    var xhr = new XMLHttpRequest;
+    xhr.open('get', 'movables.svg', true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState != 4) return;//4 means completed
+        //load SVG document from request
+        SVG_MOVABLES = xhr.responseXML.documentElement;
+        SVG_MOVABLES = document.importNode(SVG_MOVABLES, true);
+        SVG = document.getElementById("escutcheonContainer");
+        jqSVG = $("#escutcheonContainer");
+        //once charges are set up, draw the initial arms
+        $('#blazonText')[0].value = "Azure, a bend Or";
+        setBlazon($('#blazonText')[0].value);
+        //and finally, now that everything is ready, enable input
+        enableInput();
+    };
+    xhr.send();
 
-	if(getSyntaxCookie()!=""){
+    if (getSyntaxCookie() != "") {
         $("#syntax").show();
-		$("#toggleSyntax").addClass("showing");
-	}
+        $("#toggleSyntax").addClass("showing");
+    }
+    $("#menuContainer").on("click", ".menu-item", function (evt) {
+        if (evt.target.id === "toggleSyntax") {
+            $("#syntax").slideToggle();
+            if (getSyntaxCookie() == "") {
+                setSyntaxCookie("show");
+                $("#toggleSyntax").addClass("showing");
+                return false;
+            } else {
+                setSyntaxCookie("");
+                $("#toggleSyntax").removeClass("showing");
+                return false;
+            }
+        } else if (evt.target.id === "exampleBlazons") {
+            $("#exampleContainer").slideToggle();
+        }
+    });
+    $("#menuContainer").on("click", ".demoBlazon", function (evt) {
+        newUserBlazon(evt.target.innerHTML);
+    });
 	$("#menuButton").on("click", function(){
 		animateSideMenu();
-		/*$("#sideMenu").fadeToggle();*/
+		//$("#sideMenu").fadeToggle();
 	});
-	$("#toggleSyntax").on("click", function(evt){
+	/*$("#toggleSyntax").on("click", function(evt){
 		$("#syntax").slideToggle();
 		if(getSyntaxCookie()==""){
 			setSyntaxCookie("show");
@@ -67,7 +87,7 @@ $(document).ready(function(){
 			setSyntaxCookie("");
 			$("#toggleSyntax").removeClass("showing");
 		}
-	});
+	});*/
 	//draw blazon when enter is pressed
 	$("#blazonText").keypress(function (e) {
         if(e.which == 13) {
@@ -807,7 +827,8 @@ function createPale(elem, tinct, rw = 0.34, c = [], angle) {
 	pale.setAttribute("y", ry);
 	pale.setAttribute("width", rw);
 	pale.setAttribute("height", rh);
-	pale.setAttribute("class", "heraldry-"+tinctures[tinct]);
+    //pale.setAttribute("class", "heraldry-" + tinctures[tinct]);
+    changeTincture(pale, tinctures[tinct]);
 	pale.setAttribute("id", elem.id+"-pale");
 	return pale;
 }
@@ -831,7 +852,8 @@ function createFess(elem, tinct, rh=0.34, c=[]){
 	fess.setAttribute("y", ry);
 	fess.setAttribute("width", rw);
 	fess.setAttribute("height", rh);
-	fess.setAttribute("class", "heraldry-"+tinctures[tinct]);
+    //fess.setAttribute("class", "heraldry-" + tinctures[tinct]);
+    changeTincture(fess, tinctures[tinct]);
 	fess.setAttribute("id", elem.id+"-fess");
 	return fess;
 }
@@ -852,7 +874,8 @@ function getPoints(c1, c2, c3, c4){
 	return [p1, p2, p3, p4];
 }
 
-function addFess(id, tinct, rw=0.3){
+function addFess(id, tree, rw = 0.3) {
+    var tinct = tree.at(0).tincture;
 	var r=[];
 	var elem=document.getElementById(id);
 	var pathData = elem.getPathData();
@@ -895,30 +918,62 @@ function addFess(id, tinct, rw=0.3){
 	return sections;
 }
 
-function addPale(id, tinct, rw=0.3){
+function addPale(id, tree, rw = 0.3) {
+    var tinct = tree.at(0).tincture;
 	var r=[];
 	var elem=document.getElementById(id);
     var pathData = elem.getPathData();
     var pale = createPale(elem, tinct, rw, r);
+    var g = document.createElementNS(SVG_URI, "g");
     //insert just after given element
-    $(pale).insertAfter(elem);
-	setClip(pale, id);
+    $(g).insertAfter(elem);
+    $(g).append(pale);
 	var P=getPoints(...r.slice(2));
-	var sections=[];
-	pathLineIntersection(pathData, P[1], P[2], sections);
+    var sections = [];
+    var rightPoints = pathLineIntersection(pathData, P[1], P[2], sections);
 	sections.sort(comparePathDataX);
-	pathLineIntersection(sections[0], P[0], P[3], sections);
+    var leftPoints = pathLineIntersection(sections[0], P[0], P[3], sections);
+    leftPoints.sort(function (a, b) { if (a.y < b.y) { return -1; } else if (b.y < a.y) { return 1; } else { return 0; } });
+    rightPoints.sort(function (a, b) { if (a.y < b.y) { return -1; } else if (b.y < a.y) { return 1; } else { return 0; } });
 	// [2/3, sinister, dexter, pale]
 	sections=sections.slice(1);
-	sections.sort(comparePathDataX);
+    sections.sort(comparePathDataX);
+    var points = leftPoints.concat(rightPoints);
+    var MIN_Y = Math.max(points[0].y, points[2].y);
+    var MAX_Y = Math.min(points[1].y, points[3].y);
+    var tempElem = document.createElementNS(SVG_URI, "rect");
+    tempElem.setAttribute("x", P[0].x);
+    tempElem.setAttribute("y", MIN_Y);
+    tempElem.setAttribute("width", P[1].x - P[0].x);
+    tempElem.setAttribute("height", MAX_Y - MIN_Y);
+    $(g).append(tempElem);
+    if (tree.at(0).at(0) !== undefined) {
+        addCharge(tempElem,
+            id,
+            tree.at(0).at(0).index,
+            tree.at(0).at(0).number,
+            tree.at(0).at(0).at(0).tincture,
+            "in pale",
+            tree.at(0).at(0).mirrored,
+            tree.at(0).at(0).orientation);
+    }
+    $(tempElem).remove();
+    setClip(pale, id);
 	return sections;
 }
 
-function addBend(id, tinct, rw=0.3){
+function addBend(id, tree, rw, sinister = false) {
+    if (rw === undefined) {
+        rw = 0.3;
+    }
+    var tinct = tree.at(0).tincture;
 	var elem=document.getElementById(id);
 	var pathData = elem.getPathData();
     var c = [];
     var bendAngle = 45;
+    var bendSign = sinister ? 1 : -1;
+    var specialOrient = sinister ? 7 : 1;
+    var sortFunction = sinister ? comparePathDataSinister : comparePathDataBendwise;
     var usedHeight = getBendHeightFraction(elem, bendAngle);
     if (usedHeight <= 0.5) {
         var box = elem.getBBox();
@@ -926,87 +981,84 @@ function addBend(id, tinct, rw=0.3){
     }
 	var pale=createPale(elem, tinct, rw, c, bendAngle);
 	//matrix for rotation by 45deg about centre
-	var m=SVG.createSVGMatrix()
-			.translate(c[0],c[1])
-			.rotate(-bendAngle)
+    var m = SVG.createSVGMatrix()
+            .translate(c[0], c[1])
+            .rotate(bendAngle * bendSign)
 			.translate(-c[0],-c[1]);
 	var g=document.createElementNS(SVG_URI, "g");
     g.appendChild(pale);
     //insert just after given element
     $(g).insertAfter(elem);
-    setClip(g, id);
+    //turn rectangle x,y,h,w into four SVG points (clockwise from top left)
+    var P = getPoints(...c.slice(2));
+    //apply 45 deg rotation to get true points
+    for (var i = 0; i < P.length; ++i) {
+        P[i] = P[i].matrixTransform(m);
+    }
+    var sections = [];
+    var bottomLineIntersection = pathLineIntersection(pathData, P[sinister ? 0 : 1], P[sinister ? 3 : 2], sections);
+    updateDebugDisplay(sections[0], 0);
+    updateDebugDisplay(sections[1], 1);
+    clearDebugDisplay();
+    sections.sort(sortFunction);
+    updateDebugDisplay(sections[0], 0);
+    updateDebugDisplay(sections[1], 1);
+    clearDebugDisplay();
+    //sections=[sinister-chief,2/3]
+    var topLineIntersection = pathLineIntersection(sections[1], P[sinister ? 1 : 0], P[sinister ? 2 : 3], sections);
+    updateDebugDisplay(sections[0], 0);
+    updateDebugDisplay(sections[1], 1);
+    updateDebugDisplay(sections[2], 2);
+    updateDebugDisplay(sections[1], 3);
+    clearDebugDisplay();
+    sections.splice(1, 1);
+    sections.sort(sortFunction);
+    updateDebugDisplay(sections[0], 0);
+    updateDebugDisplay(sections[1], 1);
+    updateDebugDisplay(sections[2], 2);
+    clearDebugDisplay();
+    var intersections = bottomLineIntersection.concat(topLineIntersection);
+    for (var i = 0; i < intersections.length; ++i) {
+        intersections[i] = applyMatrix(m.inverse() ,intersections[i]);
+    }
+    var yMax = Math.max(intersections[0].y, intersections[1].y);
+    var yMin = Math.min(intersections[2].y, intersections[3].y);
+    var xMax = Math.max(intersections[0].x, intersections[3].x);
+    var xMin = Math.min(intersections[1].x, intersections[2].x);
+    var boundary = document.createElementNS(SVG_URI, "rect");
+    $(boundary).attr("x", xMin);
+    $(boundary).attr("y", yMin);
+    $(boundary).attr("width", xMax - xMin);
+    $(boundary).attr("height", yMax - yMin);
+    $(g).append(boundary);
+    //insert bend-charges here
+    if (tree.at(0).at(0) !== undefined) {
+        var m2 = SVG.createSVGMatrix();
+        var orientation = tree.at(0).at(0).orientation;
+        if ((orientation - specialOrient)%3===0) {
+            orientation = orientation - specialOrient;
+        } else {
+            m2=m2.rotate(-bendAngle * bendSign);
+        }
+        addCharge(boundary,
+            id,
+            tree.at(0).at(0).index,
+            tree.at(0).at(0).number,
+            tree.at(0).at(0).at(0).tincture,
+            "in pale",
+            tree.at(0).at(0).mirrored,
+            orientation,
+            0,
+            m2);
+    }
+    $(boundary).remove();
+    $(pale).addClass("bend");
+    $(pale).attr("id", id + "-bend");
 	//turn pale into bend
-	pale=transformElement(pale,m);
-	$(pale).addClass("bend");
-	$(pale).attr("id", id+"-bend");
-	//turn rectangle x,y,h,w into four SVG points (clockwise from top left)
-	var P=getPoints(...c.slice(2));
-	//apply 45 deg rotation to get true points
-	for( var i=0; i<P.length; ++i ){
-		P[i]=P[i].matrixTransform(m);
-	}
-	var sections=[];
-	pathLineIntersection(pathData, P[1], P[2], sections);
-	sections.sort(comparePathDataBendwise);
-	//sections=[sinister-chief,2/3]
-	pathLineIntersection(sections[1], P[0], P[3], sections);
-	sections.splice(1,1);
-	sections.sort(comparePathDataBendwise);
-	return sections;
-}
-
-function addSinister(id, tinct, rw=0.3){
-	var elem=document.getElementById(id);
-	var pathData = elem.getPathData();
-	var c=[];
-	var pale=createPale(elem, tinct, rw, c, 45);
-	//matrix for rotation by 45deg about centre
-	var m=SVG.createSVGMatrix()
-			.translate(c[0],c[1])
-			.rotate(45)
-			.translate(-c[0],-c[1]);
-	var g=document.createElementNS(SVG_URI, "g");
-	g.appendChild(pale);
-	setClip(g,id);
-	//apply matrix transform to pale
-	pale=transformElement(pale, m);
-	$(pale).addClass("bend-sinister");
-	$(pale).attr("id", id+"-bend_sinister");
-	//insert just after given element
-	elem.parentNode.insertBefore(g, elem.nextSibling);
-	//var m=pale.getCTM();
-	//turn rectangle x,y,h,w into four SVG points (clockwise from top left)
-	var P=getPoints(...c.slice(2));
-	//apply 45 deg rotation to get true points
-	for( var i=0; i<P.length; ++i ){
-		P[i]=P[i].matrixTransform(m);
-	}
-	var sections=[];
-	pathLineIntersection(pathData, P[0], P[3], sections);
-	updateDebugDisplay(sections[0],0);
-	updateDebugDisplay(sections[1],1);
-	clearDebugDisplay();
-	sections.sort(comparePathDataSinister);
-	updateDebugDisplay(sections[0],0);
-	updateDebugDisplay(sections[1],1);
-	clearDebugDisplay();
-	pathLineIntersection(sections[1], P[1], P[2], sections);
-	// [sinister-chief, 2/3, bend, dexter-base]
-	updateDebugDisplay(sections[0],0);
-	updateDebugDisplay(sections[1],1);
-	updateDebugDisplay(sections[2],2);
-	updateDebugDisplay(sections[3],3);
-	clearDebugDisplay();
-	sections.splice(1,1);
-	updateDebugDisplay(sections[0],0);
-	updateDebugDisplay(sections[1],1);
-	updateDebugDisplay(sections[2],2);
-	clearDebugDisplay();
-	sections.sort(comparePathDataSinister);
-	updateDebugDisplay(sections[0],0);
-	updateDebugDisplay(sections[1],1);
-	updateDebugDisplay(sections[2],2);
-	clearDebugDisplay();
+    g = transformElement(g, m);
+    //clip bend to edge of shield
+    setClip(g, id);
+    clearDebugDisplay();
 	return sections;
 }
 
@@ -1130,9 +1182,9 @@ function applyTree(shieldId, tree){
 		//make overall shield invisible
 		elem.setAttribute("class", "heraldry-invisible");
 		//insert just before given element
-		elem.parentNode.insertBefore(firstHalf, elem);
+        $(firstHalf).insertBefore(elem);
 		//insert just before given element, which is then just *after* firstHalf
-		elem.parentNode.insertBefore(secondHalf, elem);
+        $(secondHalf).insertBefore(elem);
 		applyTree(shieldId+"-first", tree.at(0));
 		applyTree(shieldId+"-second", tree.at(1));
 	}
@@ -1140,20 +1192,20 @@ function applyTree(shieldId, tree){
 		var sections;
 		if(tree.at(fields).type===TYPE_IMMOVABLE){
 			if(tree.at(fields).index===1){//pale
-				sections = addPale(shieldId, tree.at(fields).at(0).tincture);
+				sections = addPale(shieldId, tree.at(fields));
 			}else if(tree.at(fields).index===2){//fess
-				sections = addFess(shieldId, tree.at(fields).at(0).tincture);
+				sections = addFess(shieldId, tree.at(fields));
 			}else if(tree.at(fields).index===3){//bend
-				sections = addBend(shieldId, tree.at(fields).at(0).tincture);
+				sections = addBend(shieldId, tree.at(fields));
 				upsideDownSecond=true;
 			}else if(tree.at(fields).index===4){//bend sinister
-				sections = addSinister(shieldId, tree.at(fields).at(0).tincture);
+				sections = addBend(shieldId, tree.at(fields), undefined, true);
 				upsideDownSecond=true;
 			}
 			if(tree.at(fields).subnode.length > 1){
 				if(tree.at(fields).at(1) instanceof Charge){
 					var secElem = document.createElementNS(SVG_URI, "path")
-					secElem.id=elem.id+"-dexter";
+					secElem.id=elem.id+"-beforePrimary";
 					secElem.setPathData(sections[0]);
 					elem.parentNode.insertBefore(secElem, elem.nextSibling);//insert just after field
 					addCharge(secElem,
@@ -1169,7 +1221,7 @@ function applyTree(shieldId, tree){
 				}
 				if(tree.at(fields).at(2) instanceof Charge){
 					var secElem = document.createElementNS(SVG_URI, "path")
-					secElem.id=elem.id+"-sinister";
+					secElem.id=elem.id+"-afterPrimary";
 					secElem.setPathData(sections[2]);
 					elem.parentNode.insertBefore(secElem, elem.nextSibling);//insert just after field
 					addCharge(secElem,
@@ -1190,7 +1242,7 @@ function applyTree(shieldId, tree){
 						tree.at(fields).index,
 						tree.at(fields).number,
 						tree.at(fields).at(0).tincture,
-						false,
+                        arrangements[tree.at(fields).arrangement],
 						tree.at(fields).mirrored,
 						tree.at(fields).orientation
 						);
@@ -1216,10 +1268,11 @@ function addCharge(
 	index,
 	number,
 	tinct,
-	upsideDown=false,
+	arrangement=false,
 	mirror=false,
 	rotation=0,
-	sequence=0
+    sequence = 0,
+    extraTransform
 	){
 	var bBox = elem.getBBox();
 	var charge = SVG_MOVABLES.getElementById(movables[index]).cloneNode(true);
@@ -1227,23 +1280,54 @@ function addCharge(
 	$(SVG).append(charge);
 	var cBox = charge.getBBox();
 	$(charge).remove();
-	var pathData = elem.getPathData();
+    var pathData = elem.getPathData({ normalize: true });
 	var cx = bBox.x + bBox.width/2;
 	var cy = bBox.y + bBox.height/2;
 	var ccx = cBox.x + cBox.width/2;
 	var ccy = cBox.y + cBox.height/2;
 	var aspectRatio = cBox.width / cBox.height;
 	var chHeight = 2 * bBox.height / 3;
-	var step = chHeight/50;
+    var step = chHeight / 50;
+    var MAX_HEIGHT = Math.max(SVG_HEIGHT, bBox.y + bBox.height * 1.01);
+    var MIN_HEIGHT = Math.min(0, bBox.y - bBox.height * 0.01);
+    var MAX_WIDTH = Math.max(SVG_WIDTH, bBox.x + bBox.width * 1.01);
+    var MIN_WIDTH = Math.min(0, bBox.x - bBox.width * 0.01);
+    if (arrangement == "in pale") {
+        var heightSegment = bBox.height / number;
+        var segments = [];
+        var remainingPath = pathData;
+        for (var i= 1; i <= number; ++i){
+            if (i != number ) {
+                var temp = [];
+                pathLineIntersection(remainingPath, new Point(MIN_WIDTH, bBox.y + i * heightSegment), new Point(MAX_WIDTH, bBox.y + i * heightSegment), temp);
+                temp.sort(comparePathDataY);
+                segments.push(temp[0]);
+                remainingPath = temp[1];
+            } else {
+                segments.push(remainingPath);
+            }
+            var tempElem = document.createElementNS(SVG_URI, "path");
+            $(tempElem).insertAfter(elem);
+            tempElem.setPathData(segments[i-1]);
+            tempElem.setAttribute("fill", "green");
+            addCharge(tempElem, clipId, index, 1, tinct, "", mirror, rotation, i, extraTransform);
+            $(tempElem).remove();   
+        }
+        return;
+    }
 	if(number === 1){
 		var newCharge=charge.cloneNode(true);
 		var nominalHeight = cBox.height;
-		if(rotation!=0){
-			var t = SVG.createSVGTransformFromMatrix(
-				SVG.createSVGMatrix()
-					.rotate(-45*rotation)
-					.translate(-ccx,-ccy)
-				);
+        if (rotation != 0 || extraTransform !== undefined) {
+            var m = SVG.createSVGMatrix();
+            if (extraTransform !== undefined) {
+                m = m.multiply(extraTransform);
+            }
+            if (rotation != 0) {
+                m = m.rotate(-45 * rotation);
+            }
+            m = m.translate(-ccx, -ccy);
+			var t = SVG.createSVGTransformFromMatrix(m);
 			var g=document.createElementNS(SVG_URI, "g");
 			$(g).append(charge);
 			$(SVG).append(g);
@@ -1256,11 +1340,11 @@ function addCharge(
 		var debugBox=document.createElementNS(SVG_URI, "rect");
 		$(debugBox).attr("class","heraldry-vert");
 		$(debugBox).css({"opacity":0.5});
-		$(SVG).append($(debugBox));
+        $(SVG).append($(debugBox));
 		while(true){
-			var topPoints = pathLineIntersection(pathData, new Point(0, cy + chHeight/2), new Point(SVG_WIDTH, cy + chHeight/2));
-			var midPoints = pathLineIntersection(pathData, new Point(0, cy), new Point(SVG_WIDTH, cy));
-			var bottomPoints = pathLineIntersection(pathData, new Point(0, cy - chHeight/2), new Point(SVG_WIDTH, cy - chHeight/2));
+			var topPoints = pathLineIntersection(pathData, new Point(MIN_WIDTH, cy + chHeight/2), new Point(MAX_WIDTH, cy + chHeight/2));
+			var midPoints = pathLineIntersection(pathData, new Point(MIN_WIDTH, cy), new Point(MAX_WIDTH, cy));
+			var bottomPoints = pathLineIntersection(pathData, new Point(MIN_WIDTH, cy - chHeight/2), new Point(MAX_WIDTH, cy - chHeight/2));
 			topPoints.sort(comparePointsX);
 			midPoints.sort(comparePointsX);
 			bottomPoints.sort(comparePointsX);
@@ -1277,7 +1361,7 @@ function addCharge(
 			var minWidth=Math.min(maxX-minX,maxWidth);
 			/**********/
 			var middleX = (maxX+minX)/2;
-			var Ypoints=pathLineIntersection(pathData, new Point(middleX, 0), new Point(middleX, SVG_HEIGHT));
+			var Ypoints=pathLineIntersection(pathData, new Point(middleX, MIN_HEIGHT), new Point(middleX, MAX_HEIGHT));
 			Ypoints.sort(comparePointsY);
 			var middleY = (Ypoints[0].y + Ypoints[Ypoints.length-1].y)/2;
 			/**********/
@@ -1295,7 +1379,10 @@ function addCharge(
 				//matrix for transform (shift to 0,0 scale then shift to new position)
 				var m=SVG.createSVGMatrix()
 						.translate(translateX,translateY)
-						.rotate(-45*rotation);
+                        .rotate(-45 * rotation);
+                if (extraTransform !== undefined) {
+                    m = m.multiply(extraTransform);
+                }
 				if(mirror){
 					m=m.flipX();
 				}
@@ -1307,7 +1394,7 @@ function addCharge(
 				for (var i = 0; i < children.length; i++) {
 					var childElem = children[i];
 					if(childElem.dataset.tinctured==="true"){
-						$(childElem).addClass("heraldry-"+tinctures[tinct]);
+                        changeTincture(childElem, tinctures[tinct]);
 					}else{
 						$(childElem).addClass("heraldry-charge");
 					}
@@ -1327,33 +1414,33 @@ function addCharge(
 		
 	}else if( number === 2){
 		var sections = [];
-		if(upsideDown){
-			pathLineIntersection(pathData, new Point(cx, 0), new Point(cx, SVG_HEIGHT), sections);
+		if(arrangement===true || arrangement === "in fess"){
+			pathLineIntersection(pathData, new Point(cx, MIN_HEIGHT), new Point(cx, MAX_HEIGHT), sections);
 		}else{
-			pathLineIntersection(pathData, new Point(0, cy), new Point(SVG_WIDTH, cy), sections);
+			pathLineIntersection(pathData, new Point(MIN_WIDTH, cy), new Point(MAX_WIDTH, cy), sections);
 		}
 		var el1 = document.createElementNS(SVG_URI, "path");
 		var el2 = document.createElementNS(SVG_URI, "path");
 		el1.setPathData(sections[0]);
 		el2.setPathData(sections[1]);
-		elem.parentNode.insertBefore(el2, elem.nextSibling);
-		elem.parentNode.insertBefore(el1, elem.nextSibling);
-		addCharge(el1, clipId, index, 1, tinct, false, mirror, rotation, sequence);
+        $(el1).insertAfter(elem);
+        $(el2).insertAfter(el1);
+        addCharge(el1, clipId, index, 1, tinct, false, mirror, rotation, sequence, extraTransform);
 		//var testFlag = testPathData($("#"+clipId+"-charge"+sequence.toString())[0]);
-		addCharge(el2, clipId, index, 1, tinct, false, mirror, rotation, sequence+1);
+        addCharge(el2, clipId, index, 1, tinct, false, mirror, rotation, sequence + 1, extraTransform);
 		el1.parentElement.removeChild(el1);
 		el2.parentElement.removeChild(el2);
 		
 	}else if( number === 3){
 		var numAbove=2;
 		var numBelow=1;
-		if(upsideDown){
+		if(arrangement===true || arrangement === "one and two"){
 			numAbove=1;
 			numBelow=2;
 		}
 		var sections = [];
 		var subsections =[];
-		pathLineIntersection(pathData, new Point(0, cy), new Point(SVG_WIDTH, cy), sections);
+		pathLineIntersection(pathData, new Point(MIN_WIDTH, cy), new Point(MAX_WIDTH, cy), sections);
 		sections.sort(comparePathDataY);
 		var el1 = document.createElementNS(SVG_URI, "path");
 		var el2 = document.createElementNS(SVG_URI, "path");
@@ -1361,8 +1448,8 @@ function addCharge(
 		el2.setPathData(sections[1]);
 		$(el2).insertAfter(elem);
 		$(el1).insertAfter(elem);
-		addCharge(el1, clipId, index, numAbove, tinct, true, mirror, rotation, sequence);
-		addCharge(el2, clipId, index, numBelow, tinct, true, mirror, rotation, sequence+numAbove);
+        addCharge(el1, clipId, index, numAbove, tinct, true, mirror, rotation, sequence, extraTransform);
+        addCharge(el2, clipId, index, numBelow, tinct, true, mirror, rotation, sequence + numAbove, extraTransform);
 		el1.parentElement.removeChild(el1);
 		el2.parentElement.removeChild(el2);
 	}else{
@@ -1743,12 +1830,14 @@ function pathLineIntersection(pathData, p0, p1, paths=[]){
 		var lastPath = paths[length-1].slice(0,-1);
 		updateDebugDisplay(lastPath);
 		var firstPath = paths[indexOffset];
-		updateDebugDisplay(firstPath);
-		//change the initial positioning command into a command to draw a line to that point
-		firstPath[0].type="L";
-		paths[indexOffset]=lastPath.concat(firstPath);
+        updateDebugDisplay(firstPath);
+        if (indexOffset != paths.length - 1) {
+            //change the initial positioning command into a command to draw a line to that point
+            firstPath[0].type = "L";
+            paths[indexOffset] = lastPath.concat(firstPath);
+            paths.pop();//drop last path, it is now part of the first
+        }
 		updateDebugDisplay(paths[indexOffset]);
-		paths.pop();//drop last path, it is now part of the first
 		//paths=paths.slice(1);//drop the original first path
 	}
 	clearDebugDisplay();
@@ -1824,7 +1913,8 @@ function getRowPositions(arr, spacing=0){
 function displayPath(pd, tincture="gules"){
 	var pathElem = document.createElementNS(SVG_URI, "path");
 	pathElem.setPathData(pd);
-	pathElem.setAttribute("class","heraldry-"+tincture);
+    //pathElem.setAttribute("class", "heraldry-" + tincture);
+    changeTincture(pathElem, tincture);
 	SVG.appendChild(pathElem);
 	return pathElem;
 }
@@ -2013,8 +2103,18 @@ function dotty(size, number, radius){
 	return g;
 }
 
-function drawUserBlazon(){
-	setBlazon(document.getElementById('blazonText').value);
+function drawUserBlazon() {
+    if (!inputEnabled) {
+        return false;
+    }
+    disableInput();
+    setBlazon(document.getElementById('blazonText').value);
+    enableInput();
+}
+
+function newUserBlazon(str) {
+    document.getElementById('blazonText').value = str;
+    drawUserBlazon();
 }
 
 function getSyntaxCookie(){
@@ -2067,4 +2167,23 @@ function enablePage() {
     $("#disableBackground").remove();
     $("html").removeClass("noOverflow");
     pageDisabled = false;
+}
+
+function applyMatrix(m, p){
+    var x = p.x * (m.a) + p.y * (m.c) + (m.e);
+    var y = p.x * (m.b) + p.y * (m.d) + (m.f);
+    return new Point(x, y);
+}
+
+function enableInput() {
+    $("#blazonButton").attr("disabled", false);
+    $("#blazonText").attr("disabled", false);
+    document.getElementById('blazonText').focus();
+    inputEnabled = true;
+}
+
+function disableInput() {
+    $("#blazonButton").attr("disabled", true);
+    $("#blazonText").attr("disabled", true);
+    inputEnabled = false;
 }
