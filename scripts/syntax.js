@@ -1289,16 +1289,17 @@ function getFieldOrDivision(str, tree, success, bare=false)
     var oldActive;
     var wasEmpty = true;
     var isBare;
+    var oldActive;
     if (tree !== undefined) {
         ret = tree;
         wasEmpty = false;
+        oldActive = ret.saveActiveNode();
     }
     var succ = [false];
     ret = getField(str, ret, succ);
     if (!succ[0]){ //if no field, try for a division
         ret = getDivision(str, ret, succ);
         if (succ[0]) {
-            var oldActive = ret.saveActiveNode();
             ret.setActiveNode(ret.getActiveNode().at(-1)); //set gotten division as active
             ret = getEscutcheon(str, ret, succ); //get first tincture/sub-blazon
             isBare = isBareField(ret.getActiveNode().at(-1)); //did we fetch a bare field?
@@ -1354,7 +1355,6 @@ function getFieldOrDivision(str, tree, success, bare=false)
                 //if there is no valid tincture, reset the token stream and abort
                 success[0] = false;
             }
-            ret.restoreActiveNode(oldActive);
             //pop empty division if we added it and then failed to parse its fields
             if (success[0] === false) {
                 active.pop();
@@ -1362,6 +1362,9 @@ function getFieldOrDivision(str, tree, success, bare=false)
         } else { //if fetching both a field and a division have failed, then fail
             success[0] = false;
         }
+    }
+    if (oldActive !== undefined) {
+        ret.restoreActiveNode(oldActive);
     }
     if (success[0]) {
         return ret;
@@ -1405,10 +1408,11 @@ function getCharge(str, tree, success, type, defaultOrient=0, defaultMirror=fals
             }
             ret.setActiveNode(ret.getActiveNode().at(-1));
 			//then parse through modifiers in a loop
-			while( isWord(str.peek()) ){
+			while( isWord(str.peek()) || isNumber(str.peek()) ){
 				//check for a colouring
                 var succ = [false];
                 var ret = getFieldOrDivision(str, ret, succ, true);
+                var tmp;
 				//colouring is optional, but ends the charge if it exists
 				if( succ[0] )
                 {
@@ -1720,14 +1724,13 @@ function getEscutcheon(str, tree, success=[]) {
         success[0] = true;
     }
 
+    ret.restoreActiveNode(oldActive);
     if (success[0]) {
-        ret.restoreActiveNode(oldActive);
-        return ret;
     } else {
         str.loadPos(pos);
         tinctureStack = oldStack.slice(0);
-        return tree;
     }
+    return ret;
 }
 
 function tokStrFromStr(str) {
