@@ -1306,7 +1306,6 @@ function getFieldOrDivision(str, tree, success, bare=false)
             if (succ[0]) {
                 //if we're parsing a bare division and find a sub-escutcheon, abort
                 if (bare === true && !isBare) {
-                    ret.getActiveNode().pop();
                     success[0] = false;
                 } else {
                     var i;
@@ -1341,21 +1340,24 @@ function getFieldOrDivision(str, tree, success, bare=false)
                                 }
                             } else {
                                 //if we can't parse enough fields, reset the token stream and abort
-                                success = [false];
+                                success[0] = false;
                                 break;
                             }
                         } else {
                             //if there is no linking word, reset the token stream and abort
-                            success = [false];
+                            success[0] = false;
                             break;
                         }
                     }
-                    ret.restoreActiveNode(oldActive);
                 }
             } else {
                 //if there is no valid tincture, reset the token stream and abort
-                str.loadPos(pos);
-                success = [false];
+                success[0] = false;
+            }
+            ret.restoreActiveNode(oldActive);
+            //pop empty division if we added it and then failed to parse its fields
+            if (success[0] === false) {
+                active.pop();
             }
         } else { //if fetching both a field and a division have failed, then fail
             success[0] = false;
@@ -1386,6 +1388,7 @@ function getCharge(str, tree, success, type, defaultOrient=0, defaultMirror=fals
 	var arrangement=0;
     var pos = str.savePos(); //save our place in the token stream so we can exit without changing anything
     var oldStack = tinctureStack.slice(0);
+    var chargeParent = tree.getActiveNode();
 	if( isNumber(str.peek()) ){
 		number=str.pop().value;
 		var name = tryChargeName(str, type);//if type is undefined, we'll get any charge
@@ -1594,6 +1597,10 @@ function getCharge(str, tree, success, type, defaultOrient=0, defaultMirror=fals
                     success[0] = false;
 				}	
             }
+            if (!success[0]) {
+                //if we pushed a charge but failed, pop it off again
+                chargeParent.pop();
+            }
 		}else{
             str.rewind(); //un-pop the number
             success[0] = false;
@@ -1632,15 +1639,12 @@ function getCharge(str, tree, success, type, defaultOrient=0, defaultMirror=fals
 		//console.error("Word "+str.pos.toString()+": no number where one was expected");
         success[0] = false;
     }
-
-    if (success[0]) {
-        ret.restoreActiveNode(oldActive);
-        return ret;
-    } else {
+    ret.restoreActiveNode(oldActive);
+    if (!success[0]){
         str.loadPos(pos);
         tinctureStack = oldStack.slice(0);
-        return tree;
     }
+    return ret;
 }
 
 function createCharge(type, index, tincture, number, orientation, mirrored, direction, arrangement){
