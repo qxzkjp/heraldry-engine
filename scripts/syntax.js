@@ -1290,7 +1290,7 @@ function getFieldOrDivision(str, tree, success, bare=false)
     var wasEmpty = true;
     var isBare;
     if (tree !== undefined) {
-        ret = tree.clone();
+        ret = tree;
         wasEmpty = false;
     }
     var succ = [false];
@@ -1375,7 +1375,7 @@ function getFieldOrDivision(str, tree, success, bare=false)
 function getCharge(str, tree, success, type, defaultOrient=0, defaultMirror=false)
 {
     success[0] = true;
-    var ret = tree.clone();
+    var ret = tree;
     var oldActive = ret.saveActiveNode();
 	var number=0; //not possible, error if this does not change
 	var index;
@@ -1690,7 +1690,7 @@ function getEscutcheon(str, tree, success=[]) {
     var ret;
     var oldStack = tinctureStack.slice(0);
     if (!wasEmpty) {
-        ret = tree.clone();
+        ret = tree;
     }
     ret = getFieldOrDivision(str, ret, succ);
     if (ret === undefined) {
