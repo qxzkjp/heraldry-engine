@@ -1,6 +1,6 @@
 @font-face {
-	font-family: "medieval";
-	src: url("../fonts/bloodandblade.ttf");
+    font-family: "medieval";
+    src: url("../fonts/bloodandblade.ttf");
 }
 
 @font-face {
@@ -18,8 +18,7 @@ html {
     margin: 0;
     color: #FFFFFF;
     /*  these two magic lines stop content moving around
-        when a scrollbar appears/disappears
-    */
+        when a scrollbar appears/disappears             */
     overflow-x: hidden;
     margin-right: calc(-1 * (100vw - 100%));
 }
@@ -31,14 +30,14 @@ body {
 }
 
 body, #menuContainer {
-	max-width: 600px;
+	max-width: 720px;
+	min-width: 300px;
 }
 
 #content {
     /*  these next two lines make content cover the whole
         height of the screen without causing an overflow
-        where it wasn't needed
-    */
+        where it wasn't needed                              */
     min-height: 100vh;
     box-sizing: border-box;
     padding: 15px 20px 5px 20px;
@@ -85,13 +84,48 @@ h2::first-letter {
 	font-size: 85px;
 }
 
+#mainHead {
+    display: flex;
+    align-items: flex-start;
+    margin: 0 0 10px 0;
+}
+
+#mainHead {
+    flex-direction: column;
+}
+
 #heraldryHead {
-    padding: 0px 0 0 0;
+    padding: 0;
 }
 
 #engineHead {
-	margin: 0 0 15px 0;
-	text-indent:1.75em;
+    margin: 0 0 0 0;
+    text-indent: 1.75em;
+}
+
+@media (min-width: 560px) {
+    #mainHead {
+        margin: 0 0 15px 0;
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: center;
+    }
+    #heraldryHead {
+        display: inline-block;
+        padding: 0;
+    }
+
+    #engineHead {
+        Font-size: 60px;
+        display: inline-block;
+        /*margin: 0 0 0 0.5em;*/
+        text-indent: 0;
+    }
+
+    #engineHead::first-letter {
+        /*font-family: inherit;*/
+        font-size: 100px;
+    }
 }
 
 #pleaseHeading,#waitHeading{
@@ -155,7 +189,7 @@ input, select, textarea, button{
 }
 
 #buttonContainer {
-	margin: 20px 0;
+	margin: 20px 0 0 0;
 }
 
 #blazonText {
@@ -183,10 +217,6 @@ input, select, textarea, button{
 	height: 0;
 	padding: 0;
 	margin: 0;
-}
-
-#mainHead {
-	max-height:150pt;
 }
 
 .heraldry-invisible {
