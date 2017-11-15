@@ -790,14 +790,16 @@ function addFess(id, tree, rw = 0.3) {
 	var r=[];
 	var elem=document.getElementById(id);
 	var pathData = elem.getPathData();
-	var fess=createFess(elem, tinct, rw, r);
-	setClip(fess, id);
-	//insert just after given element
-	$(fess).insertAfter(elem);
+    var fess = createFess(elem, tinct, rw, r);
+    var g = document.createElementNS(SVG_URI, "g");
+    //insert just after given element
+    $(g).insertAfter(elem);
+    $(g).append(fess);
+	setClip(g, id);
 	var P=getPoints(...r.slice(2));
 	var sections=[];
 	//[chief, 2/3]
-	pathLineIntersection(pathData, P[0], P[1], sections);
+	var topPoints = pathLineIntersection(pathData, P[0], P[1], sections);
 	var debug1=displayPath(sections[0]);
 	var debug2=displayPath(sections[1],"or");
 	$(debug1).remove();
@@ -808,7 +810,7 @@ function addFess(id, tree, rw = 0.3) {
 	$(debug1).remove();
 	$(debug2).remove();
 	var newsections=[];
-	pathLineIntersection(sections[1], P[3], P[2], newsections);
+	var bottomPoints = pathLineIntersection(sections[1], P[3], P[2], newsections);
 	debug1=displayPath(newsections[0]);
 	debug2=displayPath(newsections[1],"or");
 	$(debug1).remove();
@@ -825,7 +827,29 @@ function addFess(id, tree, rw = 0.3) {
 	var debug3=displayPath(sections[2],"vert");
 	$(debug1).remove();
 	$(debug2).remove();
-	$(debug3).remove();
+    $(debug3).remove();
+    topPoints.sort(function (a, b) { if (a.x < b.x) { return -1; } else if (b.x < a.x) { return 1; } else { return 0; } });
+    bottomPoints.sort(function (a, b) { if (a.x < b.x) { return -1; } else if (b.x < a.x) { return 1; } else { return 0; } });
+    var points = topPoints.concat(bottomPoints);
+    var MIN_X = Math.max(points[0].x, points[2].x);
+    var MAX_X = Math.min(points[1].x, points[3].x);
+    var tempElem = document.createElementNS(SVG_URI, "rect");
+    tempElem.setAttribute("y", P[0].y);
+    tempElem.setAttribute("x", MIN_X);
+    tempElem.setAttribute("height", $(fess).attr("height"));
+    tempElem.setAttribute("width", MAX_X - MIN_X);
+    $(g).append(tempElem);
+    if (tree.at(0).at(0) !== undefined) {
+        addCharge(tempElem,
+            id,
+            tree.at(0).at(0).index,
+            tree.at(0).at(0).number,
+            tree.at(0).at(0).at(0).tincture,
+            "in fess",
+            tree.at(0).at(0).mirrored,
+            tree.at(0).at(0).orientation);
+    }
+    $(tempElem).remove();
 	return sections;
 }
 
@@ -1223,6 +1247,28 @@ function addCharge(
             tempElem.setAttribute("fill", "green");
             addCharge(tempElem, clipId, index, 1, tinct, "", mirror, rotation, i, extraTransform);
             $(tempElem).remove();   
+        }
+        return;
+    } else if (arrangement == "in fess") {
+        var widthSegment = bBox.width / number;
+        var segments = [];
+        var remainingPath = pathData;
+        for (var i = 1; i <= number; ++i) {
+            if (i != number) {
+                var temp = [];
+                pathLineIntersection(remainingPath, new Point(bBox.x + i * widthSegment, MIN_HEIGHT), new Point(bBox.x + i * widthSegment, MAX_HEIGHT), temp);
+                temp.sort(comparePathDataX);
+                segments.push(temp[0]);
+                remainingPath = temp[1];
+            } else {
+                segments.push(remainingPath);
+            }
+            var tempElem = document.createElementNS(SVG_URI, "path");
+            $(tempElem).insertAfter(elem);
+            tempElem.setPathData(segments[i - 1]);
+            tempElem.setAttribute("fill", "green");
+            addCharge(tempElem, clipId, index, 1, tinct, "", mirror, rotation, i, extraTransform);
+            $(tempElem).remove();
         }
         return;
     }
