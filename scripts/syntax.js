@@ -330,8 +330,8 @@ implurals = ["", "pallets", "bars", "bendlets", "bendlets sinister", "chevronels
 var CHARGE_BEND = 3;
 var CHARGE_SINISTER = 4;
 
-movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge", "key", "phrygian cap with bells on", "roundel"];
-movplurals = ["mullets", "phrygian caps", "fleurs-de-lis", "pheons", "chevrons", "inescutcheons", "billets", "lozenges", "keys", "phrygian caps with bells on", "roundels"];
+movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge", "key", "phrygian cap with bells on", "roundel", "mullet of six points"];
+movplurals = ["mullets", "phrygian caps", "fleurs-de-lis", "pheons", "chevrons", "inescutcheons", "billets", "lozenges", "keys", "phrygian caps with bells on", "roundels", "mullets of six points"];
 
 beasts = ["lion", "eagle", "bear", "dragon", "stag"];
 beastplurals = ["lions", "eagles", "bears", "dragons", "stags"];

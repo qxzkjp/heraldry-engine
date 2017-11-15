@@ -72,22 +72,17 @@ $(document).ready(function () {
         }
     });
     $("#menuContainer").on("click", ".demoBlazon", function (evt) {
-        newUserBlazon(evt.target.innerHTML);
+        var newTextElem = $(this).find(".blazonText")[0];
+        if (newTextElem === undefined) {
+            newUserBlazon(evt.target.innerHTML);
+        } else {
+            newUserBlazon(newTextElem.innerHTML);
+        }
     });
 	$("#menuButton").on("click", function(){
 		animateSideMenu();
 		//$("#sideMenu").fadeToggle();
 	});
-	/*$("#toggleSyntax").on("click", function(evt){
-		$("#syntax").slideToggle();
-		if(getSyntaxCookie()==""){
-			setSyntaxCookie("show");
-			$("#toggleSyntax").addClass("showing");
-		}else{
-			setSyntaxCookie("");
-			$("#toggleSyntax").removeClass("showing");
-		}
-	});*/
 	//draw blazon when enter is pressed
 	$("#blazonText").keypress(function (e) {
         if(e.which == 13) {
