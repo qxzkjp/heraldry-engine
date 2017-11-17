@@ -1,9 +1,8 @@
 Favourite problems:
-*implement counterchanging (syntax+rendering)
 *implement strewn charges (syntax+rendering)
 *implement arrangements (rendering)
 *implement charges on ordinaries (rendering)
-	done pale and bends, need to implement fess
+	Done pale, fess and bends. Do more complex ordinaries as implemented.
 	single charges on bends should be in honour point
 
 (PROBLEM BLAZONS)
@@ -11,6 +10,8 @@ Azure, three fleurs-de-lys Or (on the oval shield)
 	top two carges are worryingly asymmetric
 per pale gules a bend or and azure a billet argent
 	billet too close to border
+Per pale Azure on a bend between two mullets Or three roundels Vert and Argent three phrygian caps Gules
+	Does not draw on oval shield in Firefox!
 
 (UI)
 *investigate button text sizing

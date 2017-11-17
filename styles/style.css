@@ -20,18 +20,18 @@ html {
     /*  these two magic lines stop content moving around
         when a scrollbar appears/disappears             */
     overflow-x: hidden;
-    margin-right: calc(-1 * (100vw - 100%));
+    width: 100vw;
 }
 
 body {
 	margin: 0 auto;
-	background-color: #0000FF;
+	/* background-color: #0000FF; */
 	position: relative;
 }
 
 body, #menuContainer {
-	max-width: 720px;
-	min-width: 300px;
+	/* max-width: 720px; */
+	/* min-width: 300px; */
 }
 
 #content {
@@ -39,8 +39,11 @@ body, #menuContainer {
         height of the screen without causing an overflow
         where it wasn't needed                              */
     min-height: 100vh;
+    max-width: 720px;
     box-sizing: border-box;
     padding: 15px 20px 5px 20px;
+    margin: 0 auto;
+    background-color: #0000FF;
 }
 
 p, li, a {
@@ -224,10 +227,20 @@ input, select, textarea, button{
 }
 
 #menuContainer {
-	position: fixed;
-	top: 0px;
-	width: 100%;
-	z-index: 1;
+    position: fixed;
+    top: 0px;
+    width: 100vw;
+    z-index: 1;
+}
+
+#innerMenuContainer {
+    position: relative;
+    margin: 0 auto;
+    top: 0px;
+    width: 100%;
+    z-index: 1;
+    max-width: 720px;
+    margin: 0 auto;
 }
 
 #menuButton {
@@ -398,9 +411,9 @@ svg, div {
     display:none;
 }
 
-.versionContainer {
+#versionContainer {
     font-size: 14px;
     text-align: right;
-    margin: 5px 5px;
+    margin: 5px 25px;
     line-height: 1.3;
 }

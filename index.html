@@ -19,29 +19,32 @@
 	</head>
 	<body>
 		<div id="menuContainer">
-			<svg version="1.1" baseProfile="full" viewBox="0 0 100 100" id="menuButton" xmlns="http://www.w3.org/2000/svg" >
-					<rect x="0" y="10" width="100" height="20" rx="10" ry="10"/>
-					<rect x="0" y="40" width="100" height="20" rx="10" ry="10"/>
-					<rect x="0" y="70" width="100" height="20" rx="10" ry="10"/>
-			</svg>
-			<div id="sideMenu" style="display:none">
-			    <div id="topMenuSpacer" class="clear"></div>
-	            <div id="innerMenu">
-                    <div class="menu-list">
-                        <a href="#" class="menu-item">What is this?</a>
-                        <p class="menu-item" id="exampleBlazons">Example blazons</p>
-                        <div style="display:none" id="exampleContainer">
-                            <div class="demoBlazon"><i>Scrope v Grosvenor</i> (arms of Baron Scrope)<span class="blazonText">Azure, a bend Or</span></div>
-                            <div class="demoBlazon">Arms of the town of Gerville, France<span class="blazonText">Argent, on a bend Azure between two phrygian caps Gules three mullets of six points Or</span></div>
-                            <div class="demoBlazon">Per pale Gules and Azure, on a bend sinister between two fleurs-de-lys Or three keys palewise Purpure</div>
-                            <div class="demoBlazon">Per pale Azure on a bend between two mullets Or three roundels Vert and Argent three phrygian caps Gules</div>
+            <div id="innerMenuContainer">
+                <svg version="1.1" baseProfile="full" viewBox="0 0 100 100" id="menuButton" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="0" y="10" width="100" height="20" rx="10" ry="10" />
+                    <rect x="0" y="40" width="100" height="20" rx="10" ry="10" />
+                    <rect x="0" y="70" width="100" height="20" rx="10" ry="10" />
+                </svg>
+                <div id="sideMenu" style="display:none">
+                    <div id="topMenuSpacer" class="clear"></div>
+                    <div id="innerMenu">
+                        <div class="menu-list">
+                            <a href="#" class="menu-item">What is this?</a>
+                            <p class="menu-item" id="exampleBlazons">Example blazons</p>
+                            <div style="display:none" id="exampleContainer">
+                                <div class="demoBlazon"><i>Scrope v Grosvenor</i> (arms of Baron Scrope)<span class="blazonText">Azure, a bend Or</span></div>
+                                <div class="demoBlazon">Arms of the town of Gerville, France<span class="blazonText">Argent, on a bend Azure between two phrygian caps Gules three mullets of six points Or</span></div>
+                                <div class="demoBlazon">Per pale Gules and Azure, on a bend sinister between two fleurs-de-lys Or three keys palewise Purpure</div>
+                                <div class="demoBlazon">Per pale Azure on a bend between two mullets Or three roundels Vert and Argent three phrygian caps Gules</div>
+                                <div class="demoBlazon">Per pale Sable and Or, three roundels counterchanged</div>
+                            </div>
+                            <p class="menu-item" id="toggleSyntax">Toggle syntax display</p>
+                            <a href="https://github.com/qxzkjp" class="menu-item">Github page</a>
                         </div>
-                        <p class="menu-item" id="toggleSyntax">Toggle syntax display</p>
-                        <a href="https://github.com/qxzkjp" class="menu-item">Github page</a>
+                        <div id="versionContainer">Heraldry Engine<br />Version 0.1 (Alpha)<br />By Deus Kane</div>
                     </div>
-                    <div class="versionContainer">Heraldry Engine<br />Version 0.1 (Alpha)<br />By Deus Kane</div>
-	            </div>
-		    </div>
+                </div>
+            </div>
 		</div>
 		<div id="content">
 			<hgroup id="mainHead">
@@ -721,35 +724,37 @@
                     <h2 id="waitHeading">Wait...</h2>
                 </div>
 			</div>
-			<div id="wrapper">
-				<div id="left">
-					<textarea id="blazonText" disabled></textarea>
-				</div>
-				<div id="middle"></div>
-				<div id="right">
-					<div id="shapeSelect">
-						<input type="radio" name="shape" value="B" onchange="changeShield(shieldB)" checked>Noble<br>
-						<input type="radio" name="shape" value="A" onchange="changeShield(ellipsePath)">Spiritual<br>
-					</div>
-					<div id="styleSelect">
-						<input type="radio" name="style" value="normal" onchange="changeHeraldryCSS('heraldry.css')" checked> Full colour<br>
-						<input type="radio" name="style" value="bw" onchange="changeHeraldryCSS('heraldry-bw.css')"> Line art<br>
-					</div>
-				</div>
-			</div>
-			<div id="buttonContainer">
-				<button id="blazonButton" type="submit" onclick="drawUserBlazon()" disabled >Emblazon Arms</button>
-			</div>
-			<div id="syntax" style="display:none">
-				<h1>Syntax Tree</h1>
-				<div class="console" id="displayPara" >
-					root<br>
-					-node1<br>
-					-node2<br>
-					--subnode1<br>
-					-node3<br>
-				</div>
-			</div>
+            <div id="bottomHalf">
+                <div id="wrapper">
+                    <div id="left">
+                        <textarea id="blazonText" disabled></textarea>
+                    </div>
+                    <div id="middle"></div>
+                    <div id="right">
+                        <div id="shapeSelect">
+                            <input type="radio" name="shape" value="B" onchange="changeShield(shieldB)" checked>Noble<br>
+                            <input type="radio" name="shape" value="A" onchange="changeShield(ellipsePath)">Spiritual<br>
+                        </div>
+                        <div id="styleSelect">
+                            <input type="radio" name="style" value="normal" onchange="changeHeraldryCSS('heraldry.css')" checked> Full colour<br>
+                            <input type="radio" name="style" value="bw" onchange="changeHeraldryCSS('heraldry-bw.css')"> Line art<br>
+                        </div>
+                    </div>
+                </div>
+                <div id="buttonContainer">
+                    <button id="blazonButton" type="submit" onclick="drawUserBlazon()" disabled>Emblazon Arms</button>
+                </div>
+                <div id="syntax" style="display:none">
+                    <h1>Syntax Tree</h1>
+                    <div class="console" id="displayPara">
+                        root<br>
+                        -node1<br>
+                        -node2<br>
+                        --subnode1<br>
+                        -node3<br>
+                    </div>
+                </div>
+            </div>
 		</div>
 	</body>
 </html>

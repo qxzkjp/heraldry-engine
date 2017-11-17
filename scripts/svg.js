@@ -627,9 +627,27 @@ function roundElem(id){
 	setPathOnElem(id, path);
 }
 
-function changeTincture(elem,tinct){
+function changeTincture(elem,tinct, clipId){
 	//var elem = document.getElementById(id);
-	elem.setAttribute("class", "heraldry-"+tinct);
+    if (tinct === "counterchanged") {
+        if (typeof clipId === 'string' || clipId instanceof String) {
+            var clipElem = $("#" + clipId)[0];
+            var firstTincture = clipElem.dataset.firstTincture;
+            var secondTincture = clipElem.dataset.secondTincture;
+            var firstHalf = recursivePathData(elem);
+            var secondHalf = firstHalf.cloneNode(true);
+            changeTincture(firstHalf, secondTincture, clipId);
+            changeTincture(secondHalf, firstTincture, clipId);
+            setClip(secondHalf, clipId + "-second");
+            $(firstHalf).insertBefore(elem);
+            $(secondHalf).insertBefore(elem);
+            $(elem).remove();
+        } else {
+            console.error("Rendering error: cannot counterchange without a division to reference");
+        }
+    } else {
+        elem.setAttribute("class", "heraldry-" + tinct);
+    }
 }
 
 function changeHeraldryCSS(fileName){
@@ -681,16 +699,29 @@ function createClip(id){
 	var clip=document.getElementById(clipId);
 	if(clip == null){
 		clip=document.createElementNS(SVG_URI, "clipPath");
-		var elem=document.getElementById(id);
-		var d=elem.getAttribute("d");
-		var defEl=document.getElementById("SVGDefs");
-		var path=document.createElementNS(SVG_URI, "path");
-		path.setAttribute("d",d);
-		clip.appendChild(path);
-		clip.setAttribute("id", clipId);
-		defEl.appendChild(clip);
-	}
+        var elem = document.getElementById(id);
+        var clipPath = recursivePathData(elem);
+        clip.appendChild(clipPath);
+        var defEl = document.getElementById("SVGDefs");
+        defEl.appendChild(clip);
+        clip.id = clipId;
+    }
 	return clipId;
+}
+
+function recursivePathData(elem) {
+    var ret;
+    if (elem.tagName === "g") {
+        ret = document.createElementNS(SVG_URI, "g");
+        for (child of elem.children) {
+            ret.appendChild(recursivePathData(child));
+        }
+    } else {
+        var pathData = elem.getPathData({ normalize: true });
+        ret = document.createElementNS(SVG_URI, "path");
+        ret.setPathData(pathData);
+    }
+    return ret;
 }
 
 function setClip(elem, clipToId){
@@ -1068,7 +1099,8 @@ function applyTree(shieldId, tree){
 	upsideDownSecond=false;
 	if( tree instanceof Field ){
 		var tinct = tinctures[tree.tincture];
-		changeTincture(elem, tinct);
+        changeTincture(elem, tinct);
+        elem.dataset.tincture = tinctures[tree.tincture];
 	}else if(tree instanceof Division){
 		fields=2;
 		//var elem = document.getElementById(shieldId);
@@ -1120,8 +1152,10 @@ function applyTree(shieldId, tree){
         $(firstHalf).insertBefore(elem);
 		//insert just before given element, which is then just *after* firstHalf
         $(secondHalf).insertBefore(elem);
-		applyTree(shieldId+"-first", tree.at(0));
-		applyTree(shieldId+"-second", tree.at(1));
+        applyTree(shieldId + "-first", tree.at(0));
+        applyTree(shieldId + "-second", tree.at(1));
+        elem.dataset.firstTincture = firstHalf.dataset.tincture;
+        elem.dataset.secondTincture = secondHalf.dataset.tincture;
 	}
 	if( tree.subnode.length > fields ){//if there are nodes after the division nodes (if any), display them as charges
 		var sections;
@@ -1308,14 +1342,14 @@ function addCharge(
 			var topWidth = Math.abs(topPoints[topPoints.length-1].x - topPoints[0].x) * 0.95;
 			var midWidth = Math.abs(midPoints[midPoints.length-1].x - midPoints[0].x);
 			var bottomWidth = Math.abs(bottomPoints[bottomPoints.length-1].x - bottomPoints[0].x);
-			var maxWidth = Math.max(topWidth, midWidth, bottomWidth)*0.95; //leave 5% buffer space for a snug fit
+            var maxWidth = Math.max(topWidth, midWidth, bottomWidth);
 			var minX=Math.max(topPoints[0].x,midPoints[0].x,topPoints[0].x);
 			var maxX=Math.min(
 				topPoints[topPoints.length-1].x,
 				midPoints[midPoints.length-1].x,
 				bottomPoints[bottomPoints.length-1].x
-				);
-			var minWidth=Math.min(maxX-minX,maxWidth);
+            );
+            var minWidth = Math.min(maxX - minX, maxWidth) * 0.95; //leave 5% buffer space for a snug fit
 			/**********/
 			var middleX = (maxX+minX)/2;
 			var Ypoints=pathLineIntersection(pathData, new Point(middleX, MIN_HEIGHT), new Point(middleX, MAX_HEIGHT));
@@ -1351,7 +1385,7 @@ function addCharge(
 				for (var i = 0; i < children.length; i++) {
 					var childElem = children[i];
 					if(childElem.dataset.tinctured==="true"){
-                        changeTincture(childElem, tinctures[tinct]);
+                        changeTincture(childElem, tinctures[tinct],clipId);
 					}else{
 						$(childElem).addClass("heraldry-charge");
 					}
