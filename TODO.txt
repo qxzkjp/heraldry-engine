@@ -13,6 +13,10 @@ per pale gules a bend or and azure a billet argent
 Per pale Azure on a bend between two mullets Or three roundels Vert and Argent three phrygian caps Gules
 	Does not draw on oval shield in Firefox!
 
+	
+(RENDERING)
+*re-do rendering code to be more recursive
+*re-do rendering code to not rely on actually drawing SVG elements
 (UI)
 *investigate button text sizing
 (RENDERING)

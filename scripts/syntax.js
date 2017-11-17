@@ -1742,7 +1742,9 @@ function parseString(str) {
     tinctureStack = [];
     var tokstr = tokStrFromStr(str);
     var root = getEscutcheon(tokstr);
-    secondParse(root);
+    if (root !== undefined) {
+        secondParse(root);
+    }
     return root;
 }
 

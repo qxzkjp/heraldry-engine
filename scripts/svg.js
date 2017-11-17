@@ -1582,6 +1582,11 @@ function setBlazon(str) {
     if (!debugEnabled) {
         $("#shieldCover").hide();
     }
+    if (tree === undefined) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 function nearlyEqual(a, b, eps=0.000001){
@@ -2092,19 +2097,6 @@ function dotty(size, number, radius){
 		}
 	}
 	return g;
-}
-
-function drawUserBlazon() {
-    disableInput();
-    setBlazon(document.getElementById('blazonText').value);
-    enableInput();
-    //take away form focus from textbox, for UX reasons
-    document.activeElement.blur();
-}
-
-function newUserBlazon(str) {
-    document.getElementById('blazonText').value = str;
-    drawUserBlazon();
 }
 
 function getSyntaxCookie(){
