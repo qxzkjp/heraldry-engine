@@ -12,13 +12,17 @@ function TreeNode(a)
         var activePos = [];
         if (a.active === a) {
             this.active = this;
+        } else if (a.active == null) {
+            this.active = null;
         } else {
             hasActive = true;
             activePos = a.saveActiveNode();
         }
-        this.subnode=[]
-        for (var node of a.subnode) {
-            this.append(node.clone());
+        this.subnode = []
+        if (a.subnode instanceof Array) {
+            for (var node of a.subnode) {
+                this.append(node.clone());
+            }
         }
         if (hasActive) {
             this.restoreActiveNode(activePos);
@@ -168,15 +172,6 @@ TreeNode.prototype.setActiveNode = function(child) {
 
 TreeNode.prototype.getActiveNode = function () {
     return this.active;
-}
-
-TreeNode.prototype.setUnspecifiedTinctures = function (index) {
-    if (this.tincture === TINCT_UNSPECIFIED) {
-        this.tincture = index;
-    }
-    for (node of this.subnode) {
-        node.setUnspecifiedTinctures(index);
-    }
 }
 
 function NamedTreeNode(name)
@@ -330,8 +325,8 @@ implurals = ["", "pallets", "bars", "bendlets", "bendlets sinister", "chevronels
 var CHARGE_BEND = 3;
 var CHARGE_SINISTER = 4;
 
-movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge", "key", "phrygian cap with bells on", "roundel", "mullet of six points"];
-movplurals = ["mullets", "phrygian caps", "fleurs-de-lis", "pheons", "chevrons", "inescutcheons", "billets", "lozenges", "keys", "phrygian caps with bells on", "roundels", "mullets of six points"];
+movables = ["mullet", "phrygian cap", "fleur-de-lis", "pheon", "moveable-chevron", "inescutcheon", "billet", "lozenge", "key", "phrygian cap with bells on", "roundel", "mullet of six points", "ermine spot"];
+movplurals = ["mullets", "phrygian caps", "fleurs-de-lis", "pheons", "chevrons", "inescutcheons", "billets", "lozenges", "keys", "phrygian caps with bells on", "roundels", "mullets of six points", "ermine spots"];
 
 beasts = ["lion", "eagle", "bear", "dragon", "stag"];
 beastplurals = ["lions", "eagles", "bears", "dragons", "stags"];

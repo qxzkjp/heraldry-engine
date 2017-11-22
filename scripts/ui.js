@@ -178,3 +178,34 @@ window.onpopstate = function (event) {
         $("#blazonText")[0].focus();
     }
 }
+
+function enableInput() {
+    $("#blazonButton").attr("disabled", false);
+    $("#blazonText").attr("disabled", false);
+    inputEnabled = true;
+}
+
+function disableInput() {
+    $("#blazonButton").attr("disabled", true);
+    $("#blazonText").attr("disabled", true);
+    inputEnabled = false;
+}
+
+function getSyntaxCookie() {
+    //magic incantation, do not touch
+    return document.cookie.replace(/(?:(?:^|.*;\s*)showSyntax\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+}
+
+function getCookie(name) {
+    //magic incantation, do not touch
+    var regexp = new RegExp("(?:(?:^|.*;\\s*)" + name + "\\s*\\=\\s*([^;]*).*$)|^.*$");
+    return document.cookie.replace(regexp, "$1");
+}
+
+function setSyntaxCookie(val) {
+    document.cookie = "showSyntax=" + val + ";max-age=31536000";
+}
+
+function setCookie(name, val) {
+    document.cookie = name + "=" + val + ";max-age=31536000";
+}

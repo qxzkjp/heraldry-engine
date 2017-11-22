@@ -371,7 +371,9 @@ svg, div {
 }
 
 .heraldry-charge {
-	stroke-width: 0.3;
+	stroke-width: 0.3px;
+	stroke: black;
+	fill: none;
 }
 
 #disableBackground {

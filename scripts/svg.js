@@ -18,7 +18,9 @@ var centre;
 
 var debugStarts=[];
 var debugPaths=[];
-var debugEnds=[];
+var debugEnds = [];
+var chargeGeometries = new Map;
+var chargeRatios = new Map;
 
 var SVG_HEIGHT = 200;
 var SVG_WIDTH = 200;
@@ -143,42 +145,6 @@ function reassemblePath(arr){
 	}
 	path=path.slice(0,-1);//trim the last char (it's a space)
 	return path;
-}
-
-function Point(x, y){
-	this.x=x;
-	this.y=y;
-}
-
-Point.prototype.clone = function(){
-	return new Point(this.x, this.y);
-}
-
-Point.prototype.toString = function(){
-	return ""+this.x+","+this.y;
-}
-
-Point.prototype.scale = function (c)
-{
-	this.x *= c;
-	this.y *= c;
-}
-
-Point.prototype.max = function (A)
-{
-	return new Point( Math.max( this.x, A.x ), Math.max( this.y, A.y ) );
-}
-
-Point.prototype.min = function (A)
-{
-	return new Point( Math.min( this.x, A.x ), Math.min( this.y, A.y ) );
-}
-
-Point.difference = function(p1, p2){
-	var p3 = new Point( 0, 0 );
-	p3.x = p2.x - p1.x;
-	p3.y = p2.y - p1.y;
-	return p3;
 }
 
 function bezier(c0, c1, c2, c3, t){
@@ -482,9 +448,13 @@ function shiftPath(path, dx=0, dy=0){
 	return newPath;
 }
 
-function clonePathData(pathData){
+function clonePathData(pathData, parameters = {}) {
+    var normal = (parameters.normal === true);
 	var newPD=[];
-	for( var seg of pathData ){
+    for (var seg of pathData) {
+        if (normal && seg.type !== "M" && seg.type !== "L" && seg.type !== "C" && seg.type !== "Z") {
+            throw new Error("clonePathData: path data not normalised");
+        }
 		newPD.push( {type:seg.type, values:seg.values.slice(0)} );
 	}
 	return newPD;
@@ -631,22 +601,38 @@ function changeTincture(elem,tinct, clipId){
 	//var elem = document.getElementById(id);
     if (tinct === "counterchanged") {
         if (typeof clipId === 'string' || clipId instanceof String) {
-            var clipElem = $("#" + clipId)[0];
-            var firstTincture = clipElem.dataset.firstTincture;
-            var secondTincture = clipElem.dataset.secondTincture;
-            var firstHalf = recursivePathData(elem);
-            var secondHalf = firstHalf.cloneNode(true);
-            changeTincture(firstHalf, secondTincture, clipId);
-            changeTincture(secondHalf, firstTincture, clipId);
-            setClip(secondHalf, clipId + "-second");
-            $(firstHalf).insertBefore(elem);
-            $(secondHalf).insertBefore(elem);
-            $(elem).remove();
+            if (elem instanceof GeometryGroup) {
+                //elem and clipId are geometry objects
+                var firstHalf = elem.clone();
+                var secondHalf = elem.clone();
+                changeTincture(firstHalf, clipId.dataset.secondTincture);
+                changeTincture(secondHalf, clipId.dataset.firstTincture);
+                firstHalf.dataset.clipId = clipid + "-first";
+                secondHalf.dataset.clipId = clipid + "-second";
+                elem.parent.append(firstHalf);
+                elem.parent.append(secondHalf);
+            } else {
+                var clipElem = $("#" + clipId)[0];
+                var firstTincture = clipElem.dataset.firstTincture;
+                var secondTincture = clipElem.dataset.secondTincture;
+                var firstHalf = recursivePathData(elem);
+                var secondHalf = firstHalf.cloneNode(true);
+                changeTincture(firstHalf, secondTincture, clipId);
+                changeTincture(secondHalf, firstTincture, clipId);
+                setClip(secondHalf, clipId + "-second");
+                $(firstHalf).insertBefore(elem);
+                $(secondHalf).insertBefore(elem);
+                $(elem).remove();
+            }
         } else {
             console.error("Rendering error: cannot counterchange without a division to reference");
         }
     } else {
-        elem.setAttribute("class", "heraldry-" + tinct);
+        if (elem instanceof GeometryGroup) {
+            elem.addClass("heraldry-" + tinct);
+        } else {
+            elem.setAttribute("class", "heraldry-" + tinct);
+        }
     }
 }
 
@@ -1261,6 +1247,10 @@ function addCharge(
     var MIN_HEIGHT = Math.min(0, bBox.y - bBox.height * 0.01);
     var MAX_WIDTH = Math.max(SVG_WIDTH, bBox.x + bBox.width * 1.01);
     var MIN_WIDTH = Math.min(0, bBox.x - bBox.width * 0.01);
+    if (number === 0 || arrangement === "semy") {
+        semyChargeDOMElement(elem, index, tinct, mirror, rotation);
+        return;
+    }
     if (arrangement == "in pale") {
         var heightSegment = bBox.height / number;
         var segments = [];
@@ -1451,6 +1441,175 @@ function addCharge(
 	var numRows = rowNums.length;
 }
 
+function testSemyCharge(charge="key", tinct="or", rotation=0, mirror=false, numx=-20, spacing=0.3, clip=true) {
+    $("#shield-semy").remove();
+    var elem = $("#shield")[0];
+    var geom = semyCharge(elem, charge, tinct, mirror, rotation, numx, spacing);
+    var frag = documentFragmentFromGeometry(geom);
+    if (clip) {
+        var root = $(frag).find("*")[0];
+        setClip(root, root.dataset.clipId);
+    }
+    $(frag).insertAfter(elem);
+}
+
+//for ermine spots, numx=-10, spacing=0.6
+function semyChargeDOMElement(elem, index, tinct, mirror, rotation, numx=-20, spacing=0.3) {
+    var geom = semyCharge(elem, index, tinct, mirror, rotation, numx, spacing);
+    var frag = documentFragmentFromGeometry(geom);
+    var root = $(frag).find("*")[0];
+    setClip(root, root.dataset.clipId);
+    $(frag).insertAfter(elem);
+}
+
+function semyCharge(elem, index, tinct, mirror, rotation, numx = 10, spacing = 0.1) {
+    if (typeof index == "string" || index instanceof String) {
+        index = movables.indexOf(index);
+    }
+    var bBox = elem.getBBox();
+    var br = bBox.width / bBox.height;
+    var ar = getChargeAspectRatio(index, rotation, mirror);
+    if (numx == 0) {
+        numx = Math.round(bBox.width / 10);
+    } else if (numx < 0) {
+        numx = Math.round(bBox.width / (-numx));
+    }
+    var semyWidth = bBox.width / (numx-1);
+    var semyHeight = semyWidth * (1 - spacing) / ar + spacing * semyWidth;
+    var cr = semyWidth / semyHeight;
+    var numy = Math.ceil((numx - 1) * cr / br)+1;//plus one for safety
+    var ret = new GeometryGroup;
+    ret.id = elem.id + "-semy";
+    for (var i = 0; i < numy; ++i) {
+        var rowOffset = 0.5 * semyWidth * (i % 2);
+        for (var j = 0; j < numx; ++j) {
+            ret.append(
+                drawChargeAtPoint(
+                    elem.id,
+                    new Point(j * semyWidth + bBox.x + rowOffset, i * semyHeight + bBox.y),
+                    semyWidth * (1 - spacing),
+                    index,
+                    tinct,
+                    mirror,
+                    rotation)
+            );
+            ret.at(-1).id = ret.id + (i * numx + j).toString();
+            delete ret.at(-1).dataset.clipId;
+        }
+    }
+    ret.dataset.clipId = elem.id;
+    return ret;
+}
+
+function drawChargeAtPoint(
+    clipId,
+    point,
+    width,
+    index,
+    tinct,
+    mirror=false,
+    rotation=0,
+    sequence=0,
+    extraTransform=null
+) {
+    if (typeof tinct === "number" || tinct instanceof Number) {
+        tinct = tinctures[tinct];
+    }
+    var newCharge = getChargeGeometry(index);
+    var ar = getChargeAspectRatio(index, rotation, mirror);
+    var bBox = newCharge.getBBox();
+    var ccx = bBox.x + bBox.width / 2;
+    var ccy = bBox.y + bBox.height / 2;
+    //matrix for transform (shift to 0,0 scale &rotate then shift to new position)
+    var m = SVG.createSVGMatrix();
+    if (extraTransform != null) {//we want to catch both null and undefined
+        m = m.multiply(extraTransform);
+    }
+    if (rotation != 0) {
+        m = m.rotate(-45 * rotation);
+    }
+    if (mirror) {
+        m = m.flipX();
+    }
+    m = m.translate(-ccx, -ccy);
+    if (clipId != "") {
+        newCharge.id = clipId + "-charge" + sequence.toString();
+    }
+    newCharge.transform(m);
+    var tBox = newCharge.getBBox();
+    var scale = width / tBox.width;
+    m = SVG.createSVGMatrix().translate(point.x, point.y).scale(scale);
+    newCharge.transform(m);
+    //TODO: make changeTincture work for GeometryGroup
+    //it is still *very* buggy
+    for (childElem of newCharge.subnode) {
+        if (childElem.dataset.tinctured === "true") {
+            changeTincture(childElem, tinct, clipId);
+        } else {
+            childElem.addClass("heraldry-charge");
+        }
+    }
+    if (clipId != "") {
+        newCharge.dataset.clipId = clipId;
+    }
+    return newCharge;
+}
+
+function getChargeAspectRatio(index, rotation, mirrored) {
+    if (typeof index == "string" || index instanceof String) {
+        index = movables.indexOf(index);
+    }
+    var mapKey = index.toString() + " " + rotation.toString() + " " + mirrored.toString();
+    if (!chargeRatios.has(mapKey)) {
+        var cg = getChargeGeometry(index);
+        var m = SVG.createSVGMatrix().rotate(-45 * rotation);
+        if (mirrored) {
+            m = m.flipX();
+        }
+        cg.transform(m);
+        var bBox = cg.getBBox();
+        chargeRatios.set(mapKey, bBox.width / bBox.height);
+    }
+    return chargeRatios.get(mapKey);
+}
+
+function getChargeGeometry(index) {
+    if (typeof index==="number" || index instanceof Number){
+        index = movables[index];
+    }
+    if (chargeGeometries[index] === undefined) {
+        var charge = SVG_MOVABLES.getElementById(index);
+        chargeGeometries[index] = geometriseNode(charge);
+    }
+    return chargeGeometries[index].clone();
+}
+
+function geometriseNode(elem) {
+    var ret=null;
+    if (elem.tagName === "path" || elem.tagName === "rect" || elem.tagName === "ellipse" || elem.tagName === "line") {
+        ret = new Path(elem.getPathData({ normalize: true }));
+    } else if(elem.tagName==="g"){
+        ret = new GeometryGroup();
+        for (child of elem.children) {
+            ret.push(geometriseNode(child));
+        }
+    }
+    ret.class = elem.className.baseVal;
+    ret.id = elem.id;
+    for (key in elem.dataset) {
+        ret.dataset[key] = elem.dataset[key];
+    }
+    return ret;
+}
+
+function documentFragmentFromGeometry(geom) {
+    var frag = document.createDocumentFragment();
+    if (geom instanceof GeometryGroup) {
+        frag.appendChild(geom.toNode());
+    }
+    return frag;
+}
+
 function comparePointsY(p1, p2){
 	if(p1.y<p2.y){
 		return -1;
@@ -1631,6 +1790,7 @@ function fourPointIntersection(p1, p2, p3, p4){
 	}
 }
 
+//returns the points on the bezier curve with control points p0...p3 that are associated with the values of t stored in arr
 function bezierPoints(p0, p1, p2, p3, arr){
 	ret = [];
 	for(i of arr){
@@ -1639,12 +1799,16 @@ function bezierPoints(p0, p1, p2, p3, arr){
 	return ret;
 }
 
+//returns points (if any) where a bezier curve and a line intersect
 //p0-p3 bezier control points, p4&p5 line segment end points
 function bezierLineIntersection(p0, p1, p2, p3, p4, p5){
-	var t = bezierIntersecitonParameters(p0, p1, p2, p3, p4, p5);
+	var t = bezierIntersectionParameters(p0, p1, p2, p3, p4, p5);
 	return bezierPoints(p0, p1, p2, p3, t);
 }
 
+
+//get values of t for which B(p0,p1,p2,p3,t) crosses the line between p4 and p5
+//returns between 0 and 3 values, and only returns values that actually lie on the curve (ie between 0 and 1)
 function bezierIntersectionParameters(p0, p1, p2, p3, p4, p5){
 	var ldx = p4.x-p5.x;
 	var ldy = p5.y-p4.y;
@@ -1932,7 +2096,7 @@ function transformPathData(pd, m){
 function transformPoint(p, m){
 	var x=p.x;
 	var y=p.y;
-	ret=SVG.createSVGPoint();
+	ret=new Point;
 	ret.x = m.a * x + m.c * y + m.e;
 	ret.y = m.b * x + m.d * y + m.f;
 	return ret;
@@ -2099,25 +2263,6 @@ function dotty(size, number, radius){
 	return g;
 }
 
-function getSyntaxCookie(){
-	//magic incantation, do not touch
-	return document.cookie.replace(/(?:(?:^|.*;\s*)showSyntax\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-}
-
-function getCookie(name){
-	//magic incantation, do not touch
-	var regexp = new RegExp("(?:(?:^|.*;\\s*)"+name+"\\s*\\=\\s*([^;]*).*$)|^.*$");
-	return document.cookie.replace(regexp, "$1");
-}
-
-function setSyntaxCookie(val){
-	document.cookie = "showSyntax=" + val + ";max-age=31536000";
-}
-
-function setCookie(name, val){
-	document.cookie = name + "=" + val + ";max-age=31536000";
-}
-
 function getBendHeightFraction(elem, angle) {
     var box = elem.getBBox();
     var w = box.width;
@@ -2131,14 +2276,286 @@ function applyMatrix(m, p){
     return new Point(x, y);
 }
 
-function enableInput() {
-    $("#blazonButton").attr("disabled", false);
-    $("#blazonText").attr("disabled", false);
-    inputEnabled = true;
+/***********************************************************************
+*GEOMETRIC OBJECTS
+*The DOM has built-in objects to represent SVG geometric objects,
+*but we don't want to rely on the dom for rendering (so it can be
+*done on a webworker), so we recreate a few useful ones here
+************************************************************************/
+
+//Specialisation of TreeNode for geometry objects
+function GeometryGroup(other) {
+    if (other === undefined) {
+        TreeNode.call(this);
+        this.id = "";
+        this.class = "";
+        this.dataset = Object.create(null);
+    } else {
+        TreeNode.call(this, other);
+        this.id = other.id;
+        this.class = other.class;
+        this.dataset = Object.create(null);
+        for (key in other.dataset) {
+            this.dataset[key] = other.dataset[key];
+        }
+    }
+    this.active = null;
 }
 
-function disableInput() {
-    $("#blazonButton").attr("disabled", true);
-    $("#blazonText").attr("disabled", true);
-    inputEnabled = false;
+//set up inheritance
+GeometryGroup.prototype = Object.create(TreeNode.prototype);
+GeometryGroup.prototype.constructor = GeometryGroup;
+
+GeometryGroup.prototype.addClass = function (className) {
+    if (className.indexOf(" ") >= 0) {
+        return false;
+    }
+    var idx = this.class.split(/ /g).indexOf(className);
+    if (idx < 0) {
+        if (this.class != "") {
+            this.class += " ";
+        }
+        this.class += className;
+    }
+    return true;
+}
+
+GeometryGroup.prototype.getBBox = function () {
+    var ret = new BoundingBox;
+    for (child of this.subnode) {
+        var bBox = child.getBBox();
+        ret.addPoint(bBox.min);
+        ret.addPoint(bBox.max);
+    }
+    ret.finalise();
+    return ret;
+}
+
+GeometryGroup.prototype.transform = function (m) {
+    for (child of this.subnode) {
+        child.transform(m);
+    }
+}
+
+GeometryGroup.prototype.setNodeAttr = function (node) {
+    if (this.id != "") {
+        node.id = this.id;
+    }
+    if (this.class != "") {
+        node.className.baseVal = this.class;
+    }
+    for (key in this.dataset) {
+        node.dataset[key] = this.dataset[key];
+    }
+}
+
+GeometryGroup.prototype.toNode = function (){
+    var g = document.createElementNS(SVG_URI, "g");
+    this.setNodeAttr(g);
+    for (child of this.subnode) {
+        g.appendChild(child.toNode());
+    }
+    return g;
+}
+
+//prototype for a TreeNode that cannot have children
+//do not directly create instances of this
+function GeometryLeaf(other) {
+    GeometryGroup.call(this, other);
+    this.subnode = null;
+}
+
+//set up inheritance
+GeometryLeaf.prototype = Object.create(GeometryGroup.prototype);
+GeometryLeaf.prototype.constructor = GeometryLeaf;
+
+GeometryLeaf.prototype.append = null;
+GeometryLeaf.prototype.pop = null;
+GeometryLeaf.prototype.push = null;
+GeometryLeaf.prototype.replace = null;
+
+function Point(x, y) {
+    //copy construction
+    if (x instanceof Point) {
+        GeometryLeaf.call(this, x);
+        this.x = x.x;
+        this.y = x.y;
+    } else {
+        GeometryLeaf.call(this);
+        this.x = x;
+        this.y = y;
+    }
+}
+
+//set up inheritance
+Point.prototype = Object.create(GeometryLeaf.prototype);
+Point.prototype.constructor = Point;
+
+Point.prototype.toString = function () {
+    return "" + this.x + "," + this.y;
+}
+
+Point.prototype.scale = function (c) {
+    this.x *= c;
+    this.y *= c;
+}
+
+Point.prototype.max = function (A) {
+    return new Point(Math.max(this.x, A.x), Math.max(this.y, A.y));
+}
+
+Point.prototype.min = function (A) {
+    return new Point(Math.min(this.x, A.x), Math.min(this.y, A.y));
+}
+
+Point.prototype.transform = function (m) {
+    var newPoint = transformPoint(this, m);
+    this.x = newPoint.x;
+    this.y = newPoint.y;
+}
+
+//static member
+Point.difference = function (p1, p2) {
+    var p3 = new Point(0, 0);
+    p3.x = p2.x - p1.x;
+    p3.y = p2.y - p1.y;
+    return p3;
+}
+
+Point.prototype.toNode = function () {
+    console.error("Point.toNode: points cannot be made into DOM nodes");
+    return null;
+}
+
+function Line(p0, p1) {
+    if (p0 instanceof Line) {
+        GeometryLeaf.call(this, p0);
+        this.p0 = p0.p0.clone();
+        this.p1 = p0.p1.clone();
+    } else {
+        GeometryLeaf.call(this);
+        this.p0 = new Point(p0.x, p0.y);
+        this.p1 = new Point(p1.x, p1.y);
+    }
+}
+
+//set up inheritance
+Line.prototype = Object.create(GeometryLeaf.prototype);
+Line.prototype.constructor = Line;
+
+Line.prototype.transform = function (m) {
+    this.p0 = transformPoint(this.p0, m);
+    this.p1 = transformPoint(this.p1, m);
+}
+
+Line.prototype.getBBox = function () {
+    var ret = new BoundingBox;
+    ret.add(this.p0);
+    ret.add(this.p1);
+    ret.finalise();
+    return ret;
+}
+
+Line.prototype.toNode = function () {
+    var line = document.createElementNS(SVG_URI, "line");
+    line.setAttribute("x1", p0.x);
+    line.setAttribute("y1", p0.y);
+    line.setAttribute("x2", p1.x);
+    line.setAttribute("y2", p1.y);
+    this.setNodeAttr(line);
+    return line;
+}
+
+function Bezier(C0, C1, C2, C3) {
+    if (C0 instanceof Bezier) {
+        GeometryLeaf.call(this, C0);
+        this.C0 = C0.C0.clone();
+        this.C1 = C0.C1.clone();
+        this.C2 = C0.C2.clone();
+        this.C3 = C0.C3.clone();
+    } else {
+        GeometryLeaf.call(this);
+        this.C0 = new Point(C0.x, C0.y);
+        this.C1 = new Point(C1.x, C1.y);
+        this.C2 = new Point(C2.x, C2.y);
+        this.C3 = new Point(C3.x, C3.y);
+    }
+}
+
+//set up inheritance
+Bezier.prototype = Object.create(GeometryLeaf.prototype);
+Bezier.prototype.constructor = Bezier;
+
+Bezier.prototype.transform = function (m) {
+    this.C0 = transformPoint(this.C0, m);
+    this.C1 = transformPoint(this.C1, m);
+    this.C2 = transformPoint(this.C2, m);
+    this.C3 = transformPoint(this.C3, m);   
+}
+
+Bezier.prototype.getBBox = function () {
+    var ret = new BoundingBox;
+    var p0 = new Point(this.C0.x, this.C0.y);
+    var p1 = new Point(this.C1.x, this.C1.y);
+    var p2 = new Point(this.C2.x, this.C2.y);
+    var p3 = new Point(this.C3.x, this.C3.y);
+    ret.addPoints(...bezierBox(p0, p1, p2, p3));
+    ret.finalise();
+    return ret;
+}
+
+Bezier.prototype.toNode = function () {
+    console.error("Bezier.toNode: individual bezier curves to DOM nodes not implemented");
+    return null;
+}
+
+function Path(pathData) {
+    if (pathData instanceof Path) {
+        GeometryLeaf.call(this, pathData);
+        this.pathData = clonePathData(pathData.pathData, { normal: true });
+    } else {
+        GeometryLeaf.call(this);
+        if (pathData instanceof Array) {
+            this.pathData = clonePathData(pathData, { normal: true });
+        } else {
+            this.pathData = [];
+        }
+    }
+}
+
+//set up inheritance
+Path.prototype = Object.create(GeometryLeaf.prototype);
+Path.prototype.constructor = Path;
+
+Path.prototype.addSeg = function (newSeg) {
+    if (typeof newSeg.type !== "string" && !(newseg.type instanceof String)) {
+        throw new Error("Path addseg: new segment has no type");
+    }
+    if (newseg.type !== "M" && newseg.type !== "L" && newseg.type !== "C" && newseg.type !== "Z") {
+        throw new Error("Path addseg: new segment is not normal");
+    }
+    if (!(newseg.values instanceof Array)) {
+        throw new Error("Path addseg: new segment has no values");
+    }
+    for (var i of newSeg.values) {
+        if (typeof i !== "number" && !(i instanceof Number)) {
+            throw new Error("Path addseg: values must be numbers");
+        }
+    }
+    this.pathData.push({ type:newSeg.type, values:newseg.values.slice(0) });
+}
+
+Path.prototype.getBBox = function () {
+    return pathDataBoundingBox(this.pathData);
+}
+
+Path.prototype.transform = function (m) {
+    this.pathData = transformPathData(this.pathData, m);
+}
+
+Path.prototype.toNode = function (){
+    var path = document.createElementNS(SVG_URI, "path");
+    path.setPathData(this.pathData);
+    this.setNodeAttr(path);
+    return path;
 }
