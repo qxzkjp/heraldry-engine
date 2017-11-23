@@ -114,13 +114,13 @@ h2::first-letter {
         justify-content: center;
     }
     #heraldryHead {
-        display: inline-block;
+        /* display: inline-block; */
         padding: 0;
     }
 
     #engineHead {
         Font-size: 60px;
-        display: inline-block;
+        /* display: inline-block; */
         /*margin: 0 0 0 0.5em;*/
         text-indent: 0;
     }

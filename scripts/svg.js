@@ -1487,11 +1487,13 @@ function semyCharge(elem, index, tinct, mirror, rotation, numx = 10, spacing = 0
                 drawChargeAtPoint(
                     elem.id,
                     new Point(j * semyWidth + bBox.x + rowOffset, i * semyHeight + bBox.y),
-                    semyWidth * (1 - spacing),
-                    index,
-                    tinct,
-                    mirror,
-                    rotation)
+                    {
+                        "width": semyWidth * (1 - spacing),
+                        "index": index,
+                        "tincture": tinct,
+                        "mirror": mirror,
+                        "rotation": rotation
+                    })
             );
             ret.at(-1).id = ret.id + (i * numx + j).toString();
             delete ret.at(-1).dataset.clipId;
@@ -1504,40 +1506,56 @@ function semyCharge(elem, index, tinct, mirror, rotation, numx = 10, spacing = 0
 function drawChargeAtPoint(
     clipId,
     point,
-    width,
-    index,
-    tinct,
-    mirror=false,
-    rotation=0,
-    sequence=0,
-    extraTransform=null
+    chrgInfo,
+    sequence = -1
 ) {
-    if (typeof tinct === "number" || tinct instanceof Number) {
-        tinct = tinctures[tinct];
+    var tinct;
+    if (typeof chrgInfo.tincture === "number" || chrgInfo.tincture instanceof Number) {
+        tinct = tinctures[chrgInfo.tincture];
+    } else {
+        tinct = chrgInfo.tincture;
     }
-    var newCharge = getChargeGeometry(index);
-    var ar = getChargeAspectRatio(index, rotation, mirror);
+    var newCharge;
+    var ar;
+    if (chrgInfo.index != null) {
+        newCharge = getChargeGeometry(chrgInfo.index);
+        ar = getChargeAspectRatio(chrgInfo.index, chrgInfo.rotation, chrgInfo.mirror);
+    } else if (chrgInfo.name != null) {
+        newCharge = getChargeGeometry(chrgInfo.name);
+        ar = getChargeAspectRatio(chrgInfo.name, chrgInfo.rotation, chrgInfo.mirror);
+    } else {
+        console.error("drawChargeAtPoint: no charge identifier given!")
+        return null;
+    }
     var bBox = newCharge.getBBox();
     var ccx = bBox.x + bBox.width / 2;
     var ccy = bBox.y + bBox.height / 2;
-    //matrix for transform (shift to 0,0 scale &rotate then shift to new position)
+    //matrix for transform (shift to origin, rotate then scale and shift to new position)
     var m = SVG.createSVGMatrix();
-    if (extraTransform != null) {//we want to catch both null and undefined
-        m = m.multiply(extraTransform);
+    if (chrgInfo.extraTransform != null) {//we want to catch both null and undefined
+        m = m.multiply(chrgInfo.extraTransform);
     }
-    if (rotation != 0) {
-        m = m.rotate(-45 * rotation);
+    if (chrgInfo.rotation != 0) {
+        m = m.rotate(-45 * chrgInfo.rotation);
     }
-    if (mirror) {
+    if (chrgInfo.mirror) {
         m = m.flipX();
     }
     m = m.translate(-ccx, -ccy);
-    if (clipId != "") {
+    if (clipId != "" && sequence >= 0) {
         newCharge.id = clipId + "-charge" + sequence.toString();
     }
     newCharge.transform(m);
     var tBox = newCharge.getBBox();
-    var scale = width / tBox.width;
+    var scale;
+    if (chrgInfo.width != null) {
+        scale = chrgInfo.width / tBox.width;
+    } else if (chrgInfo.height != null) {
+        scale = chrgInfo.height / tBox.height;
+    } else {
+        console.log("drawChargeAtPoint: no size given for charge. Drawing at natural size. This is probably not what you wanted.");
+        scale = 1;
+    }
     m = SVG.createSVGMatrix().translate(point.x, point.y).scale(scale);
     newCharge.transform(m);
     //TODO: make changeTincture work for GeometryGroup
