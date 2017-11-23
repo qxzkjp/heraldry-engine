@@ -601,29 +601,29 @@ function changeTincture(elem,tinct, clipId){
 	//var elem = document.getElementById(id);
     if (tinct === "counterchanged") {
         if (typeof clipId === 'string' || clipId instanceof String) {
-            if (elem instanceof GeometryGroup) {
-                //elem and clipId are geometry objects
-                var firstHalf = elem.clone();
-                var secondHalf = elem.clone();
-                changeTincture(firstHalf, clipId.dataset.secondTincture);
-                changeTincture(secondHalf, clipId.dataset.firstTincture);
-                firstHalf.dataset.clipId = clipid + "-first";
-                secondHalf.dataset.clipId = clipid + "-second";
-                elem.parent.append(firstHalf);
-                elem.parent.append(secondHalf);
-            } else {
-                var clipElem = $("#" + clipId)[0];
-                var firstTincture = clipElem.dataset.firstTincture;
-                var secondTincture = clipElem.dataset.secondTincture;
-                var firstHalf = recursivePathData(elem);
-                var secondHalf = firstHalf.cloneNode(true);
-                changeTincture(firstHalf, secondTincture, clipId);
-                changeTincture(secondHalf, firstTincture, clipId);
-                setClip(secondHalf, clipId + "-second");
-                $(firstHalf).insertBefore(elem);
-                $(secondHalf).insertBefore(elem);
-                $(elem).remove();
-            }
+            var clipElem = $("#" + clipId)[0];
+            var firstTincture = clipElem.dataset.firstTincture;
+            var secondTincture = clipElem.dataset.secondTincture;
+            var firstHalf = recursivePathData(elem);
+            var secondHalf = firstHalf.cloneNode(true);
+            changeTincture(firstHalf, secondTincture, clipId);
+            changeTincture(secondHalf, firstTincture, clipId);
+            setClip(secondHalf, clipId + "-second");
+            $(firstHalf).insertBefore(elem);
+            $(secondHalf).insertBefore(elem);
+            $(elem).remove();
+        } else if (elem instanceof TreeNode) {
+            //elem and clipId are geometry objects
+            //well clipId might be a DOM node, but it makes no difference
+            var firstHalf = elem.clone();
+            var secondHalf = elem.clone();
+            changeTincture(firstHalf, clipId.dataset.secondTincture);
+            changeTincture(secondHalf, clipId.dataset.firstTincture);
+            firstHalf.dataset.clipId = clipId.id + "-first";
+            secondHalf.dataset.clipId = clipId.id + "-second";
+            elem.parent.append(firstHalf);
+            elem.parent.append(secondHalf);
+            elem.parent.remove(elem);
         } else {
             console.error("Rendering error: cannot counterchange without a division to reference");
         }
@@ -683,14 +683,18 @@ function recentreElem(id, x, y){
 function createClip(id){
 	var clipId=id+"-clip";
 	var clip=document.getElementById(clipId);
-	if(clip == null){
-		clip=document.createElementNS(SVG_URI, "clipPath");
+    if (clip == null) {
         var elem = document.getElementById(id);
-        var clipPath = recursivePathData(elem);
-        clip.appendChild(clipPath);
-        var defEl = document.getElementById("SVGDefs");
-        defEl.appendChild(clip);
-        clip.id = clipId;
+        if (elem != undefined) {
+            clip = document.createElementNS(SVG_URI, "clipPath");
+            var clipPath = recursivePathData(elem);
+            clip.appendChild(clipPath);
+            var defEl = document.getElementById("SVGDefs");
+            defEl.appendChild(clip);
+            clip.id = clipId;
+        } else {
+            console.error("createClip: element " + id + " does not exist; clip path not created.");
+        }
     }
 	return clipId;
 }
@@ -1457,8 +1461,6 @@ function testSemyCharge(charge="key", tinct="or", rotation=0, mirror=false, numx
 function semyChargeDOMElement(elem, index, tinct, mirror, rotation, numx=-20, spacing=0.3) {
     var geom = semyCharge(elem, index, tinct, mirror, rotation, numx, spacing);
     var frag = documentFragmentFromGeometry(geom);
-    var root = $(frag).find("*")[0];
-    setClip(root, root.dataset.clipId);
     $(frag).insertAfter(elem);
 }
 
@@ -1492,7 +1494,8 @@ function semyCharge(elem, index, tinct, mirror, rotation, numx = 10, spacing = 0
                         "index": index,
                         "tincture": tinct,
                         "mirror": mirror,
-                        "rotation": rotation
+                        "rotation": rotation,
+                        "field": elem
                     })
             );
             ret.at(-1).id = ret.id + (i * numx + j).toString();
@@ -1542,8 +1545,8 @@ function drawChargeAtPoint(
         m = m.flipX();
     }
     m = m.translate(-ccx, -ccy);
-    if (clipId != "" && sequence >= 0) {
-        newCharge.id = clipId + "-charge" + sequence.toString();
+    if (chrgInfo.field != null && sequence >= 0) {
+        newCharge.id = chrgInfo.field.id + "-charge" + sequence.toString();
     }
     newCharge.transform(m);
     var tBox = newCharge.getBBox();
@@ -1560,9 +1563,10 @@ function drawChargeAtPoint(
     newCharge.transform(m);
     //TODO: make changeTincture work for GeometryGroup
     //it is still *very* buggy
-    for (childElem of newCharge.subnode) {
+    var subnodeSnapshot = newCharge.subnode.slice(0);
+    for (childElem of subnodeSnapshot) {
         if (childElem.dataset.tinctured === "true") {
-            changeTincture(childElem, tinct, clipId);
+            changeTincture(childElem, tinct, chrgInfo.field);
         } else {
             childElem.addClass("heraldry-charge");
         }
@@ -2364,6 +2368,9 @@ GeometryGroup.prototype.setNodeAttr = function (node) {
     }
     for (key in this.dataset) {
         node.dataset[key] = this.dataset[key];
+    }
+    if (this.dataset.clipId != null) {
+        setClip(node, this.dataset.clipId);
     }
 }
 

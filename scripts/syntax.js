@@ -91,6 +91,14 @@ TreeNode.prototype.replace = function (index, nodeIn) {
     }
 }
 
+TreeNode.prototype.remove = function (elem) {
+    var index = this.subnode.indexOf(elem)
+    if (index >= 0) {
+        this.subnode = this.subnode.slice(0, index).concat(this.subnode.slice(index + 1));
+    }
+}
+
+
 TreeNode.prototype.at = function(index)
 {
     if (index >= 0) {
