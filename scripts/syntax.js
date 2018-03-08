@@ -1360,7 +1360,7 @@ function getFieldOrDivision(str, tree, success, bare=false)
             }
             //pop empty division if we added it and then failed to parse its fields
             if (success[0] === false) {
-                active.pop();
+                ret.getActiveNode().remove();
             }
         } else { //if fetching both a field and a division have failed, then fail
             success[0] = false;
@@ -1376,6 +1376,26 @@ function getFieldOrDivision(str, tree, success, bare=false)
         tinctureStack = oldStack.slice(0);
         return tree;
     }
+}
+
+function getNumber(str, success) {
+    var ret;
+    var pos = str.savePos(); //save our place in the token stream so we can exit without changing anything
+    success[0] = false;
+    if (isNumber(str.peek())) {
+        success[0] = true;
+        ret = str.pop().value;
+    } else if (str.peek()!==undefined && str.pop().value == "semy") {
+        if (str.peek() !== undefined && str.pop().value == "of") {
+            success[0] = true;
+            ret = 0;
+        }
+    }
+    //if we didn't load a number, rewind
+    if (!success[0]) {
+        str.loadPos(pos);
+    }
+    return ret;
 }
 
 //type is optional and should not generally be used explicitly
@@ -1395,8 +1415,9 @@ function getCharge(str, tree, success, type, defaultOrient=0, defaultMirror=fals
     var pos = str.savePos(); //save our place in the token stream so we can exit without changing anything
     var oldStack = tinctureStack.slice(0);
     var chargeParent = tree.getActiveNode();
-	if( isNumber(str.peek()) ){
-		number=str.pop().value;
+    var numberSuccess = [false];
+    var number = getNumber(str, numberSuccess);
+	if( numberSuccess[0] ){
 		var name = tryChargeName(str, type);//if type is undefined, we'll get any charge
         if (name !== undefined) {
 			//if we found a charge, create empty node (with type and index) and set it as active

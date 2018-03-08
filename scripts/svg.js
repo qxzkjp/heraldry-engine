@@ -16,6 +16,8 @@ var path;
 var box;
 var centre;
 
+var unknownClips;
+
 var debugStarts=[];
 var debugPaths=[];
 var debugEnds = [];
@@ -663,23 +665,6 @@ function recentreElem(id, x, y){
 	elem.setAttribute("d", d)
 }
 
-//recentreElem("shield", 100, 100);
-//roundElem("shield");
-//var shield = document.getElementById("shield");
-//var path=analyzePath(shield.getAttribute("d"));
-//path=scalePath(path, 1.5);
-//path=recentrePath(path, 150, 150);
-//path=roundPath(path);
-//shield.setAttribute("d", reassemblePath(path));
-
-//var root = document.getElementById("root");
-//var path = document.getElementById("path");
-//var point = root.createSVGPoint();
-//point.x = 0;  // replace this with the x co-ordinate of the path segment
-//point.y = 0;  // replace this with the y co-ordinate of the path segment
-//var matrix = path.getTransformToElement(root);
-//var position = point.matrixTransform(matrix);
-
 function createClip(id){
 	var clipId=id+"-clip";
 	var clip=document.getElementById(clipId);
@@ -693,7 +678,11 @@ function createClip(id){
             defEl.appendChild(clip);
             clip.id = clipId;
         } else {
-            console.error("createClip: element " + id + " does not exist; clip path not created.");
+            var idx = unknownClips.indexOf(id);
+            if (idx < 0) {
+                unknownClips.push(id);
+            }
+            console.log("createClip: element " + id + " does not exist; clip path not created.");
         }
     }
 	return clipId;

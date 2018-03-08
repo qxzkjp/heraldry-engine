@@ -139,21 +139,23 @@ function getParameterByName(name, url) {
 function drawUserBlazon(updateHistory = true) {
     disableInput();
     var str = document.getElementById('blazonText').value;
-    var couldParse = setBlazon(str);
-    if (updateHistory && couldParse) {
-        var stateObj = { blazon: str };
-        //replace spaces with plus signs, for URL readability
-        str = encodeURIComponent(str);
-        str = str.replace(/%20/g, "+");
-        //push new URL to history, with blazon in the query string
-        var idx = window.location.href.indexOf("?");
-        var href;
-        if (idx < 0) {
-            href = window.location.href;
-        } else {
-            href = window.location.href.slice(0, idx);
+    if (str != blazon) {
+        var couldParse = setBlazon(str);
+        if (updateHistory && couldParse) {
+            var stateObj = { blazon: str };
+            //replace spaces with plus signs, for URL readability
+            str = encodeURIComponent(str);
+            str = str.replace(/%20/g, "+");
+            //push new URL to history, with blazon in the query string
+            var idx = window.location.href.indexOf("?");
+            var href;
+            if (idx < 0) {
+                href = window.location.href;
+            } else {
+                href = window.location.href.slice(0, idx);
+            }
+            history.pushState(stateObj, "", href + "?blazon=" + str);
         }
-        history.pushState(stateObj, "", href + "?blazon=" + str);
     }
     enableInput();
     //take away form focus from textbox, for UX reasons

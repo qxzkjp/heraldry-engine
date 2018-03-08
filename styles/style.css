@@ -258,6 +258,7 @@ input, select, textarea, button{
 
 #menuButton:hover {
 	fill: rgb(200,200,200);
+	scale: 1.5;
 	transition: fill 0.4s;
 }
 

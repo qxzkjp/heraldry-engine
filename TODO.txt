@@ -1,5 +1,6 @@
-Favourite problems:
+﻿Favourite problems:
 *implement strewn charges (syntax+rendering)
+	implement ordinaries on top of strewn charges
 *implement arrangements (rendering)
 *implement charges on ordinaries (rendering)
 	Done pale, fess and bends. Do more complex ordinaries as implemented.
