@@ -53,3 +53,5 @@ scripts/jquery-3.2.1.min.js
 #don't include sub-projects
 path-data-polyfill.js
 
+#don't include apache config
+.htaccess
