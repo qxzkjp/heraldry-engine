@@ -1,4 +1,14 @@
-﻿<!DOCTYPE html>
+<?php
+  $lifetime=600;
+  session_set_cookie_params ( $lifetime, '/' , '.heraldryengine.com' , TRUE );
+  session_start();
+  setcookie(session_name(),session_id(),time()+$lifetime);
+  if(!array_key_exists('userID',$_SESSION)){
+	  header('Location: login.php', TRUE, 303);
+	  exit("tried to redirect");
+  }
+?>
+<!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="utf-8">
@@ -41,6 +51,7 @@
                             </div>
                             <p class="menu-item" id="toggleSyntax">Toggle syntax display</p>
                             <a href="https://github.com/qxzkjp" class="menu-item">Github page</a>
+							<a href="logout.php" class="menu-item">Log out</a>
                         </div>
                         <div id="versionContainer">Heraldry Engine<br />Version 0.1 (Alpha)<br />By Deus Kane</div>
                     </div>
