@@ -1,8 +1,5 @@
 <?php
-  $lifetime=600;
-  session_set_cookie_params ( $lifetime, '/' , '.heraldryengine.com' , TRUE );
-  session_start();
-  setcookie(session_name(),session_id(),time()+$lifetime);
+  require "session.php";
   if(!array_key_exists('userID',$_SESSION)){
 	  header('Location: login.php', TRUE, 303);
 	  exit("tried to redirect");

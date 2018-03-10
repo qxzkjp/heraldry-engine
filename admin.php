@@ -1,36 +1,7 @@
 <?php
-	require "session.php";
-	$uname="";
-	$pword="";
-	if(array_key_exists('username',$_POST)){
-		$uname=$_POST['username'];
-		if(array_key_exists('password',$_POST)){
-			$ph=password_hash($_POST['password'], PASSWORD_DEFAULT);
-			$pword=$_POST['password'];
-		}
-		require "connect.php";
-		$stmt = $mysqli->prepare("SELECT * FROM users WHERE userName = ?");
-		$stmt->bind_param("s", $uname);
-		$stmt->execute();
-		$result = $stmt->get_result();
-		//if($result->num_rows === 0) exit('No rows');
-		$ids=[];
-		while($row = $result->fetch_assoc()) {
-			$ids[] = array(
-				'ID'=>$row['ID'],
-				'pHash' => $row['pHash'],
-				'accessLevel' => $row['accessLevel']);
-		}
-		$stmt->close();
-		foreach($ids as $value){
-			if(password_verify($pword,$value['pHash'])){
-				if($value['accessLevel']!=2){
-					$_SESSION['userID']=(int)$value['ID'];
-					$_SESSION['accessLevel']=(int)$value['accessLevel'];
-					header('Location: index.php', TRUE, 303);
-				}
-			}
-		}
+	require 'session.php';
+	if(!array_key_exists("accessLevel",$_SESSION) || $_SESSION["accessLevel"]!=0){
+		die("Fuck off, Chris.");
 	}
 ?>
 <!DOCTYPE html>
@@ -69,22 +40,38 @@
 		</div>
 		<div id="content">
 			<hgroup id="mainHead">
-				<h1 id="heraldryHead">Log&nbsp;</h1>
-				<h2 id="engineHead">In</h2>
+				<h1 id="heraldryHead">Secret Admin Shit</h1>
 			</hgroup>
-			<div id="bottomHalf">
-			<?php
-				if(array_key_exists('username',$_POST))
-					echo 'User: ' . $_POST['username'] . '<br>';
-				if(array_key_exists('password',$_POST)){
-					echo 'Password: ' . $ph . '<br>';
-				}
-			?>
-				<form method="post" action="login.php">
-					<input type="text" name="username"></input><br/>
-					<input type="password" name="password"></input>
-					<input type="submit" name="submit" value="Log in"/>
-				</form>
+			<div id="bottomHalf" style="font-family:serif">
+				<table>
+					<tr>
+						<th>ID</th>
+						<th>username</th>
+						<th>status</th>
+					</tr>
+					<?php
+						require "connect.php";
+						$stmt = $mysqli->prepare("SELECT * FROM users");
+						$stmt->execute();
+						$result = $stmt->get_result();
+						while($row = $result->fetch_assoc()) {
+								echo '<tr>';
+								echo '<td>' . $row['ID'] . '</td>';
+								echo '<td>' . $row['userName'] . '</td>';
+								$status;
+								if((int)$row['accessLevel'] == 0)
+									$status="admin";
+								elseif ((int)$row['accessLevel'] == 1)
+									$status="standard";
+								elseif ((int)$row['accessLevel'] == 2)
+									$status="disabled";
+								else
+									$status="unknown";
+								echo '<td>' . $status . '</td>';
+								echo '</tr>';
+						}
+					?>
+				</table>
 			</div>
 		</div>
 	</body>
