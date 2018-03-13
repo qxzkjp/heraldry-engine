@@ -51,6 +51,10 @@ p, li, a {
 	/* letter-spacing: 1px; */
 }
 
+a {
+	color: gold;
+}
+
 .console {
 	background-color: #000000;
 	border: 6px solid #CFB53B;

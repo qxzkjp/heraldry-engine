@@ -1,35 +1,38 @@
 <?php
 	require "session.php";
-	$uname="";
-	$pword="";
-	$loginAttempted=(array_key_exists('username',$_POST) || array_key_exists('password',$_POST));
-	if(array_key_exists('username',$_POST)){
-		$uname=$_POST['username'];
-		if(array_key_exists('password',$_POST)){
-			$ph=password_hash($_POST['password'], PASSWORD_DEFAULT);
-			$pword=$_POST['password'];
-		}
-		require "connect.php";
-		$stmt = $mysqli->prepare("SELECT * FROM users WHERE userName = ?");
-		$stmt->bind_param("s", $uname);
-		$stmt->execute();
-		$result = $stmt->get_result();
-		//if($result->num_rows === 0) exit('No rows');
-		$ids=[];
-		while($row = $result->fetch_assoc()) {
-			$ids[] = array(
-				'ID'=>$row['ID'],
-				'pHash' => $row['pHash'],
-				'accessLevel' => $row['accessLevel']);
-		}
-		$stmt->close();
-		foreach($ids as $value){
-			if(password_verify($pword,$value['pHash'])){
-				if($value['accessLevel']!=2){
-					$_SESSION['userID']=(int)$value['ID'];
-					$_SESSION['accessLevel']=(int)$value['accessLevel'];
-					header('Location: index.php', TRUE, 303);
+	if(!array_key_exists("accessLevel",$_SESSION) || $_SESSION["accessLevel"]!=0){
+		die("Fuck off, Chris.");
+	}
+	$userCreated=false;
+	$passwordError=false;
+	$otherError=false;
+	if(array_key_exists("newUser", $_POST)){
+		if( array_key_exists("newPassword", $_POST)
+			&& array_key_exists("checkPassword", $_POST) ){
+			if($_POST["newPassword"]==$_POST["checkPassword"]){
+				$pHash=password_hash($_POST["newPassword"],PASSWORD_DEFAULT);
+				$al=1;
+				if(array_key_exists("asAdmin",$_POST)){
+					$al=0;
 				}
+				require "connect.php";
+				$stmt = $mysqli->prepare("INSERT INTO users (userName, pHash, accessLevel) VALUES (?, ?, ?);");
+				$stmt->bind_param("ssi", $_POST["newUser"], $pHash, $al);
+				$err=false;
+				try{
+					$err = $stmt->execute();
+				}catch(Exception $e) {
+					error_log($e->getMessage());
+					$otherError=true;
+				}
+				if(false === $err){
+					$otherError=true;
+				}else if($otherError == false){
+					$userCreated=true;
+				}
+				$stmt->close();
+			}else{
+				$passwordError=true;
 			}
 		}
 	}
@@ -70,18 +73,41 @@
 		</div>
 		<div id="content">
 			<hgroup id="mainHead">
-				<h1 id="heraldryHead">Log&nbsp;</h1>
-				<h2 id="engineHead">In</h2>
+				<h1 id="heraldryHead">Create&nbsp;</h1>
+				<h2 id="engineHead">User</h2>
 			</hgroup>
 			<div id="bottomHalf">
-			<?php if($loginAttempted): ?>
-				<p style="color:red">Wrong username or password</p>
+			<?php if($userCreated): ?>
+			<p>User created successfully!</p>
+			<?php elseif($passwordError): ?>
+			<p>Passwords did not match.</p>
+			<?php elseif($otherError): ?>
+			<p>Could not create entry (username taken?)</p>
 			<?php endif ?>
-				<form method="post" action="login.php">
-					<input type="text" name="username"></input><br/>
-					<input type="password" name="password"></input>
-					<input type="submit" name="submit" value="Log in"/>
+				<form action="createuser.php" method="post">
+					<table>
+						<tr>
+							<td>User name</td>
+							<td><input type="text" name="newUser"></td>
+						</tr>
+						<tr>
+							<td>Password</td>
+							<td><input type="password" name="newPassword"></td>
+						</tr>
+						<tr>
+							<td>Confirm password</td>
+							<td><input type="password" name="checkPassword"></td>
+						</tr>
+						<tr>
+							<td>Create as admin</td>
+							<td><input type="checkbox" name="asAdmin" value="true"></td>
+						</tr>
+					</table>
+					<input type="submit" name="submit" value="Create user"/>
 				</form>
+				<p>
+					<a href="admin.php">Back to admin panel</a>
+				</p>
 			</div>
 		</div>
 	</body>

@@ -48,6 +48,11 @@
                             </div>
                             <p class="menu-item" id="toggleSyntax">Toggle syntax display</p>
                             <a href="https://github.com/qxzkjp" class="menu-item">Github page</a>
+							<?php if($_SESSION['accessLevel']==0): ?>
+							<a href="admin.php" class="menu-item">Secret admin shit</a>
+							<?php else: ?>
+							<a href="changepassword.php" class="menu-item">Change password</a>
+							<?php endif ?>
 							<a href="logout.php" class="menu-item">Log out</a>
                         </div>
                         <div id="versionContainer">Heraldry Engine<br />Version 0.1 (Alpha)<br />By Deus Kane</div>
