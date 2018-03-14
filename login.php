@@ -43,12 +43,8 @@
 		<link rel="icon" type="image/x-icon" href="logo.png" />
 		<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 		<link href="styles/style.css" rel="stylesheet" type="text/css">
-		<link id="heraldry-css" href="styles/heraldry.css" rel="stylesheet" type="text/css">
-		<script type="text/javascript" src="path-data-polyfill.js/path-data-polyfill.js"></script>
 		<script type="text/javascript" src="scripts/jquery-3.2.1.min.js"></script>
-		<!--script type="text/javascript" src="../base64-js/base64js.min.js"></!--script-->
-		<script type="text/javascript" src="../TextEncoderLite/index.js"></script>
-		<script type="text/javascript" src="scripts/ui.js"></script>
+		<script type="text/javascript" src="scripts/menu.js"></script>
 	</head>
 	<body>
 		<div id="menuContainer">
