@@ -114,6 +114,7 @@
                     <div id="innerMenu">
                         <div class="menu-list">
 							<a href="index.php" class="menu-item">Back to blazonry</a>
+							<a href="createuser.php" class="menu-item">Create new user</a>
 							<a href="logout.php" class="menu-item">Log out</a>
                         </div>
                         <div id="versionContainer">Heraldry Engine<br />Version 0.1 (Alpha)<br />By Deus Kane</div>
