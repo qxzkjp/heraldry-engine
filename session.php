@@ -10,4 +10,7 @@
 	//$date=date('m/d/Y h:i:s a');
 		$_SESSION["startTime"]=time();
 	}
+	if(!array_key_exists("userIP",$_SESSION)){
+		$_SESSION["userIP"]=$_SERVER["REMOTE_ADDR"];
+	}
 ?>

@@ -216,7 +216,7 @@
 						}
 					?>
 				</table>
-				<h3>Open sessions</h3>
+				<h3>Authenticated sessions</h3>
 				<?php
 					$sesh = $handler->get_all();
 				?>
@@ -224,10 +224,12 @@
 					<tr>
 						<th>Session ID</th>
 						<th>User name</th>
+						<th>User IP</th>
 						<th>Time created</th>
 					</tr>
 					<?php
 					foreach($sesh as $id => $data){
+						if(array_key_exists("userID",$data)){
 					?>
 					<tr>
 						<td>
@@ -242,6 +244,15 @@
 						</td>
 						<td>
 						<?php
+							if(array_key_exists("userIP",$data)){
+								echo $data["userIP"];
+							}else{
+								echo "unknown";
+							}
+						?>
+						</td>
+						<td>
+						<?php
 							if(array_key_exists("startTime",$data)){
 								date_default_timezone_set('Europe/London');
 								echo date('d/m/Y H:i:s', $data["startTime"]);
@@ -250,6 +261,7 @@
 						</td>
 					</tr>
 					<?php
+						}
 					}
 					?>
 				</table>
