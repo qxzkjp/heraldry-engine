@@ -11,7 +11,7 @@
 	$userDemoted=false;
 	$demoteError=false;
 	$userPromoted=false;
-	$promoteError=true;
+	$promoteError=false;
 	if(array_key_exists("action",$_POST)){
 		//do action
 		if($_POST["action"]=="deleteUser" && array_key_exists("ID",$_POST)){
@@ -159,10 +159,7 @@
 						$stmt->execute();
 						$result = $stmt->get_result();
 						while($row = $result->fetch_assoc()) {
-								echo '<tr>';
-								echo '<td>' . $row['ID'] . '</td>';
-								echo '<td>' . $row['userName'] . '</td>';
-								$status;
+							$status;
 								if((int)$row['accessLevel'] == 0)
 									$status="admin";
 								elseif ((int)$row['accessLevel'] == 1)
@@ -171,14 +168,48 @@
 									$status="disabled";
 								else
 									$status="unknown";
-								echo '<td>' . $status . '</td>';
-								$onClick="post('changepassword.php',{'ID':" . $row['ID'] . "})";
-								echo '<td><a href="#" onclick="'.$onClick.'">Change password</a>';
-								$onClick="post('admin.php',{'action' : 'deleteUser', 'ID':" . $row['ID'] . "})";
-								echo '<td><a href="#" onclick="'.$onClick.'">Delete user</a>';
-								$onClick="post('admin.php',{'action' : 'disableUser', 'ID':" . $row['ID'] . "})";
-								echo '<td><a href="#" onclick="'.$onClick.'">Disable user</a>';
-								echo '</tr>';
+						?>
+							<tr>
+								<td><?php echo $row['ID']; ?></td>
+								<td><?php echo $row['userName']; ?></td>
+								<td><?php echo $status; ?></td>
+								<td><a href="#"
+									onclick="post('changepassword.php',{'ID': '<?php echo $row['ID'] ?>'})"
+									>Change password</a>
+								</td>
+								<td><a href="#"
+									onclick="post('admin.php',{'action' : 'deleteUser', 'ID': '<?php echo $row['ID'] ?>'})"
+									>Delete user</a>
+								</td>
+								<td>
+								<?php if($row["accessLevel"]!=0): ?>
+									<a href="#"
+										onclick="post('admin.php',{'action' : 'promoteUser', 'ID': '<?php echo $row['ID'] ?>'})"
+										>Promote user</a>
+								<?php else: ?>
+										Promote user
+								<?php endif ?>
+								</td>
+								<td>
+								<?php if($row["accessLevel"]!=1): ?>
+									<a href="#"
+										onclick="post('admin.php',{'action' : 'demoteUser', 'ID': '<?php echo $row['ID'] ?>'})"
+										>Demote user</a>
+								<?php else: ?>
+										Demote user
+								<?php endif ?>
+								</td>
+								<td>
+								<?php if($row["accessLevel"]!=2): ?>
+									<a href="#"
+										onclick="post('admin.php',{'action' : 'disableUser', 'ID': '<?php echo $row['ID'] ?>'})"
+										>Disable user</a>
+								<?php else: ?>
+										Disable user
+								<?php endif ?>
+								</td>
+							</tr>
+					<?php
 						}
 					?>
 				</table>
