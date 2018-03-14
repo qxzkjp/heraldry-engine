@@ -48,6 +48,7 @@
 		<link href="styles/style.css" rel="stylesheet" type="text/css">
 		<script type="text/javascript" src="scripts/jquery-3.2.1.min.js"></script>
 		<script type="text/javascript" src="scripts/menu.js"></script>
+		<script type="text/javascript" src="scripts/enable.js"></script>
 	</head>
 	<body>
 		<div id="menuContainer">

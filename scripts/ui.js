@@ -1,6 +1,5 @@
 //ui.js: UI code and onLoad triggers
 
-var pageEnabled = true;
 var debugEnabled = false;
 var inputEnabled = false;
 var initialBlazon = "Azure, a bend Or";
@@ -97,17 +96,6 @@ function disableDebugging() {
     setCookie("debug", "");
 }
 
-function disablePage() {
-    $("body").append('<div id="disableBackground"></div>')
-    $("html").addClass("noOverflow");
-    pageEnabled = false;
-}
-
-function enablePage() {
-    $("#disableBackground").remove();
-    $("html").removeClass("noOverflow");
-    pageEnabled = true;
-}
 
 //With thanks to Stack Overflow
 //https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript/901144#901144

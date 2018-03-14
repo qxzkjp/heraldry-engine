@@ -72,6 +72,7 @@
 		<link href="styles/style.css" rel="stylesheet" type="text/css">
 		<script type="text/javascript" src="scripts/jquery-3.2.1.min.js"></script>
 		<script type="text/javascript" src="scripts/menu.js"></script>
+		<script type="text/javascript" src="scripts/enable.js"></script>
 		<script type="text/javascript">
 			//https://stackoverflow.com/a/133997/1543262
 			function post(path, params, method) {
@@ -147,6 +148,7 @@
 			<?php elseif($promoteError): ?>
 			<p>Failed to promote user.</p>
 			<?php endif ?>
+				<h3>Users</h3>
 				<table>
 					<tr>
 						<th>ID</th>
@@ -157,6 +159,7 @@
 						$stmt = $mysqli->prepare("SELECT * FROM users");
 						$stmt->execute();
 						$result = $stmt->get_result();
+						$users=array();
 						while($row = $result->fetch_assoc()) {
 							$status;
 								if((int)$row['accessLevel'] == 0)
@@ -167,6 +170,7 @@
 									$status="disabled";
 								else
 									$status="unknown";
+							$users[(int)$row["ID"]]=$row["userName"];
 						?>
 							<tr>
 								<td><?php echo $row['ID']; ?></td>
@@ -210,6 +214,43 @@
 							</tr>
 					<?php
 						}
+					?>
+				</table>
+				<h3>Open sessions</h3>
+				<?php
+					$sesh = $handler->get_all();
+				?>
+				<table>
+					<tr>
+						<th>Session ID</th>
+						<th>User name</th>
+						<th>Time created</th>
+					</tr>
+					<?php
+					foreach($sesh as $id => $data){
+					?>
+					<tr>
+						<td>
+						<?php echo $id; ?>
+						</td>
+						<td>
+						<?php
+						if(array_key_exists("userID",$data)){
+							echo $users[$data["userID"]];
+						}
+						?>
+						</td>
+						<td>
+						<?php
+							if(array_key_exists("startTime",$data)){
+								date_default_timezone_set('Europe/London');
+								echo date('d/m/Y H:i:s', $data["startTime"]);
+							}
+						?>
+						</td>
+					</tr>
+					<?php
+					}
 					?>
 				</table>
 			</div>
