@@ -71,10 +71,6 @@ $(document).ready(function () {
             }
         }
     });
-    $("#menuButton").on("click", function () {
-        animateSideMenu();
-        //$("#sideMenu").fadeToggle();
-    });
     //draw blazon when enter is pressed
     $("#blazonText").keypress(function (e) {
         if (e.which == 13) {
@@ -85,18 +81,7 @@ $(document).ready(function () {
             $("#blazonText")[0].focus();
         }
     });
-    //hide menu when "focus" is lost
-    $("html").on("click", function (evt) {
-        var isMenuClick = $.contains($("#menuContainer")[0], evt.target);
-        if (!isMenuClick && pageEnabled) {
-            animateSideMenu("hide");
-        }
-    });
 });
-
-function animateSideMenu(method = "toggle") {
-    $("#sideMenu").animate({ "width": method }, 350);
-}
 
 function enableDebugging() {
     debugEnabled = true;

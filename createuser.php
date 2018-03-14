@@ -46,12 +46,8 @@
 		<link rel="icon" type="image/x-icon" href="logo.png" />
 		<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 		<link href="styles/style.css" rel="stylesheet" type="text/css">
-		<link id="heraldry-css" href="styles/heraldry.css" rel="stylesheet" type="text/css">
-		<script type="text/javascript" src="path-data-polyfill.js/path-data-polyfill.js"></script>
 		<script type="text/javascript" src="scripts/jquery-3.2.1.min.js"></script>
-		<!--script type="text/javascript" src="../base64-js/base64js.min.js"></!--script-->
-		<script type="text/javascript" src="../TextEncoderLite/index.js"></script>
-		<script type="text/javascript" src="scripts/ui.js"></script>
+		<script type="text/javascript" src="scripts/menu.js"></script>
 	</head>
 	<body>
 		<div id="menuContainer">
@@ -65,6 +61,8 @@
                     <div id="topMenuSpacer" class="clear"></div>
                     <div id="innerMenu">
                         <div class="menu-list">
+							<a href="admin.php" class="menu-item">Secret admin shit</a>
+							<a href="logout.php" class="menu-item">Log out</a>
                         </div>
                         <div id="versionContainer">Heraldry Engine<br />Version 0.1 (Alpha)<br />By Deus Kane</div>
                     </div>
@@ -105,9 +103,6 @@
 					</table>
 					<input type="submit" name="submit" value="Create user"/>
 				</form>
-				<p>
-					<a href="admin.php">Back to admin panel</a>
-				</p>
 			</div>
 		</div>
 	</body>

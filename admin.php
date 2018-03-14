@@ -70,12 +70,8 @@
 		<link rel="icon" type="image/x-icon" href="logo.png" />
 		<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 		<link href="styles/style.css" rel="stylesheet" type="text/css">
-		<link id="heraldry-css" href="styles/heraldry.css" rel="stylesheet" type="text/css">
-		<script type="text/javascript" src="path-data-polyfill.js/path-data-polyfill.js"></script>
 		<script type="text/javascript" src="scripts/jquery-3.2.1.min.js"></script>
-		<!--script type="text/javascript" src="../base64-js/base64js.min.js"></!--script-->
-		<script type="text/javascript" src="../TextEncoderLite/index.js"></script>
-		<script type="text/javascript" src="scripts/ui.js"></script>
+		<script type="text/javascript" src="scripts/menu.js"></script>
 		<script type="text/javascript">
 			//https://stackoverflow.com/a/133997/1543262
 			function post(path, params, method) {
@@ -117,6 +113,8 @@
                     <div id="topMenuSpacer" class="clear"></div>
                     <div id="innerMenu">
                         <div class="menu-list">
+							<a href="index.php" class="menu-item">Back to blazonry</a>
+							<a href="logout.php" class="menu-item">Log out</a>
                         </div>
                         <div id="versionContainer">Heraldry Engine<br />Version 0.1 (Alpha)<br />By Deus Kane</div>
                     </div>
@@ -213,10 +211,6 @@
 						}
 					?>
 				</table>
-				<p>
-					<a href="createuser.php">Create new user</a><br />
-					<a href="index.php">Back to blazonry</a>
-				</p>
 			</div>
 		</div>
 	</body>

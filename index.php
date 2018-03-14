@@ -23,6 +23,7 @@
 		<script type="text/javascript" src="scripts/syntax.js"></script>
         <script type="text/javascript" src="scripts/svg.js"></script>
 		<script type="text/javascript" src="scripts/ui.js"></script>
+		<script type="text/javascript" src="scripts/menu.js"></script>
 	</head>
 	<body>
 		<div id="menuContainer">
