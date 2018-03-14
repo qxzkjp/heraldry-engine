@@ -12,7 +12,7 @@
 		<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
 		<title>Heraldry Engine</title>
 		<link rel="icon" type="image/x-icon" href="logo.png" />
-		<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+		<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 		<link href="styles/style.css" rel="stylesheet" type="text/css">
 		<link id="heraldry-css" href="styles/heraldry.css" rel="stylesheet" type="text/css">
 		<script type="text/javascript" src="path-data-polyfill.js/path-data-polyfill.js"></script>
