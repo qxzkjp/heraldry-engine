@@ -1,0 +1,3 @@
+*Add browser and OS to session list
+*Automated password reset
+*Log password changes, user creation, user deletion, user privilege change and sign in/out

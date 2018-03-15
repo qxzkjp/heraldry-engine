@@ -58,7 +58,10 @@
 				$userPromoted=true;
 			}
 			$stmt->close();
+		}else if($_POST["action"]=="garbageCollect"){
+			$handler->gc(ini_get('session.gc_maxlifetime'));
 		}
+		
 	}
 ?>
 <!DOCTYPE html>
@@ -226,10 +229,13 @@
 						<th>User name</th>
 						<th>User IP</th>
 						<th>Time created</th>
+						<th>Time expires</th>
 					</tr>
 					<?php
 					foreach($sesh as $id => $data){
 						if(array_key_exists("userID",$data)){
+							if(!array_key_exists("expiry",$data)
+								|| $data["expiry"] >= time()){
 					?>
 					<tr>
 						<td>
@@ -259,12 +265,28 @@
 							}
 						?>
 						</td>
+						<td>
+						<?php
+							if(array_key_exists("expiry",$data)){
+								date_default_timezone_set('Europe/London');
+								echo date('d/m/Y H:i:s', $data["expiry"]);
+							}else{
+								echo "Never";
+							}
+						?>
+						</td>
 					</tr>
 					<?php
+							}
 						}
 					}
 					?>
 				</table>
+				<p>
+					<a href="#"
+						onclick="post('admin.php',{'action' : 'garbageCollect'})"
+						>Collect garbage</a>
+				</p>
 			</div>
 		</div>
 	</body>

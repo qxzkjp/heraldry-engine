@@ -1,4 +1,3 @@
 <?php
-require "session.php";
-echo serialize($_SESSION);
+echo ini_get('session.gc_maxlifetime');
 ?>
