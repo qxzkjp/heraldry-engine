@@ -57,7 +57,7 @@ A division is specified as a division name, which is either a proper
 heraldic division or a variation of the field, followed by an optional 
 line of variation, two (or more if that is compatible with the particular 
 division) sub-blazons, separated by a conjunction (typically "and"), 
-followed by an optional set of charge specifiers
+followed by an optional set of charge specifiers.
 
 When the first sub-blazon contains no charges, the second is assumed not to 
 either, and no attempt is made to parse charges appearing after it as part of 
@@ -74,6 +74,7 @@ encountered for a sub-blazon which is already charged, the parser shall stop par
 and emit an error.
 
 SUB-BLAZON
+
 A sub-blazon consists of an optional ordinal group followed by a blazon. When 
 a sub-blazon does not contain an ordinal group, it shall be assigned the lowest 
 ordinal not already assigned within the division containing the sub-blazon.
@@ -89,3 +90,21 @@ distinct ordinal numbers separated by a conjunction (usually "and").
 
 Ordinal numbers shall either be as words (eg first, second, third...) or as 
 Roman numerals (eg I, II, III...).
+
+NUMBERS
+
+Numbers may be specified as words (one, two, three...) or as numerals
+(1, 2, 3...). The word "a" or "an" shall be taken as equivalent to "one" when 
+parsing.
+
+ORDINARY
+
+An ordinary shall consist of a number, followed by the name of an ordinary,
+an optional line of variation, and an optional tincture. When charges are to 
+be placed upon the ordinary, it must be preceded by the word "on".
+
+MOVABLE CHARGE
+
+A movable charge shall consist of a number, followed by the name of a movable charge,
+an optional orientation (or attitude for beasts), an optional list of charge modifiers,
+an optional arrangement, an optional tincture, and an optional placement.
