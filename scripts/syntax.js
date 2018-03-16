@@ -359,6 +359,7 @@ beastColours=["armed", "langued", "attired", "unguled"];
 conjunctions = ["and"];
 prepositions = ["on", "between", "above", "below", "within", "overall"];
 numbers=["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
+ordinals=["zeroth", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth"];
 
 arrangements=["unspecified", "combined", "two and one", "one and two", "addorsed", "confronte", "in saltire", "in pale", "in fess", "in bend", "in bend sinister"];
 
@@ -734,6 +735,8 @@ Beast.prototype.getName= function (){
 TOK_WORD=0;
 TOK_NUM=1;
 TOK_PUNCT=2;
+TOK_ORD=3;
+WORD_AND="and";
 
 function Buffer(buf="")
 {
@@ -766,7 +769,7 @@ function Token(value, type)
 function getToken(buf)
 {
 	var alph="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-";
-	var punct=" ,;:.";
+	var punct=" ,;:.&";
 	var num="0123456789";
 	var tok="";
 	var type=TOK_WORD;
@@ -782,32 +785,62 @@ function getToken(buf)
 		{
 			tok+=buf.pop();
 		}
+		//if it is a valid roman numeral (all in upper case) treat it as 
+		//an ordinal
+		var rn=parseRomanNumerals(tok);
+		//treat spelled-out numbers the same as numerals
+		var num=numbers.indexOf(tok);
+		//treat spelled-out ordinals the same as numerals
+		var ord=ordinals.indexOf(tok);
+		//normalise the token by making it lower-case
 		tok=tok.toLowerCase();
+		if(rn>0){
+			tok=rn;
+			type=TOK_ORD;
+		}else if(tok==="a" || tok==="an"){
+			//treat the word "a" or "an" like the number one
+			tok=1;
+			type=TOK_NUM;
+		}else if(num > -1){
+			tok=num;
+			type=TOK_NUM;
+		}else if(ord > -1){
+			tok=ord;
+			type=TOK_ORD;
+		}
 	//if it begins with a digit, read a string of digits
 	}else if(num.indexOf(buf.peek()) > -1){
-		while (punct.indexOf(buf.peek()) === -1 && buf.peek() !== undefined )
+		while (num.indexOf(buf.peek()) !== -1 && buf.peek() !== undefined )
 		{
 			tok+=buf.pop();
 		}
+		//then read any appended letters
+		var suff="";
+		while (alph.indexOf(buf.peek()) !== -1 && buf.peek() !== undefined )
+		{
+			suff+=buf.pop();
+		}
 		//store number as a number
 		tok=parseInt(tok,10);
-		type=TOK_NUM;
+		//if there was no suffix, it was a number; if there was (eg nd, rd)
+		//then it was an ordinal.
+		if(suff==""){
+			type=TOK_NUM;
+		}else{
+			type=TOK_ORD;
+		}
 	//if it begins with a mark, read a mark
 	}else if(punct.indexOf(buf.peek()) > -1)
 	{
 		tok+=buf.pop();
-		type=TOK_PUNCT;
+		if(tok!="&"){
+			type=TOK_PUNCT;
+		}else{
+			tok=WORD_AND;
+		}
 	}
 	//if there was no token, return nothing
-	if(tok==="")
-	{return}
-	//treat the word "a" like the number one
-	if(tok==="a")
-	{return new Token(1,TOK_NUM);}
-	//treat spelled-out numbers the same as numerals
-	var num=numbers.indexOf(tok);
-	if(num > -1)
-		{return new Token(num,TOK_NUM);}
+	if(tok===""){return}
 	return new Token(tok,type);
 }
 
@@ -1796,6 +1829,44 @@ var tinctureStack = [];
 
 function titleCase(str){
 	return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+//this turns an upper-case roman numeral string into an integer
+//if the numeral is mal-formed, or just not a roman numeral, it returns 0
+function parseRomanNumerals(str){
+	var ones=["I","X","C","M"];
+	var fives=["V","L","D",""];
+	var i=0;
+	var val=0;
+	for(var j=ones.length-1;j>=0;--j){
+		if(j+1 < ones.length
+			&& i<str.length-1
+			&& str.charAt(i)==ones[j]
+			&& str.charAt(i+1)==ones[j+1]){
+			i+=2;
+			val+=9*Math.pow(10,j);
+		}else if(fives[j]!=""
+			&& i<str.length-1
+			&& str.charAt(i)==ones[j]
+			&& str.charAt(i+1)==fives[j]){
+			i+=2;
+			val+=4*Math.pow(10,j);
+		}else if(fives[j]!=""
+			&& i<str.length
+			&& str.charAt(i)==fives[j]){
+			i++;
+			val+=5*Math.pow(10,j);
+		}
+		
+		while(i<str.length && str.charAt(i)==ones[j]){
+			++i;
+			val+=Math.pow(10,j);
+		}
+	}
+	if(i!=str.length){
+		val=0;
+	}
+	return val;
 }
 
 /******************

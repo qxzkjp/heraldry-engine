@@ -230,6 +230,7 @@
 						<th>User IP</th>
 						<th>Time created</th>
 						<th>Time expires</th>
+						<th></th>
 					</tr>
 					<?php
 					foreach($sesh as $id => $data){
@@ -275,6 +276,7 @@
 							}
 						?>
 						</td>
+						<td>Delete session</td>
 					</tr>
 					<?php
 							}

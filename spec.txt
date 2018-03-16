@@ -4,6 +4,8 @@ The basic form of a blazon is the field or division, followed by an ordinary,
 list of movable charges, list of charges placed upon the ordinary, list of 
 secondary Ordinaries and charges thereon.
 
+(FIELD|DIVISION),? (ORDINARY)( (CHARGELIST))?( (ORDINARY))*
+
 Before the first charge not constituting part of the division as a sub-blazon
 (as specified below) the words "over all" may appear. These words shall be 
 accepted by the parser when encountered, but shall not be assigned any semantic
@@ -54,16 +56,21 @@ is simply blazoned as a high number.
 DIVISION
 
 A division is specified as a division name, which is either a proper 
-heraldic division or a variation of the field, followed by an optional 
-line of variation, two (or more if that is compatible with the particular 
-division) sub-blazons, separated by a conjunction (typically "and"), 
-followed by an optional set of charge specifiers.
+heraldic division or a variation of the field, followed by an optional number, 
+followed by an optional line of variation, two (or more if that is compatible 
+with the particular division) sub-blazons, separated by a conjunction 
+(typically "and"), followed by an optional set of charge specifiers. In leiu of
+a number (which must be even), the division may be preceded by the word 
+"tierced", indicating that there are three areas.
 
 When the first sub-blazon contains no charges, the second is assumed not to 
 either, and no attempt is made to parse charges appearing after it as part of 
 the sub-blazon (with the result being that any such charges are layed over all).
 
 The areas associated with the ordinals are specified by the division.
+
+(divisions)( of (#))?( (variations))? (BLAZON)( and (BLAZON))+
+(divisions)( of (#))?( (variations))?( (OG):? (BLAZON))+
 
 CHARGE SPECIFIER
 
@@ -97,6 +104,8 @@ Numbers may be specified as words (one, two, three...) or as numerals
 (1, 2, 3...). The word "a" or "an" shall be taken as equivalent to "one" when 
 parsing.
 
+in a regex, (#) means any number
+
 ORDINARY
 
 An ordinary shall consist of a number, followed by the name of an ordinary,
@@ -108,3 +117,25 @@ MOVABLE CHARGE
 A movable charge shall consist of a number, followed by the name of a movable charge,
 an optional orientation (or attitude for beasts), an optional list of charge modifiers,
 an optional arrangement, an optional tincture, and an optional placement.
+
+CHARGE
+
+A Charge shall take one of the following forms:
+
+(#) (charges)( (modifierList))?( (surroundingGroup))?
+on (#) (charges)( (modifierList))?( (surroundingGroup))? (CHARGE)
+
+Ordinaries do not have a placement.
+
+MODIFIER LIST
+(modifiers)( (modifiers))*
+
+Possible modifiers:
+* Posture (bendwise, rampant, etc)
+* treatment (couped bendwise, etc)
+* tincture (ermine, sable, etc)
+* beastly tinctures (armed gules, etc)
+* Placement (in fess, in chief, etc)
+
+SURROUNDING GROUP
+(between|below|above|within) (CHARGE)( and (CHARGE))*
