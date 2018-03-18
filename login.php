@@ -1,5 +1,6 @@
 <?php
 	require "session.php";
+	require "useragent.php";
 	$uname="";
 	$pword="";
 	$loginAttempted=(array_key_exists('username',$_POST) || array_key_exists('password',$_POST));
@@ -28,7 +29,25 @@
 				if($value['accessLevel']!=2){
 					$_SESSION['userID']=(int)$value['ID'];
 					$_SESSION['accessLevel']=(int)$value['accessLevel'];
+					$_SESSION["startTime"]=time();
+					$_SESSION["userIP"]=$_SERVER["REMOTE_ADDR"];
+					$_SESSION["OS"]=getOS();
+					$_SESSION["browser"]=getBrowser();
+					//get geolocation data from freegeoip (and drop line break)
+					$_SESSION["geoIP"] = substr(file_get_contents(
+						"https://freegeoip.net/csv/".$_SESSION['userIP']
+						), 0, -2);
+					$sections=explode(",",$_SESSION["geoIP"]);
+					if($sections[2]!=""){
+						$_SESSION["countryName"]=$sections[2];
+					}
+					if($sections[5]!=""){
+						$_SESSION["city"]=$sections[5];
+					}
+					//IP,CountryCode,CountryName,RegionCode,RegionName,City,
+					//ZipCode,TimeZone,Latitude,Longitude,MetroCode
 					header('Location: index.php', TRUE, 303);
+					die();
 				}
 			}
 		}

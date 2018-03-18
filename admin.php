@@ -126,7 +126,7 @@
 	</head>
 	<body style="max-width:none">
 		<div id="menuContainer">
-            <div id="innerMenuContainer" style="max-width:<?php echo $maxWidth; ?>px">
+            <div id="innerMenuContainer" style="max-width:<?=$maxWidth?>px">
                 <svg version="1.1" baseProfile="full" viewBox="0 0 100 100" id="menuButton" xmlns="http://www.w3.org/2000/svg">
                     <rect x="0" y="10" width="100" height="20" rx="10" ry="10" />
                     <rect x="0" y="40" width="100" height="20" rx="10" ry="10" />
@@ -145,28 +145,28 @@
                 </div>
             </div>
 		</div>
-		<div id="content" style="max-width:<?php echo $maxWidth; ?>px">
+		<div id="content" style="max-width:<?=$maxWidth?>px">
 			<hgroup id="mainHead">
 				<h1 id="heraldryHead">Secret Admin Shit</h1>
 			</hgroup>
 			<div id="bottomHalf" style="font-family:serif">
 			<?php if($userDeleted): ?>
-			<p>User ID <?php echo $_POST["ID"]; ?> deleted successfuly.</p>
+			<p>User ID <?=$_POST["ID"]?> deleted successfully.</p>
 			<?php elseif($deleteError): ?>
 			<p>Failed to delete user.</p>
 			<?php endif ?>
 			<?php if($userDisabled): ?>
-			<p>User ID <?php echo $_POST["ID"]; ?> disabled successfuly.</p>
+			<p>User ID <?=$_POST["ID"]?> disabled successfully.</p>
 			<?php elseif($disableError): ?>
 			<p>Failed to disable user.</p>
 			<?php endif ?>
 			<?php if($userDemoted): ?>
-			<p>User ID <?php echo $_POST["ID"]; ?> demoted successfuly.</p>
+			<p>User ID <?=$_POST["ID"]?> demoted successfully.</p>
 			<?php elseif($demoteError): ?>
 			<p>Failed to demote user.</p>
 			<?php endif ?>
 			<?php if($userPromoted): ?>
-			<p>User ID <?php echo $_POST["ID"]; ?> promoted successfuly.</p>
+			<p>User ID <?=$_POST["ID"]?> promoted successfully.</p>
 			<?php elseif($promoteError): ?>
 			<p>Failed to promote user.</p>
 			<?php endif ?>
@@ -195,44 +195,41 @@
 							$users[(int)$row["ID"]]=$row["userName"];
 						?>
 							<tr>
-								<td><?php echo $row['ID']; ?></td>
-								<td><?php echo $row['userName']; ?></td>
-								<td><?php echo $status; ?></td>
+								<td><?=$row['ID']?></td>
+								<td><?=$row['userName']?></td>
+								<td><?=$status?></td>
 								<td><a href="#"
-									onclick="post('changepassword.php',{'ID': '<?php echo $row['ID'] ?>'})"
+									onclick="post('changepassword.php',{'ID': '<?=$row['ID']?>'})"
 									>Change password</a>
 								</td>
 								<td><a href="#"
-									onclick="post('admin.php',{'action' : 'deleteUser', 'ID': '<?php echo $row['ID'] ?>'})"
+									onclick="post('admin.php',{'action' : 'deleteUser', 'ID': '<?=$row['ID']?>'})"
 									>Delete user</a>
 								</td>
-								<td>
-								<?php if($row["accessLevel"]!=0): ?>
-									<a href="#"
-										onclick="post('admin.php',{'action' : 'promoteUser', 'ID': '<?php echo $row['ID'] ?>'})"
+								<td><?php
+									if($row["accessLevel"]!=0): 
+									?><a href="#"
+										onclick="post('admin.php',{'action' : 'promoteUser', 'ID': '<?=$row['ID']?>'})"
 										>Promote user</a>
 								<?php else: ?>
 										Promote user
-								<?php endif ?>
-								</td>
-								<td>
-								<?php if($row["accessLevel"]!=1): ?>
-									<a href="#"
-										onclick="post('admin.php',{'action' : 'demoteUser', 'ID': '<?php echo $row['ID'] ?>'})"
+								<?php endif ?></td>
+								<td><?php
+									if($row["accessLevel"]!=1):
+									?><a href="#"
+										onclick="post('admin.php',{'action' : 'demoteUser', 'ID': '<?=$row['ID']?>'})"
 										>Demote user</a>
 								<?php else: ?>
 										Demote user
-								<?php endif ?>
-								</td>
-								<td>
-								<?php if($row["accessLevel"]!=2): ?>
-									<a href="#"
-										onclick="post('admin.php',{'action' : 'disableUser', 'ID': '<?php echo $row['ID'] ?>'})"
+								<?php endif ?></td>
+								<td><?php
+									if($row["accessLevel"]!=2):
+									?><a href="#"
+										onclick="post('admin.php',{'action' : 'disableUser', 'ID': '<?=$row['ID']?>'})"
 										>Disable user</a>
 								<?php else: ?>
 										Disable user
-								<?php endif ?>
-								</td>
+								<?php endif ?></td>
 							</tr>
 					<?php
 						}
@@ -247,6 +244,7 @@
 						<th>Session ID</th>
 						<th>User name</th>
 						<th>User IP</th>
+						<th>Location</th>
 						<th>Time created</th>
 						<th>Time expires</th>
 						<th>Browser</th>
@@ -260,69 +258,66 @@
 								|| $data["expiry"] >= time()){
 					?>
 					<tr>
-						<td>
-						<?php echo $id; ?>
-						</td>
-						<td>
-						<?php
+						<td><?=$id?></td>
+						<td><?php
 						if(array_key_exists("userID",$data)){
 							echo $users[$data["userID"]];
 						}
-						?>
-						</td>
-						<td>
-						<?php
+						?></td>
+						<td><?php
 							if(array_key_exists("userIP",$data)){
 								echo $data["userIP"];
 							}else{
 								echo "unknown";
 							}
-						?>
-						</td>
-						<td>
-						<?php
+							echo "<!--".$_SESSION["geoIP"]."-->";
+						?></td>
+						<td><?php
+						if(array_key_exists("city",$_SESSION)){
+							echo $_SESSION["city"].", ";
+						}
+						if(array_key_exists("countryName",$_SESSION)){
+							echo str_replace(" ","&nbsp;",
+								$_SESSION["countryName"]);
+						}else{
+							echo "unknown";
+						}
+						?></td>
+						<td><?php
 							if(array_key_exists("startTime",$data)){
 								date_default_timezone_set('Europe/London');
 								echo date('d/m/Y H:i:s', $data["startTime"]);
 							}
-						?>
-						</td>
-						<td>
-						<?php
+						?></td>
+						<td><?php
 							if(array_key_exists("expiry",$data)){
 								date_default_timezone_set('Europe/London');
 								echo date('d/m/Y H:i:s', $data["expiry"]);
 							}else{
 								echo "Never";
 							}
-						?>
-						</td>
-						<td>
-						<?php
+						?></td>
+						<td><?php
 							if(array_key_exists("browser",$data)){
 								echo $data["browser"];
 							}else{
 								echo "unknown";
 							}
-						?>
-						</td>
-						<td>
-						<?php
+						?></td>
+						<td><?php
 							if(array_key_exists("OS",$data)){
-								echo $data["OS"];
+								echo str_replace(" ", "&nbsp;", $data["OS"]);
 							}else{
 								echo "unknown";
 							}
-						?>
-						</td>
+						?></td>
 						<td>Delete session</td>
 					</tr>
 					<?php
 							}
 						}
 					}
-					?>
-				</table>
+				?></table>
 				<p>
 					<a href="#"
 						onclick="post('admin.php',{'action' : 'garbageCollect'})"
