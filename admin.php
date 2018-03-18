@@ -270,15 +270,15 @@
 							}else{
 								echo "unknown";
 							}
-							echo "<!--".$_SESSION["geoIP"]."-->";
+							echo "<!--".$data["geoIP"]."-->";
 						?></td>
 						<td><?php
-						if(array_key_exists("city",$_SESSION)){
-							echo $_SESSION["city"].", ";
+						if(array_key_exists("city",$data)){
+							echo $data["city"].", ";
 						}
-						if(array_key_exists("countryName",$_SESSION)){
+						if(array_key_exists("countryName",$data)){
 							echo str_replace(" ","&nbsp;",
-								$_SESSION["countryName"]);
+								$data["countryName"]);
 						}else{
 							echo "unknown";
 						}
