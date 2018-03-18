@@ -29,17 +29,11 @@ body {
 	position: relative;
 }
 
-body, #menuContainer {
-	/* max-width: 720px; */
-	/* min-width: 300px; */
-}
-
 #content {
     /*  these next two lines make content cover the whole
         height of the screen without causing an overflow
         where it wasn't needed                              */
     min-height: 100vh;
-    max-width: 720px;
     box-sizing: border-box;
     padding: 15px 20px 5px 20px;
     margin: 0 auto;
@@ -243,8 +237,11 @@ input, select, textarea, button{
     top: 0px;
     width: 100%;
     z-index: 1;
-    max-width: 720px;
     margin: 0 auto;
+}
+
+#innerMenuContainer, #content {
+	max-width: 720px;
 }
 
 #menuButton {
@@ -423,4 +420,9 @@ svg, div {
     text-align: right;
     margin: 5px 25px;
     line-height: 1.3;
+}
+
+table.center {
+	margin-left: auto; 
+	margin-right: auto;
 }

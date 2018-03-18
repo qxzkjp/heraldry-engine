@@ -58,10 +58,11 @@ DIVISION
 A division is specified as a division name, which is either a proper 
 heraldic division or a variation of the field, followed by an optional number, 
 followed by an optional line of variation, two (or more if that is compatible 
-with the particular division) sub-blazons, separated by a conjunction 
-(typically "and"), followed by an optional set of charge specifiers. In leiu of
-a number (which must be even), the division may be preceded by the word 
-"tierced", indicating that there are three areas.
+with the particular division) sub-blazons, followed by an optional set of 
+charge specifiers. In leiu of a number (which must be even), the division may 
+be preceded by the word "tierced", indicating that there are three areas. When 
+a sub-blazon which is not the first does not start with an ordinal group, it 
+must be preceeded by the word "and".
 
 When the first sub-blazon contains no charges, the second is assumed not to 
 either, and no attempt is made to parse charges appearing after it as part of 
@@ -71,6 +72,8 @@ The areas associated with the ordinals are specified by the division.
 
 (divisions)( of (#))?( (variations))? (BLAZON)( and (BLAZON))+
 (divisions)( of (#))?( (variations))?( (OG):? (BLAZON))+
+tierced (divisions)( (variations))? (BLAZON)( and (BLAZON))+
+tierced (divisions)( (variations))?( (OG):? (BLAZON))+
 
 CHARGE SPECIFIER
 
@@ -89,6 +92,7 @@ ordinal not already assigned within the division containing the sub-blazon.
 The sub-blazon is drawn as an ordinary blazon would be, but confined to the 
 space specified for its associated ordinal or ordinals by the division.
 
+((OG): )?(BLAZON)
 
 ORDINAL GROUP
 
@@ -139,3 +143,9 @@ Possible modifiers:
 
 SURROUNDING GROUP
 (between|below|above|within) (CHARGE)( and (CHARGE))*
+
+TINCTURE
+
+A tincture is either the name of a tincture, the words "of the" followed by an 
+ordinal (which refer to the nth tincture already named) or a division with no 
+charges.

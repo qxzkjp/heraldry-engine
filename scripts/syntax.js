@@ -324,6 +324,9 @@ plurals = ["paly", "barry", "bendy", "bendy sinister", "chevronny", "gyronny", "
 //"unspecified" is not a real tincture (duh), but is used as a placeholder. It must be in position 0.
 tinctures = ["unspecified", "argent", "or", "gules", "azure", "vert", "purpure", "sable", "tenny", "brown", "sanguine", "vair", "countervair", "potent", "counterpotent", "ermine", "ermines", "erminois", "pean", "counterchanged"];
 
+variations = ["plain", "engrailed", "invected", "dancetty", "indented", "wavy",
+	"embattled", "nebuly", "raguly", "dovetailed", "rayonne", "urdy"];
+
 var TINCT_UNSPECIFIED = 0;
 
 //chevron is immovable, while "chevrons" is moveable: strange hack, but it might work
@@ -507,6 +510,8 @@ appendMap(orientationsMap, mirrorOrientMap, 0, true);
 
 //combine attitude and sub-attitude maps in a special way
 attitudesMap=mapProduct(attMap, facMap, facings.length);
+
+variationsMap = setupMap(variations);
 
 /*******************************************************
 **PROTOTYPES (CHARGES ETC.)                           **
@@ -1085,6 +1090,22 @@ function isPunct(tok)
 	return true;
 }
 
+function peekForToken(str, val, type){
+	tok=str.peek();
+	if(tok===undefined){
+		return false;
+	}
+	if(val!==undefined 
+		&& tok.value!==val){
+		return false;
+	}
+	if(type!==undefined
+		&& tok.type!==type){
+		return false;
+	}
+	return true;
+}
+
 /**********************************************************
 **PARSING FUNCTIONS                                      **
 **functions to attempt to read a semantic construct      **
@@ -1174,6 +1195,32 @@ function tryName(str, map, type){
 	return;
 }
 
+//attempt to get a list of ordinals as an array of integers
+//if there are no ordinals or the list is malformed, an empty array is returned
+function tryOrdinalList(str){
+	var ret=[];
+	var oldPos=str.savePos();
+	var missingOrdinal=false;
+	while(str.peek()!==undefined
+		&& str.peek().type===TOK_ORD){
+		missingOrdinal=false;
+		ret.push(str.pop().value);
+		if(str.peek()!==undefined
+			&& str.peek().type===TOK_WORD
+			&& str.peek().value==="and"){
+			missingOrdinal=true;
+			str.pop();
+		}else{
+			break;
+		}
+	}
+	if(missingOrdinal){
+		str.loadPos(oldPos);
+		ret=[];
+	}
+	return ret;
+}
+
 function tryChargeName(str, type)
 {
 	return tryName(str, chargeMap, type);
@@ -1202,6 +1249,11 @@ function tryDirectionName(str)
 function tryArrangementName(str)
 {
 	return tryName(str, arrangementsMap, 0);
+}
+
+function tryVariationName(str)
+{
+	return tryName(str, variationsMap, 0);
 }
 
 //either return a field, or leave the stream semantically unchanged
@@ -1309,7 +1361,14 @@ function isBareFieldOrDivision(tree) {
 
 function isBareField(tree) {
     if (tree instanceof Field) {
-        return tree.subnode.length === 0;
+		if(tree.subnode.length === 0){
+			return true;
+		}
+        if( tree.subnode.length === 1 ){
+			return tree.at(0)["number"]===0;
+		}else{
+			return false;
+		}
     } else {
         return false;
     }
@@ -1889,3 +1948,139 @@ function displayTree(root){
 }
 
 var root;
+
+/*******************
+**BLAZON GENERATOR**
+********************/
+
+WORD_TIERCED="tierced";
+WORD_OF="of";
+WORD_THE="the";
+
+function clone(obj, cloneList){
+	if(cloneList===undefined){
+		cloneList=new Map();
+	}
+	var cloneObj;
+	if(cloneList.has(obj)){
+		cloneObj=cloneList.get(obj);
+	}else if(obj instanceof Array){
+		cloneObj=[];
+		cloneList.set(obj,cloneObj);
+		for(val of obj){
+			if(typeof(val)==="object"){
+				cloneObj.push(clone(val, cloneList));
+			}else{
+				cloneObj.push(val);
+			}
+		}
+	}else{
+		cloneObj={};
+		Object.setPrototypeOf(cloneObj, obj.constructor.prototype);
+		cloneList.set(obj,cloneObj);
+		var props=Object.getOwnPropertyNames(obj);
+		for(key of props){
+			if(typeof(obj[key])==="object" && obj[key]!==null){
+				cloneObj[key]=clone(obj[key],cloneList);
+			}else{
+				cloneObj[key]=obj[key];
+			}
+		}
+	}
+	return cloneObj;
+}
+
+function tryTinctureName(str){
+	if(str.peek().type===TOK_WORD){
+		var idx=tinctures.indexOf(str.peek().value);
+		if(idx>-1){
+			str.pop();
+			return [0,idx,true];
+		}
+	}
+	return;
+}
+
+function tryPhrase(str, phrase){
+	var oldPos=str.savePos();
+	var words=phrase.split(" ");
+	var phraseFound=true;
+	for(var i=0;i<words.length;++i){
+		word=str.pop();
+		if(word===undefined
+			|| word.type != TOK_WORD
+			|| word.value != words[i]){
+			phraseFound=false;
+			break;
+		}
+	}
+	if(!phraseFound){
+		str.loadPos(oldPos);
+	}
+	return phraseFound;
+}
+
+PHRASE_OFTHE="of the";
+function tryTinctureReference(str){
+	
+}
+
+function BlazonGenerator(str){
+	if(typeof(str)==="string"){
+		this.setString(str);
+	}else {
+		this.setString("");
+	}
+}
+
+BlazonGenerator.prototype.setString=function(str){
+	if(typeof(str)==="string"){
+		this.str=new TokenStream(new Buffer(str));
+	}
+	this.tree=undefined;
+	this.tinctureStack=[];
+	this.stateStack=[];
+}
+
+BlazonGenerator.prototype.append=function(obj){
+	if(this.tree===undefined){
+		this.tree=obj;
+	}else{
+		this.tree.active.append(obj);
+	}
+}
+
+BlazonGenerator.prototype.setActive=function(node){
+	this.tree.setActiveNode(node);
+}
+
+BlazonGenerator.prototype.getActive=function(){
+	this.tree.getActiveNode();
+}
+
+BlazonGenerator.prototype.pushState=function(){
+	stateStack.push({tree:clone(this.tree),
+		tinctureStack:this.tinctureStack.slice(0)})
+}
+
+BlazonGenerator.prototype.popState=function(){
+	stateObj=stateStack.pop();
+	if(stateObj!==undefined){
+		this.tree=stateObj.tree;
+		this.tinctureStack=stateObj.tinctureStack;
+	}
+}
+
+BlazonGenerator.prototype.getTincture=function(){
+	var idx=tryTinctureName(this.str);
+	if(idx!==undefined){
+		this.tinctureStack.push(idx[1]);
+		var field=new TreeNode();
+		field["superType"]="field";
+		//the tincture is a pointer to the tincture stack
+		field["tincture"]=tinctureStack.length-1;
+		this.append(field)
+		return true;
+	}
+	return false;
+}

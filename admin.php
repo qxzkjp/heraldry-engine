@@ -63,6 +63,7 @@
 		}
 		
 	}
+	$maxWidth=1200;
 ?>
 <!DOCTYPE html>
 <html>
@@ -104,10 +105,28 @@
 			//example:
 			//post('/contact/', {name: 'Johnny Bravo'});
 		</script>
+		<style>
+			table {
+				border-collapse: collapse;
+			}
+
+			table, th, td {
+				border-right: 1px solid gold;
+			}
+			td.noborder {
+				border:none;
+			}
+			tr:nth-child(even) {
+				background-color: #000099;
+			}
+			th,td {
+				padding: 5px;
+			}
+		</style>
 	</head>
-	<body>
+	<body style="max-width:none">
 		<div id="menuContainer">
-            <div id="innerMenuContainer">
+            <div id="innerMenuContainer" style="max-width:<?php echo $maxWidth; ?>px">
                 <svg version="1.1" baseProfile="full" viewBox="0 0 100 100" id="menuButton" xmlns="http://www.w3.org/2000/svg">
                     <rect x="0" y="10" width="100" height="20" rx="10" ry="10" />
                     <rect x="0" y="40" width="100" height="20" rx="10" ry="10" />
@@ -126,7 +145,7 @@
                 </div>
             </div>
 		</div>
-		<div id="content">
+		<div id="content" style="max-width:<?php echo $maxWidth; ?>px">
 			<hgroup id="mainHead">
 				<h1 id="heraldryHead">Secret Admin Shit</h1>
 			</hgroup>
@@ -230,6 +249,8 @@
 						<th>User IP</th>
 						<th>Time created</th>
 						<th>Time expires</th>
+						<th>Browser</th>
+						<th>OS</th>
 						<th></th>
 					</tr>
 					<?php
@@ -273,6 +294,24 @@
 								echo date('d/m/Y H:i:s', $data["expiry"]);
 							}else{
 								echo "Never";
+							}
+						?>
+						</td>
+						<td>
+						<?php
+							if(array_key_exists("browser",$data)){
+								echo $data["browser"];
+							}else{
+								echo "unknown";
+							}
+						?>
+						</td>
+						<td>
+						<?php
+							if(array_key_exists("OS",$data)){
+								echo $data["OS"];
+							}else{
+								echo "unknown";
 							}
 						?>
 						</td>

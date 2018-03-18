@@ -3,6 +3,7 @@
 	if (session_status() == PHP_SESSION_NONE) {
 		//custom session handler to allow reading sessions
 		require "sessionhandler.php";
+		require "useragent.php";
 		$lifetime=3600;
 		session_set_cookie_params ( $lifetime, '/' , '.heraldryengine.com' , TRUE );
 		session_start();
@@ -18,6 +19,12 @@
 		}
 		if(!array_key_exists("userIP",$_SESSION)){
 			$_SESSION["userIP"]=$_SERVER["REMOTE_ADDR"];
+		}
+		if(!array_key_exists("OS",$_SESSION)){
+			$_SESSION["OS"]=getOS();
+		}
+		if(!array_key_exists("browser",$_SESSION)){
+			$_SESSION["browser"]=getBrowser();
 		}
 	}
 ?>
