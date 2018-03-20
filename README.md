@@ -32,7 +32,7 @@ metals and colours can be drawn. Of the furs, ermine and ermines can be drawn.
 Charges can be drawn counterchanged. Charges can be drawn on ordinaries, but 
 a single charge on a bend shows in the middle instead of in honour point.
 
-### STATE OF THE FRONTEND
+### STATE OF THE BACKEND
 
 Basic access control has been implemented. There are standard users and 
 administrators. Administrators can add and remove users, change the password of 
