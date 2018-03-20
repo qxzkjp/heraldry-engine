@@ -1,8 +1,8 @@
-#H E R A L D R Y  E N G I N E
+# H E R A L D R Y  E N G I N E
 
 A basic parser and renderer for machine-readable blazon.
 
-##WHAT IS MACHINE-READABLE BLAZON?
+## WHAT IS MACHINE-READABLE BLAZON?
 
 It is a subset of the language used to describe coats of arms (blazon) which 
 can be parsed by an automated process. The latest (alpha) version of the spec 
@@ -11,9 +11,9 @@ be as large a subset of blazonry proper as is possible. The website contained
 in these files should be regarded as the (very unfinished) reference 
 implementation of MRB.
 
-##WHAT IS THE STATE OF THIS PROJECT?
+## WHAT IS THE STATE OF THIS PROJECT?
 
-###STATE OF THE PARSER
+### STATE OF THE PARSER
 
 Currently basic blazons containing a division, an ordinary, charges around the 
 ordinary, and charges on the ordinary can be parsed. Divisions can contain 
@@ -22,7 +22,7 @@ specified without an ordinary, in particular semy charges. All movable charges
 can be oriented. Groups of charges can be given an arrangement (eg "in pale"). 
 All tinctures (including "counterchanged") can be parsed.
 
-###STATE OF THE RENDERER
+### STATE OF THE RENDERER
 
 For rendering, of the ordinaries only the fess, bend, bend sinister and pale 
 can be drawn. Of movable charges, only the mullet, roundel, billet, phrygian 
@@ -39,7 +39,7 @@ administrators. Administrators can add and remove users, change the password of
 any user, and view the list of users and active sessions. The list of sessions 
 is generated without relying on undocumented behaviour.
 
-##WHAT IS NEXT?
+## WHAT IS NEXT?
 
 I am currently re-writing the parsing code to conform to the newly written 
 spec. The re-write is from the ground up, and the new parser will take a much 
