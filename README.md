@@ -49,7 +49,7 @@ The spec will be updated with a formal grammar soon. It will also be expanded
 slightly to explain what each of the parts mean and how they should be 
 rendered, including specifying individual charges and divisions.
 
-I will also add the ability to save blazons., per-user. I may also add 
+I will also add the ability to save blazons, per-user. I may also add 
 the ability to refer to "the arms of..." within a blazon, to simplify 
 complicated blazons.
 
