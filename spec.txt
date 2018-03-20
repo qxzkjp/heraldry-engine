@@ -2,9 +2,10 @@ MACHINE-READABLE BLAZON
 
 The basic form of a blazon is the field or division, followed by an ordinary,
 list of movable charges, list of charges placed upon the ordinary, list of 
-secondary Ordinaries and charges thereon.
+charge specifiers for charges placed on other charges, list of secondary 
+Ordinaries and charges thereon.
 
-(FIELD|DIVISION),? (ORDINARY)( (CHARGELIST))?( (ORDINARY))*
+(FIELD|DIVISION),? (ORDINARY)( (CHARGELIST))?( (SPECIFIERLIST))?( (ORDINARY))*
 
 Before the first charge not constituting part of the division as a sub-blazon
 (as specified below) the words "over all" may appear. These words shall be 
@@ -77,11 +78,13 @@ tierced (divisions)( (variations))?( (OG):? (BLAZON))+
 
 CHARGE SPECIFIER
 
-A charge specifier consists of the words "on the" followed by an ordinal group,
-followed by a list of charges as if for a blazon. Said charges shall be appended 
-to the sub-blazons associated with the ordinals. Where a charge specifier is 
-encountered for a sub-blazon which is already charged, the parser shall stop parsing 
-and emit an error.
+A charge specifier consists of the words "on the" followed by a charge name (or 
+in the case of a division, an ordinal group), followed by a list of charges as 
+if for a blazon. Said charges shall be appended to all the charges in the 
+current blazon or sub-blazon which match the label, or in the case of a 
+division, sub-blazons associated with the ordinals. Where a charge specifier is 
+encountered for a sub-blazon which is already charged, the parser shall stop 
+parsing and emit an error.
 
 SUB-BLAZON
 
@@ -101,6 +104,8 @@ distinct ordinal numbers separated by a conjunction (usually "and").
 
 Ordinal numbers shall either be as words (eg first, second, third...) or as 
 Roman numerals (eg I, II, III...).
+
+In a regex, (OG) means any ordinal group.
 
 NUMBERS
 
@@ -130,6 +135,7 @@ A Charge shall take one of the following forms:
 on (#) (charges)( (modifierList))?( (surroundingGroup))? (CHARGE)
 
 Ordinaries do not have a placement.
+Only beasts have beastly tinctures.
 
 MODIFIER LIST
 (modifiers)( (modifiers))*
@@ -147,5 +153,5 @@ SURROUNDING GROUP
 TINCTURE
 
 A tincture is either the name of a tincture, the words "of the" followed by an 
-ordinal (which refer to the nth tincture already named) or a division with no 
+ordinal (which refer to the nth tincture already named), or a division with no 
 charges.

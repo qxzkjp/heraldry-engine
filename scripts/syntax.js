@@ -326,6 +326,7 @@ tinctures = ["unspecified", "argent", "or", "gules", "azure", "vert", "purpure",
 
 variations = ["plain", "engrailed", "invected", "dancetty", "indented", "wavy",
 	"embattled", "nebuly", "raguly", "dovetailed", "rayonne", "urdy"];
+treatments = ["none","couped","erased","cabossed"]
 
 var TINCT_UNSPECIFIED = 0;
 
@@ -512,6 +513,7 @@ appendMap(orientationsMap, mirrorOrientMap, 0, true);
 attitudesMap=mapProduct(attMap, facMap, facings.length);
 
 variationsMap = setupMap(variations);
+treatmentsMap = setupMap(treatments);
 
 /*******************************************************
 **PROTOTYPES (CHARGES ETC.)                           **
@@ -1198,23 +1200,53 @@ function tryName(str, map, type){
 //attempt to get a list of ordinals as an array of integers
 //if there are no ordinals or the list is malformed, an empty array is returned
 function tryOrdinalList(str){
+	return tryList(str, getOrdinal);
+}
+
+function tryBeastlyTinctureList(str){
+	return tryList(str, getBeastlyTincture);
+}
+
+function getOrdinal(str){
+	if(str.peek()!==undefined && str.peek().type===TOK_ORD){
+		return str.pop().value;
+	}
+	return;
+}
+
+function getBeastlyTincture(str){
+	if(str.peek()!==undefined){
+		var idx = beastColours.indexOf(str.peek().value);
+		if(idx>-1){
+			str.pop();
+			return idx;
+		}
+	}
+	return;
+}
+
+function tryList(str, getElement){
 	var ret=[];
 	var oldPos=str.savePos();
-	var missingOrdinal=false;
-	while(str.peek()!==undefined
-		&& str.peek().type===TOK_ORD){
-		missingOrdinal=false;
-		ret.push(str.pop().value);
-		if(str.peek()!==undefined
-			&& str.peek().type===TOK_WORD
-			&& str.peek().value==="and"){
-			missingOrdinal=true;
-			str.pop();
+	var missingItem=false;
+	var el=getElement(str);
+	do{
+		missingItem=false;
+		ret.push(el);
+		if(str.peek()!==undefined){
+			if( (str.peek().type===TOK_WORD
+				&& str.peek().value===WORD_AND) ||
+				(str.peek().type===TOK_PUNCT
+				&& str.peek().value===",") ){
+				str.pop();
+				missingItem=true;
+			}
 		}else{
 			break;
 		}
-	}
-	if(missingOrdinal){
+		el=getElement(str);
+	}while(el!==undefined);
+	if(missingItem){
 		str.loadPos(oldPos);
 		ret=[];
 	}
@@ -1241,6 +1273,16 @@ function tryAttitudeName(str)
 	return tryName(str, attitudesMap, 0);
 }
 
+function tryBareAttitudeName(str)
+{
+	return tryName(str, attMap, 0);
+}
+
+function tryFacingName(str)
+{
+	return tryName(str, FacMap, 0);
+}
+
 function tryDirectionName(str)
 {
 	return tryName(str, directionsMap, 0);
@@ -1254,6 +1296,11 @@ function tryArrangementName(str)
 function tryVariationName(str)
 {
 	return tryName(str, variationsMap, 0);
+}
+
+function tryTreatmentName(str)
+{
+	return tryName(str, treatmentsMap, 0);
 }
 
 //either return a field, or leave the stream semantically unchanged
@@ -1957,7 +2004,11 @@ WORD_TIERCED="tierced";
 WORD_OF="of";
 WORD_THE="the";
 
+/*
 function clone(obj, cloneList){
+	if(obj===undefined){
+		return;
+	}
 	if(cloneList===undefined){
 		cloneList=new Map();
 	}
@@ -1989,9 +2040,18 @@ function clone(obj, cloneList){
 	}
 	return cloneObj;
 }
+*/
+
+function clone(obj){
+	if(obj instanceof TreeNode){
+		return obj.clone();
+	}else{
+		return;
+	}
+}
 
 function tryTinctureName(str){
-	if(str.peek().type===TOK_WORD){
+	if(str.peek()!==undefined && str.peek().type===TOK_WORD){
 		var idx=tinctures.indexOf(str.peek().value);
 		if(idx>-1){
 			str.pop();
@@ -2020,11 +2080,6 @@ function tryPhrase(str, phrase){
 	return phraseFound;
 }
 
-PHRASE_OFTHE="of the";
-function tryTinctureReference(str){
-	
-}
-
 function BlazonGenerator(str){
 	if(typeof(str)==="string"){
 		this.setString(str);
@@ -2051,36 +2106,222 @@ BlazonGenerator.prototype.append=function(obj){
 }
 
 BlazonGenerator.prototype.setActive=function(node){
-	this.tree.setActiveNode(node);
+	if(node!==undefined){
+		this.tree.setActiveNode(node);
+	}else if(this.tree!==undefined){
+		console.error("BlazonGenerator.setActive:\
+			tried to set undefined active node when tree is defined");
+	}
 }
 
 BlazonGenerator.prototype.getActive=function(){
-	this.tree.getActiveNode();
+	if(this.tree!==undefined){
+		return this.tree.getActiveNode();
+	}else{
+		return;
+	}
 }
 
 BlazonGenerator.prototype.pushState=function(){
-	stateStack.push({tree:clone(this.tree),
-		tinctureStack:this.tinctureStack.slice(0)})
+	this.stateStack.push({tree:clone(this.tree),
+		tinctureStack:this.tinctureStack.slice(0),
+		bufferPos:this.str.savePos()});
 }
 
 BlazonGenerator.prototype.popState=function(){
-	stateObj=stateStack.pop();
+	var stateObj=this.stateStack.pop();
 	if(stateObj!==undefined){
 		this.tree=stateObj.tree;
 		this.tinctureStack=stateObj.tinctureStack;
+		this.str.loadPos(Obj.bufferPos);
 	}
+}
+
+BlazonGenerator.prototype.abandonState=function(){
+	this.stateStack.pop();
+}
+
+BlazonGenerator.prototype.addTincture=function(tinct){
+	if(tinct===undefined){
+		return;
+	}
+	//this is glue to make it work with the return value of tryTinctureName
+	if(tinct instanceof Array){
+		tinct=tinct[1];
+	}
+	this.tinctureStack.push(tinct);
+	return this.tinctureStack.length-1;
+}
+
+BlazonGenerator.prototype.nextTincture=function(){
+	return this.tinctureStack.length;
 }
 
 BlazonGenerator.prototype.getTincture=function(){
 	var idx=tryTinctureName(this.str);
 	if(idx!==undefined){
-		this.tinctureStack.push(idx[1]);
 		var field=new TreeNode();
 		field["superType"]="field";
 		//the tincture is a pointer to the tincture stack
-		field["tincture"]=tinctureStack.length-1;
+		field["tincture"]=this.addTincture(idx[1]);
 		this.append(field)
 		return true;
 	}
+	//TODO: check for simple divisions
+	return false;
+}
+
+PHRASE_OFTHE="of the";
+BlazonGenerator.prototype.getTinctureReference=function(){
+	var oldPos=this.str.savePos();
+	if(tryPhrase(this.str, PHRASE_OFTHE)){
+		if(this.str.peek()!==undefined && this.str.peek().type===TOK_ORD){
+			var field=new TreeNode();
+			field["superType"]="field";
+			//the first tincture is at index zero in the stack
+			field["tincture"]=this.str.pop().value-1;
+			this.append(field);
+			return true;
+		}
+	}
+	this.str.loadPos(oldPos);
+	return false;
+}
+
+BlazonGenerator.prototype.fail=function(){
+	this.popState();
+	return false;
+}
+
+var WORD_ON="on";
+
+BlazonGenerator.prototype.getCharge=function(isSemy){
+	this.pushState();
+	var oldActive=this.getActive();
+	var hasLayedCharges=false;
+	var newCharge=new TreeNode();
+	newCharge["superType"]="charge";
+	this.append(newCharge);
+	this.setActive(newCharge);
+	if(isSemy!==true){
+		if(peekForToken(this.str,WORD_ON,TOK_WORD)){
+			this.str.pop();
+			hasLayedCharges=true;
+		}
+		if(this.str.peek().type===TOK_NUM){
+			newCharge["number"]=this.str.pop().value;
+		}else{
+			return this.fail();
+		}
+	}else{
+		newCharge["number"]=0;
+	}
+	var name = tryChargeName(this.str); //[type, index, flag]
+	if(name!==undefined){
+			newCharge["type"]=name[0];
+			newCharge["index"]=name[1];
+	}else{
+		return this.fail();
+	}
+	while(this.getChargeModifier());
+	if(newCharge.subnode.length==0){
+		var field=new TreeNode();
+		field["superType"]="field";
+		//if no tincture, use the next one to be pushed
+		field["tincture"]=this,tinctureStack.length;
+		this.append(field);
+		return true;
+	}
+	//TODO:this.getSurroundingGroup();
+	if(hasLayedCharges){
+		if(!this.getCharge()){
+			return this.fail();
+		}
+	}
+	if(oldActive!=undefined){
+		this.setActive(oldActive);
+	}
+	this.abandonState();
+	return true;
+}
+
+BlazonGenerator.prototype.getTreatment=function(){
+	var oldPos=this.str.savePos();
+	var treatment = tryTreatmentName(this.str);
+	if(treatment!==undefined){
+		this.getActive()["treatment"]=treatment[1];
+	}else{
+		return false;
+	}
+	var orient = tryOrientationName(this.str);
+	if(orient!==undefined){
+		this.getActive()["treatmentOrient"]=orient[1];
+	}
+	return true;
+}
+
+BlazonGenerator.prototype.getOrientation=function(){
+	var oldPos=this.str.savePos();
+	var orient=tryOrientationName(this.str);
+	if(orient!==undefined){
+		this.getActive()["orientation"]=orient[1];
+		this.getActive()["mirrored"]=orient[2];
+		return true;
+	}
+	return false;
+}
+
+BlazonGenerator.prototype.getAttitude=function(){
+	var att = tryBareAttitudeName(this.str);
+	if(att!==undefined){
+		this.getActive()["orientation"]=att[1];
+	}else{
+		return false;
+	}
+	var fac = tryFacingName(this.str);
+	if(fac!==undefined){
+		this.getActive()["facing"]=fac[1];
+	}
+	return true;
+}
+
+BlazonGenerator.prototype.getBeastlyTincture=function(){
+	var oldPos=this.str.savePos();
+	var areas=tryBeastlyTinctureList(this.str);
+	if(areas!=[]){
+		var tinct = this.addTincture(tryTinctureName(this.str));
+		if(tinct!==undefined){
+			for(i of areas){
+				this.getActive()[beastColours[i]]=tinct;
+			}
+			return true;
+		}
+	}
+	this.str.loadPos(oldPos);
+	return false;
+}
+
+BlazonGenerator.prototype.getChargeModifier=function(){
+	var oldPos=this.str.savePos();
+	if(this.getTincture()){
+		return true;
+	}
+	if(this.getTinctureReference()){
+		return true;
+	}
+	if(this.getTreatment()){
+		return true;
+	}
+	if(this.getOrientation()){
+		return true;
+	}
+	if(this.getAttitude()){
+		return true;
+	}
+	if(this.getBeastlyTincture()){
+		return true;
+	}
+	//TODO: add other modifiers
+	this.str.loadPos(oldPos);
 	return false;
 }
