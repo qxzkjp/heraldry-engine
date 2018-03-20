@@ -56,8 +56,8 @@ $(document).ready(function () {
                 $("#toggleSyntax").removeClass("showing");
                 return false;
             }
-        } else if (evt.target.id === "exampleBlazons") {
-            $("#exampleContainer").slideToggle();
+        } else if ($(evt.target).hasClass("expanding-button")) {
+            $(evt.target).next().slideToggle();
         }
     });
     $("#menuContainer").on("click", ".demoBlazon", function (evt) {

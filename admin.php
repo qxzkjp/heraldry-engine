@@ -5,13 +5,11 @@
 	}
 	require "connect.php";
 	$userDeleted=false;
-	$deleteError=false;
 	$userDisabled=false;
-	$disableError=false;
 	$userDemoted=false;
-	$demoteError=false;
 	$userPromoted=false;
-	$promoteError=false;
+	$sessionDeleted=false;
+	$error=false;
 	if(array_key_exists("action",$_POST)){
 		//do action
 		if($_POST["action"]=="deleteUser" && array_key_exists("ID",$_POST)){
@@ -19,10 +17,9 @@
 			$stmt = $mysqli->prepare("DELETE FROM users WHERE ID = ?;");
 			$stmt->bind_param("i", $_POST["ID"]);
 			$err = $stmt->execute();
+			$userDeleted=true;
 			if(false === $err){
-				$deleteError=true;
-			}else{
-				$userDeleted=true;
+				$error=true;
 			}
 			$stmt->close();
 		}else if($_POST["action"]=="disableUser"){
@@ -30,10 +27,9 @@
 			$stmt = $mysqli->prepare("UPDATE users SET accessLevel=2 WHERE ID = ?;");
 			$stmt->bind_param("i", $_POST["ID"]);
 			$err = $stmt->execute();
+			$userDisabled=true;
 			if(false === $err){
-				$disableError=true;
-			}else{
-				$userDisabled=true;
+				$error=true;
 			}
 			$stmt->close();
 		}else if($_POST["action"]=="demoteUser"){
@@ -41,10 +37,9 @@
 			$stmt = $mysqli->prepare("UPDATE users SET accessLevel=1 WHERE ID = ?;");
 			$stmt->bind_param("i", $_POST["ID"]);
 			$err = $stmt->execute();
+			$userDemoted=true;
 			if(false === $err){
-				$demoteError=true;
-			}else{
-				$userDemoted=true;
+				$error=true;
 			}
 			$stmt->close();
 		}else if($_POST["action"]=="promoteUser"){
@@ -52,14 +47,16 @@
 			$stmt = $mysqli->prepare("UPDATE users SET accessLevel=0 WHERE ID = ?;");
 			$stmt->bind_param("i", $_POST["ID"]);
 			$err = $stmt->execute();
+			$userPromoted=true;
 			if(false === $err){
-				$promoteError=true;
-			}else{
-				$userPromoted=true;
+				$error=true;
 			}
 			$stmt->close();
 		}else if($_POST["action"]=="garbageCollect"){
 			$handler->gc(ini_get('session.gc_maxlifetime'));
+		}else if($_POST["action"]=="deleteSession"){
+			$error = !$handler->destroy($_POST["ID"]);
+			$sessionDeleted=true;
 		}
 		
 	}
@@ -102,8 +99,6 @@
 				document.body.appendChild(form);
 				form.submit();
 			}
-			//example:
-			//post('/contact/', {name: 'Johnny Bravo'});
 		</script>
 		<style>
 			table {
@@ -151,26 +146,46 @@
 			</hgroup>
 			<div id="bottomHalf" style="font-family:serif">
 			<?php if($userDeleted): ?>
-			<p>User ID <?=$_POST["ID"]?> deleted successfully.</p>
-			<?php elseif($deleteError): ?>
+			<?php if($error): ?>
 			<p>Failed to delete user.</p>
+			<?php else: ?>
+			<p>User ID <?=$_POST["ID"]?> deleted successfully.</p>
 			<?php endif ?>
+			<?php endif ?>
+
 			<?php if($userDisabled): ?>
-			<p>User ID <?=$_POST["ID"]?> disabled successfully.</p>
-			<?php elseif($disableError): ?>
+			<?php if($error): ?>
 			<p>Failed to disable user.</p>
+			<?php else: ?>
+			<p>User ID <?=$_POST["ID"]?> disabled successfully.</p>
 			<?php endif ?>
+			<?php endif ?>
+
 			<?php if($userDemoted): ?>
-			<p>User ID <?=$_POST["ID"]?> demoted successfully.</p>
-			<?php elseif($demoteError): ?>
+			<?php if($error): ?>
 			<p>Failed to demote user.</p>
+			<?php else: ?>
+			<p>User ID <?=$_POST["ID"]?> demoted successfully.</p>
 			<?php endif ?>
+			<?php endif ?>
+
 			<?php if($userPromoted): ?>
-			<p>User ID <?=$_POST["ID"]?> promoted successfully.</p>
-			<?php elseif($promoteError): ?>
+			<?php if($error): ?>
 			<p>Failed to promote user.</p>
+			<?php else: ?>
+			<p>User ID <?=$_POST["ID"]?> promoted successfully.</p>
 			<?php endif ?>
-				<h3>Users</h3>
+			<?php endif ?>
+
+			<?php if($sessionDeleted): ?>
+			<?php if($error): ?>
+			<p>Failed to close session.</p>
+			<?php else: ?>
+			<p>Session ID <?=$_POST["ID"]?> closed successfully.</p>
+			<?php endif ?>
+			<?php endif ?>
+			
+			<h3>Users</h3>
 				<table>
 					<tr>
 						<th>ID</th>
@@ -311,7 +326,9 @@
 								echo "unknown";
 							}
 						?></td>
-						<td>Delete session</td>
+						<td><?php if($id!=session_id()):?><a href="#"
+							onclick="post('admin.php',{'action' : 'deleteSession', 'ID': '<?=$id?>'})">
+							Delete session</a><?php endif ?>
 					</tr>
 					<?php
 							}
