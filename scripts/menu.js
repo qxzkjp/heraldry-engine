@@ -4,6 +4,11 @@ $(document).ready(function () {
         animateSideMenu();
         //$("#sideMenu").fadeToggle();
     });
+	$("#menuContainer").on("click", ".menu-item", function (evt) {
+        if ($(evt.target).hasClass("expanding-button")) {
+            $(evt.target).next().slideToggle();
+        }
+    });
     //hide menu when "focus" is lost
     $("html").on("click", function (evt) {
         var isMenuClick = $.contains($("#menuContainer")[0], evt.target);
