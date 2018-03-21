@@ -10,7 +10,7 @@ $view = new View($controller,$model);
 $view->setTemplate("templates/template.php");
 $view->setParam("content","blazon.php");
 $view->setParam("primaryHead","Heraldry");
-$view->setParam("secondaryHead","Engline");
+$view->setParam("secondaryHead","Engine");
 $view->setParam("scriptList",[
 	"../path-data-polyfill.js/path-data-polyfill",
 	"jquery-3.2.1.min",
