@@ -1,4 +1,4 @@
-			<div style="text-align:center;overflow: auto;" id="dotContainer">
+			<div style="text-align:center;overflow: none;" id="dotContainer">
 <?php require "startingsvg.php"; ?>
                 <div id="shieldCover" class="loadingScreen">
                     <h1 id="pleaseHeading">Please</h1>

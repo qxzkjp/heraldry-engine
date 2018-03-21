@@ -1,0 +1,9 @@
+#innerMenuContainer, #content {
+	max-width: calc(100vh + 300px);
+}
+
+@media (max-height: 700px){
+	#innerMenuContainer, #content {
+		max-width: 1000px;
+	}
+}

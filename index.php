@@ -23,7 +23,10 @@ $view->setParam("scriptList",[
 	]);
 $view->setParam("cssList",[
 	[
-		"name" => "style",
+		"name" => "style"
+	],
+	[
+		"name" => "narrow"
 	],
 	[
 		"name" => "heraldry",

@@ -71,6 +71,7 @@
 		<link rel="icon" type="image/x-icon" href="logo.png" />
 		<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 		<link href="styles/style.css" rel="stylesheet" type="text/css">
+		<link href="styles/wide.css" rel="stylesheet" type="text/css">
 		<script type="text/javascript" src="scripts/jquery-3.2.1.min.js"></script>
 		<script type="text/javascript" src="scripts/ui.js"></script>
 		<script type="text/javascript" src="scripts/enable.js"></script>
@@ -119,9 +120,9 @@
 			}
 		</style>
 	</head>
-	<body style="max-width:none">
+	<body>
 		<div id="menuContainer">
-            <div id="innerMenuContainer" style="max-width:<?=$maxWidth?>px">
+            <div id="innerMenuContainer" >
                 <svg version="1.1" baseProfile="full" viewBox="0 0 100 100" id="menuButton" xmlns="http://www.w3.org/2000/svg">
                     <rect x="0" y="10" width="100" height="20" rx="10" ry="10" />
                     <rect x="0" y="40" width="100" height="20" rx="10" ry="10" />
@@ -140,7 +141,7 @@
                 </div>
             </div>
 		</div>
-		<div id="content" style="max-width:<?=$maxWidth?>px">
+		<div id="content" >
 			<hgroup id="mainHead">
 				<h1 id="heraldryHead">Secret Admin Shit</h1>
 			</hgroup>

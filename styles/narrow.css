@@ -1,0 +1,23 @@
+#innerMenuContainer, #content {
+	max-width: calc(100vh - 300px);
+}
+
+@media (min-height: 850px){
+	@media (min-width: 540px) {
+		#innerMenuContainer, #content {
+			max-width: calc(100vh - 250px);
+		}
+	}
+}
+
+@media (max-height: 700px) {
+	#innerMenuContainer, #content {
+		max-width: 400px;
+	}
+}
+
+@media (max-width: 380px) {
+	#innerMenuContainer, #content {
+		max-width: none;
+	}
+}

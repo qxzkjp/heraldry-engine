@@ -104,29 +104,31 @@ h2::first-letter {
     text-indent: 1.75em;
 }
 
-@media (min-width: 560px) {
-    #mainHead {
-        margin: 0 0 15px 0;
-        flex-direction: row;
-        align-items: flex-end;
-        justify-content: center;
-    }
-    #heraldryHead {
-        /* display: inline-block; */
-        padding: 0;
-    }
+@media (min-height: 850px){
+	@media(min-width: 540px) {
+		#mainHead {
+			margin: 0 0 15px 0;
+			flex-direction: row;
+			align-items: flex-end;
+			justify-content: center;
+		}
+		#heraldryHead {
+			/* display: inline-block; */
+			padding: 0;
+		}
 
-    #engineHead {
-        Font-size: 60px;
-        /* display: inline-block; */
-        /*margin: 0 0 0 0.5em;*/
-        text-indent: 0;
-    }
+		#engineHead {
+			Font-size: 60px;
+			/* display: inline-block; */
+			/*margin: 0 0 0 0.5em;*/
+			text-indent: 0;
+		}
 
-    #engineHead::first-letter {
-        /*font-family: inherit;*/
-        font-size: 100px;
-    }
+		#engineHead::first-letter {
+			/*font-family: inherit;*/
+			font-size: 100px;
+		}
+	}
 }
 
 #pleaseHeading,#waitHeading{
@@ -238,10 +240,6 @@ input, select, textarea, button{
     width: 100%;
     z-index: 1;
     margin: 0 auto;
-}
-
-#innerMenuContainer, #content {
-	max-width: 720px;
 }
 
 #menuButton {
