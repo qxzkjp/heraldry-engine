@@ -1,5 +1,6 @@
 #innerMenuContainer, #content {
-	max-width: calc(100vh - 300px);
+	/*max-width: calc(100vh - 300px);*/
+	max-width:none;
 }
 
 @media (min-height: 850px){
@@ -12,7 +13,7 @@
 
 @media (max-height: 700px) {
 	#innerMenuContainer, #content {
-		max-width: 400px;
+		/*max-width: 400px;*/
 	}
 }
 
