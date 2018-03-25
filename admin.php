@@ -1,10 +1,15 @@
 <?php
-require "utility/session.php";
+$config = require 'bootstrap/bootstrap.php';
 require "utility/requireAdmin.php";
-require "utility/adminmvc.php";
 
+use HeraldryEngine\AdminPanel\AdminPanelModel;
+use HeraldryEngine\AdminPanel\AdminPanelView;
+use HeraldryEngine\AdminPanel\AdminPanelController;
+use HeraldryEngine\SessionHandler;
 
-$model = new AdminPanelModel();
+$handler = new SessionHandler();
+
+$model = new AdminPanelModel($config, $handler);
 $controller = new AdminPanelController($model);
 $view = new AdminPanelView($controller,$model);
 
@@ -55,5 +60,3 @@ $view->setParam("menuList",[
 ]);
 
 $view->render();
-
-?>
