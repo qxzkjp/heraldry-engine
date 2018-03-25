@@ -36,7 +36,7 @@ $view->setParam("content","adminpanel.php");
 $view->setParam("pageName","admin.php");
 $view->setParam("primaryHead","Secret Admin Shit");
 $view->setParam("scriptList",[
-	"jquery-3.2.1.min",
+	"vendor/jquery-3.2.1.min",
 	"ui",
 	"enable",
 	"post"
