@@ -50,8 +50,11 @@ scripts/jquery-3.2.1.min.js
 #don't include fonts in repo (I don't own them)
 #fonts
 
-#don't include sub-projects
-path-data-polyfill.js
-
 #don't include apache config
 .htaccess
+
+# Composer dependencies
+/vendor/
+
+#protect Chris from himself
+config/config.php

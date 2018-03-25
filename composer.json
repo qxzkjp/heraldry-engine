@@ -1,0 +1,19 @@
+{
+    "name": "qxzkjp/heraldry-engine",
+    "description": "Basic blazon parsing and rendering",
+    "type": "project",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Deus Kane",
+            "email": "deusekane@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "HeraldryEngine\\": "src/"
+        }
+    }
+}

@@ -1,7 +1,11 @@
 <?php
+require "vendor/autoload.php";
 require "utility/session.php";
 require "utility/requireAuth.php";
-require "utility/mvc.php";
+
+use HeraldryEngine\Mvc\Model;
+use HeraldryEngine\Mvc\View;
+use HeraldryEngine\Mvc\Controller;
 
 //the model and controller do nothing here, as it's essentially a static page
 $model = new Model();
@@ -12,8 +16,8 @@ $view->setParam("content","blazon.php");
 $view->setParam("primaryHead","Heraldry");
 $view->setParam("secondaryHead","Engine");
 $view->setParam("scriptList",[
-	"../path-data-polyfill.js/path-data-polyfill",
-	"jquery-3.2.1.min",
+	"vendor/path-data-polyfill",
+	"vendor/jquery-3.2.1.min",
 	"cubic",
 	"syntax",
 	"svg",
