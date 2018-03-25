@@ -11,4 +11,7 @@ CREATE TABLE failureLogs (
 
 INSERT INTO failureLogs (userID, accessTime, IP, isIPv6) VALUES (?, NOW(), INET6_ATON(?), IS_IPV6(?));
 
-SELECT COUNT(*) FROM failureLogs WHERE userID=? AND accessTime > (NOW() - INTERVAL 5 MINUTE);
+SELECT COUNT(*) FROM failureLogs WHERE userName=? AND accessTime > (NOW() - INTERVAL 5 MINUTE);
+
+/*access counts from individual subnets*/
+SELECT userName, SUBSTR(IP,1,8) as subnet, COUNT(*) FROM failureLogs WHERE isIPv6 = TRUE GROUP BY userName, subnet
