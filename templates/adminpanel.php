@@ -44,14 +44,19 @@
 								<?php else: ?>
 										Promote user
 								<?php endif ?></td>
-								<td><?php
-									if($row["accessLevel"]!=1):
-									?><a href="#"
+								<td>
+<?php if($row["accessLevel"]<1): ?>
+									<a href="#"
 										onclick="post('<?=$this->params["pageName"]?>',{'action' : 'demoteUser', 'ID': '<?=$row['ID']?>'})"
 										>Demote user</a>
-								<?php else: ?>
-										Demote user
-								<?php endif ?></td>
+<?php elseif($row["accessLevel"]>1): ?>
+									<a href="#"
+										onclick="post('<?=$this->params["pageName"]?>',{'action' : 'demoteUser', 'ID': '<?=$row['ID']?>'})"
+										>Enable user</a>
+<?php else: ?>
+									Demote user
+<?php endif ?>
+								</td>
 								<td><?php
 									if($row["accessLevel"]!=2):
 									?><a href="#"

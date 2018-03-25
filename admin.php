@@ -28,7 +28,7 @@ if(array_key_exists("action",$_POST)){
 
 $view->setTemplate("templates/template.php");
 $view->setParam("content","adminpanel.php");
-$view->setParam("pageName","newadmin.php");
+$view->setParam("pageName","admin.php");
 $view->setParam("primaryHead","Secret Admin Shit");
 $view->setParam("scriptList",[
 	"jquery-3.2.1.min",
