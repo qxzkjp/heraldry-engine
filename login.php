@@ -10,7 +10,6 @@
 		$uname=strtolower($_POST['username']);
 		$stmt = $mysqli->prepare(
 			"SELECT COUNT(*) FROM failureLogs WHERE userName=? AND accessTime > (NOW() - INTERVAL 5 MINUTE);");
-		var_dump($mysqli->error);
 		$stmt->bind_param("s", $uname);
 
 		$stmt->execute();
