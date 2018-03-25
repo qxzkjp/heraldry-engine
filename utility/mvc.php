@@ -2,8 +2,8 @@
 class View {
 	private $template;
 	private $params;
-	private $model;
-	private $controller;
+	protected $model;
+	protected $controller;
 	public function __construct($controller,$model){
 		$this->controller=$controller;
 		$this->model=$model;
@@ -27,7 +27,7 @@ class Model {
 	}
 }
 class Controller {
-	private $model;
+	protected $model;
 	public function __construct($model){
 		$this->model=$model;
 	}

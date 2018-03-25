@@ -1,7 +1,7 @@
 <?php
-require "session.php";
-require "requireAuth.php";
-require "mvc.php";
+require "utility/session.php";
+require "utility/requireAuth.php";
+require "utility/mvc.php";
 
 //the model and controller do nothing here, as it's essentially a static page
 $model = new Model();

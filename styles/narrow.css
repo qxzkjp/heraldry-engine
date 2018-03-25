@@ -3,7 +3,7 @@
 	max-width:none;
 }
 
-@media (min-height: 850px){
+@media (min-height: 620px){
 	@media (min-width: 540px) {
 		#innerMenuContainer, #content {
 			max-width: calc(100vh - 250px);

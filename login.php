@@ -1,16 +1,16 @@
 <?php
-	require "session.php";
-	require "useragent.php";
+	require "utility/session.php";
+	require "utility/useragent.php";
 	$uname="";
 	$pword="";
 	$loginAttempted=(array_key_exists('username',$_POST) || array_key_exists('password',$_POST));
 	if(array_key_exists('username',$_POST)){
-		$uname=$_POST['username'];
+		$uname=strtolower($_POST['username']);
 		if(array_key_exists('password',$_POST)){
 			$ph=password_hash($_POST['password'], PASSWORD_DEFAULT);
 			$pword=$_POST['password'];
 		}
-		require "connect.php";
+		require "utility/connect.php";
 		$stmt = $mysqli->prepare("SELECT * FROM users WHERE userName = ?");
 		$stmt->bind_param("s", $uname);
 		$stmt->execute();

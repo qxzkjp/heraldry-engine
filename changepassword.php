@@ -1,10 +1,10 @@
 <?php
-	require "session.php";
+	require "utility/session.php";
 	if(!array_key_exists('userID',$_SESSION)){
 		header('Location: login.php', TRUE, 303);
 		exit("tried to redirect");
 	}
-	require "connect.php";
+	require "utility/connect.php";
 	$isAdmin=false;
 	$passwordChanged=false;
 	$passwordError=false;

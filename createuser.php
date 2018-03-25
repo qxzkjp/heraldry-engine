@@ -1,5 +1,5 @@
 <?php
-	require "session.php";
+	require "utility/session.php";
 	if(!array_key_exists("accessLevel",$_SESSION) || $_SESSION["accessLevel"]!=0){
 		die("Fuck off, Chris.");
 	}
@@ -7,6 +7,7 @@
 	$passwordError=false;
 	$otherError=false;
 	if(array_key_exists("newUser", $_POST)){
+		$username=strtolower($_POST["newUser"]);
 		if( array_key_exists("newPassword", $_POST)
 			&& array_key_exists("checkPassword", $_POST) ){
 			if($_POST["newPassword"]==$_POST["checkPassword"]){
@@ -17,7 +18,7 @@
 				}
 				require "connect.php";
 				$stmt = $mysqli->prepare("INSERT INTO users (userName, pHash, accessLevel) VALUES (?, ?, ?);");
-				$stmt->bind_param("ssi", $_POST["newUser"], $pHash, $al);
+				$stmt->bind_param("ssi", $username, $pHash, $al);
 				$err=false;
 				try{
 					$err = $stmt->execute();
@@ -46,6 +47,7 @@
 		<link rel="icon" type="image/x-icon" href="logo.png" />
 		<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 		<link href="styles/style.css" rel="stylesheet" type="text/css">
+		<link href="styles/narrow.css" rel="stylesheet" type="text/css">
 		<script type="text/javascript" src="scripts/jquery-3.2.1.min.js"></script>
 		<script type="text/javascript" src="scripts/ui.js"></script>
 		<script type="text/javascript" src="scripts/enable.js"></script>
