@@ -1,0 +1,159 @@
+()		: nothing
+(BLA)	: a blazon
+(SUB)	: a sub-blazon
+(BSUB)	: a bare sub-blazon
+(SUBL)	: a sub-blazon list
+(BSUBL)	: a bare sub-blazon list
+(ORDS)	: an ordinal group
+(ORD)	: an ordinal
+(DIV)	: a division
+(DIVN)	: a division name
+(BDIV)	: a bare division
+(FLD)	: a field
+(TINC)	: a tincture
+(BTINC)	: a beastly tincture name (armed, etc)
+(BTINCL): a list of beastly tincture names
+(SMY)	: a semy charge
+(CHG)	: a charge
+(CHGN)	: a charge name
+(CHGM)	: a charge modifier
+(CHGML)	: a charge modifier list
+(CLST)	: a charge list
+(CSP)	: a charge specifier
+(CSPL)	: a charge specifier list
+(HOR)	: an honorable ordinary
+(MOV)	: a movable charge
+(BST)	: a beast
+(#)		: a number
+"word"	: a literal word
+
+
+--blazons--
+(BLA) -> (FLD)(?,)(TCLST)
+(BLA) -> (FLD)
+(BLA) -> (DIV)
+(BLA) -> (DIV)"over all"(TCLST)
+(BLA) -> (DIV);(TCLST)
+(DIV) -> (BDIV)(?CSPL)
+(BLA) -> (BDIV)(?TCLST)
+
+(NBLA) -> (FLD)(?,)(CHRG)(?TCLST)
+(NBLA) -> (DIV)
+
+(?CSPL) -> (CSPL)
+(?CSPL) -> ()
+(?,) -> ,
+?, -> ()
+
+(CSP) -> "on the"(ORDS)(CLST)
+(CSPL) -> (CSP)(?CSPL)
+
+--fields--
+(FLD) -> (TINC)
+(FLD) -> (TINC)(SMY)
+(TINC) -> (TINCN)
+(TINC) -> "of the"(ORD)
+
+--divisions & sub-blazons--
+(DIV)  -> (DIVN)(?OFN)(?VAR)(SUBL)
+(DIV) -> "tierced"(DIVN)(?VAR)(SUB)(ASUB)(ASUB)
+(BDIV) -> (DIVN)(?OFN)(?VAR)(BSUBL)
+(BDIV) -> "tierced"(DIVN)(?VAR)(BSUB)(ABSUB)(ABSUB)
+(DIVM) -> (DIVN)(?OFN)(?VAR)
+(OFN) -> "of"(#)
+
+--sub-blazons etc--
+
+(SUB) -> (?ORDS)(BLA)
+(NSUB) -> (?ORDS)(NBLA)
+(ASUB) -> (AO)(BLA)
+
+(SUBL) -> (NSUB)(?;)(ASUBL)
+(SUBL) -> (NSUB)
+(ASUBL) -> (ASUB)(?;)(ASUBL)
+(ASUBL) -> (ASUB)
+
+(BSUB) -> (?ORDS)(FLD)
+(ABSUB) -> (AO)(FLD)
+
+(BSUBL) -> (BSUB)(?ABSUBL)
+(ABSUBL) -> (ABSUB)(?ABSUBL)
+
+(AO) -> "and"
+(AO) -> ORDS
+(?ORDS) -> (ORDS)
+(?ORDS) -> ()
+(?ASUBL) -> (ASUBL)
+(?ASUBL) -> ()
+(?ABSUBL) -> (ABSUBL)
+(?ABSUBL) -> ()
+
+(ORDS) -> (ORD)
+(ORDS) -> (ORD)"and"(ORDS)
+
+--charges--
+
+(?CLST) -> (CLST)
+(?CLST) -> ()
+(CLST) -> (CHG)"and"(CLST)
+(CLST) -> (CHG)
+(ACLST) -> "and"(CLST)
+
+(TCLST) -> (CHG)(TCLST)
+(TCLST) -> (CHG)
+
+(CHG) -> (CCHG)(?SGROUP)
+(CHG) -> (PLC)(NH)(?SGROUP)
+(CHG) -> "on"(CCHG)(?SGROUP)(CLST)
+(CHG) -> (PLC)"on"(NH)(?SGROUP)(CLST)
+(CHG) -> (CCHG)"charged with"(CLST)(?SGROUP)
+(CHG) -> (PLC)(NH)"charged with"(CLST)(?SGROUP)
+(PLC) -> PL(?,)
+
+(NH)->(BST)
+(NH)->(MCHG)
+
+(?SGROUP) -> (SGROUP)
+(?SGROUP) -> ()
+
+(SGROUP) -> (PREP)(CLST)
+
+(CCHG) -> (HOR)
+(HOR) -> (#)(HORN)(HORML)
+(HORML) -> (HORM)(?HORML)
+(?HORML) -> (HORML)
+(?HORML) -> ()
+(HORM) -> (AMOD)
+(HORM) -> (VAR)
+
+(CCHG) -> (BST)
+(BST) -> (?,))(#)(BSTN)(BSTML)
+(BSTML) -> (BSTM)(?BSTML)
+(?BSTML) -> (BSTML)
+(?BSTML) -> ()
+(BSTM) -> (BTINCL)(TINC)
+(BSTM) -> (AMOD)
+(BSTM) -> (ATT)
+(BSTM) -> (PL)
+(BSTM) -> (TR)
+
+(AMOD) -> (FLD)
+(AMOD) -> (BDIV)
+
+(CCHG) -> (MCHG)
+(MCHG) -> (PL)(?,)(#)(CHGN)(CHGML)
+(MCHG) -> (#)(CHGN)(CHGML)
+(CHGML) -> (CHGM)(?CHGML)
+(CHGM) -> (AMOD)
+(CHGM) -> (POS)
+(CHGM) -> (PL)
+(CHGM) -> (TR)
+
+(BTINCL) -> (BTINC)(?ABTINCL)
+(ABTINCL) -> "and"(BTINC)
+(ABTINCL) -> ","(BTINC)(ABTINCL)
+(?ABTINCL) -> (ABTINCL)
+(?ABTINCL) -> ()
+
+(TINC) -> (TINCN)
+(TINC) -> "of the"(ORD)
