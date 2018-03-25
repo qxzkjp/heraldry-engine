@@ -5,7 +5,8 @@ use HeraldryEngine\Mvc\View;
 
 class AdminPanelView extends View
 {
-	public function render(){
+	public function render()
+	{
 		$this->model->prepareModel();
 		$this->setParam("users", $this->model->users);
 		$this->setParam("userRows", $this->model->userRows);

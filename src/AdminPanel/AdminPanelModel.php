@@ -79,7 +79,7 @@ class AdminPanelModel extends Model
 		$this->users=array();
 		$this->userRows=array();
 
-		while($row = $result->fetch_assoc()) {
+		while ($row = $result->fetch_assoc()) {
 			array_push($this->userRows,$row);
 			$this->users[(int)$row["ID"]]=$row["userName"];
 		}

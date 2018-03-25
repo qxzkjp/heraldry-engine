@@ -32,7 +32,7 @@ class View
 	 *
 	 * TODO: Review. The view shouldn't need to know about the controller.
 	 *
-	 * @var
+	 * @var Controller
 	 */
 	protected $controller;
 
@@ -42,7 +42,7 @@ class View
 	 * @param Controller $controller
 	 * @param Model $model
 	 */
-	public function __construct($controller,$model)
+	public function __construct($controller, $model)
 	{
 		$this->controller=$controller;
 		$this->model=$model;
@@ -84,7 +84,8 @@ class View
 	 * @param string $name
 	 * @param mixed $value
 	 */
-	public function appendParam($name, $value){
+	public function appendParam($name, $value)
+	{
 		array_push($this->params[$name], $value);
 	}
 }
