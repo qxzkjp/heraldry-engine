@@ -1,60 +1,73 @@
 <?php
 	require "utility/session.php";
 	require "utility/useragent.php";
+	require "utility/connect.php";
 	$uname="";
 	$pword="";
 	$loginAttempted=(array_key_exists('username',$_POST) || array_key_exists('password',$_POST));
+	$rateLimited = false;
 	if(array_key_exists('username',$_POST)){
 		$uname=strtolower($_POST['username']);
-		if(array_key_exists('password',$_POST)){
-			$ph=password_hash($_POST['password'], PASSWORD_DEFAULT);
-			$pword=$_POST['password'];
-		}
-		require "utility/connect.php";
-		$stmt = $mysqli->prepare("SELECT * FROM users WHERE userName = ?");
+		$stmt = $mysqli->prepare(
+			"SELECT COUNT(*) FROM failureLogs WHERE userName=? AND accessTime > (NOW() - INTERVAL 5 MINUTE);");
 		$stmt->bind_param("s", $uname);
 		$stmt->execute();
 		$result = $stmt->get_result();
-		//if($result->num_rows === 0) exit('No rows');
-		$ids=[];
-		while($row = $result->fetch_assoc()) {
-			$ids[] = array(
-				'ID'=>$row['ID'],
-				'pHash' => $row['pHash'],
-				'accessLevel' => $row['accessLevel']);
-		}
+		$row = $result->fetch_row();
+		$attempts = $row[0];
 		$stmt->close();
-		foreach($ids as $value){
-			if(password_verify($pword,$value['pHash'])){
-				if($value['accessLevel']!=2){
-					$_SESSION['userID']=(int)$value['ID'];
-					$_SESSION['accessLevel']=(int)$value['accessLevel'];
-					$_SESSION["startTime"]=time();
-					$_SESSION["userIP"]=$_SERVER["REMOTE_ADDR"];
-					$_SESSION["OS"]=getOS();
-					$_SESSION["browser"]=getBrowser();
-					//get geolocation data from freegeoip (and drop line break)
-					$_SESSION["geoIP"] = substr(file_get_contents(
-						"https://freegeoip.net/csv/".$_SESSION['userIP']
-						), 0, -2);
-					$sections=explode(",",$_SESSION["geoIP"]);
-					if($sections[2]!=""){
-						$_SESSION["countryName"]=$sections[2];
-					}
-					if($sections[5]!=""){
-						$_SESSION["city"]=$sections[5];
-					}
-					//IP,CountryCode,CountryName,RegionCode,RegionName,City,
-					//ZipCode,TimeZone,Latitude,Longitude,MetroCode
-					header('Location: index.php', TRUE, 303);
-					die();
-				}
-			}else{
-				$stmt = $mysqli->prepare(
-					"INSERT INTO failureLogs (userID, accessTime, IP, isIPv6) VALUES (?, NOW(), INET6_ATON(?), IS_IPV6(?));");
-				$stmt->bind_param("iss", $uname, $_SERVER['REMOTE_ADDR'], $_SERVER['REMOTE_ADDR']);
-				$stmt->execute();
+		if($attempts < 50){
+			if(array_key_exists('password',$_POST)){
+				$ph=password_hash($_POST['password'], PASSWORD_DEFAULT);
+				$pword=$_POST['password'];
 			}
+			$stmt = $mysqli->prepare("SELECT * FROM users WHERE userName = ?");
+			$stmt->bind_param("s", $uname);
+			$stmt->execute();
+			$result = $stmt->get_result();
+			//if($result->num_rows === 0) exit('No rows');
+			$ids=[];
+			while($row = $result->fetch_assoc()) {
+				$ids[] = array(
+					'ID'=>$row['ID'],
+					'pHash' => $row['pHash'],
+					'accessLevel' => $row['accessLevel']);
+			}
+			$stmt->close();
+			foreach($ids as $value){
+				if(password_verify($pword,$value['pHash'])){
+					if($value['accessLevel']!=2){
+						$_SESSION['userID']=(int)$value['ID'];
+						$_SESSION['accessLevel']=(int)$value['accessLevel'];
+						$_SESSION["startTime"]=time();
+						$_SESSION["userIP"]=$_SERVER["REMOTE_ADDR"];
+						$_SESSION["OS"]=getOS();
+						$_SESSION["browser"]=getBrowser();
+						//get geolocation data from freegeoip (and drop line break)
+						$_SESSION["geoIP"] = substr(file_get_contents(
+							"https://freegeoip.net/csv/".$_SESSION['userIP']
+							), 0, -2);
+						$sections=explode(",",$_SESSION["geoIP"]);
+						if($sections[2]!=""){
+							$_SESSION["countryName"]=$sections[2];
+						}
+						if($sections[5]!=""){
+							$_SESSION["city"]=$sections[5];
+						}
+						//IP,CountryCode,CountryName,RegionCode,RegionName,City,
+						//ZipCode,TimeZone,Latitude,Longitude,MetroCode
+						header('Location: index.php', TRUE, 303);
+						die();
+					}
+				}else{
+					$stmt = $mysqli->prepare(
+						"INSERT INTO failureLogs (userName, accessTime, IP, isIPv6) VALUES (?, NOW(), INET6_ATON(?), IS_IPV6(?));");
+					$stmt->bind_param("iss", $uname, $_SERVER['REMOTE_ADDR'], $_SERVER['REMOTE_ADDR']);
+					$stmt->execute();
+				}
+			}
+		} else {
+			$rateLimited = true;
 		}
 	}
 ?>
@@ -96,7 +109,9 @@
 				<h2 id="engineHead">In</h2>
 			</hgroup>
 			<div id="bottomHalf">
-			<?php if($loginAttempted): ?>
+			<?php if($rateLimited): ?>
+				<p style="color:red">You are rate limited. Chillax, bruh.</p>
+			<?php elseif($loginAttempted): ?>
 				<p style="color:red">Wrong username or password</p>
 			<?php endif ?>
 				<form method="post" action="login.php">

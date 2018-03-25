@@ -69,7 +69,7 @@ class MySessionHandler implements SessionHandlerInterface
 		foreach (glob("$this->savePath/sess_*") as $file) {
 			$id=substr($file,$prefixLength);
 			$blob=(string)@file_get_contents($file);
-			$allsessions[$id]=unserialize($blob);
+			$allsessions[$id]=@unserialize($blob);
         }
 		return $allsessions;
 	}
