@@ -85,7 +85,7 @@
 					</tr>
 					<?php
 					foreach($this->params['sessionList'] as $id => $data){
-						if(array_key_exists("userID",$data)){
+						if(is_array($data) && array_key_exists("userID",$data)){
 							if(!array_key_exists("expiry",$data)
 								|| $data["expiry"] >= time()){
 					?>
