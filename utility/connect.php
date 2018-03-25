@@ -1,5 +1,6 @@
 <?php
-$config = require __DIR__ . "/../bootstrap/bootstrap.php";
+$app = require __DIR__ . "/../bootstrap/bootstrap.php";
+$config = $app['config'];
 
 try {
 	$mysqli = new mysqli(

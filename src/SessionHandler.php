@@ -11,6 +11,7 @@ class SessionHandler implements SessionHandlerInterface
 	public function open($savePath, $sessionName)
 	{
 		$this->savePath = $savePath;
+
 		if (!is_dir($this->savePath)) {
 			mkdir($this->savePath, 0777);
 		}
@@ -64,13 +65,14 @@ class SessionHandler implements SessionHandlerInterface
 	}
 
 	//read all session data into an associative array by ID
-	public function get_all(){
-		$allsessions=array();
+	public function get_all()
+	{
+		$allsessions = array();
 		$prefixLength=strlen("$this->savePath/sess_");
 		foreach (glob("$this->savePath/sess_*") as $file) {
-			$id=substr($file,$prefixLength);
-			$blob=(string)@file_get_contents($file);
-			$allsessions[$id]=unserialize($blob);
+			$id = substr($file,$prefixLength);
+			$blob = (string) @file_get_contents($file);
+			$allsessions[$id] = @unserialize($blob);
 		}
 		return $allsessions;
 	}

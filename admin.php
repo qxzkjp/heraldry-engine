@@ -1,5 +1,5 @@
 <?php
-$config = require 'bootstrap/bootstrap.php';
+$app = require 'bootstrap/bootstrap.php';
 require "utility/requireAdmin.php";
 
 use HeraldryEngine\AdminPanel\AdminPanelModel;
@@ -7,7 +7,12 @@ use HeraldryEngine\AdminPanel\AdminPanelView;
 use HeraldryEngine\AdminPanel\AdminPanelController;
 use HeraldryEngine\SessionHandler;
 
-$handler = new SessionHandler();
+/**
+ * @var array $config
+ * @var SessionHandler $handler
+ */
+$config = $app['config'];
+$handler = $app['session_handler'];
 
 $model = new AdminPanelModel($config, $handler);
 $controller = new AdminPanelController($model);

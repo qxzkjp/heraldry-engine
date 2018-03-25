@@ -32,5 +32,4 @@ if (session_status() === PHP_SESSION_NONE) {
 	setcookie(session_name(), session_id(), $_SESSION["expiry"]);
 }
 
-// Just return config for now
-return $app['config'];
+return $app;
