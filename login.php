@@ -49,6 +49,11 @@
 					header('Location: index.php', TRUE, 303);
 					die();
 				}
+			}else{
+				$stmt = $mysqli->prepare(
+					"INSERT INTO failureLogs (userID, accessTime, IP, isIPv6) VALUES (?, NOW(), INET6_ATON(?), IS_IPV6(?));");
+				$stmt->bind_param("iss", $uname, $_SERVER['REMOTE_ADDR'], $_SERVER['REMOTE_ADDR']);
+				$stmt->execute();
 			}
 		}
 	}
