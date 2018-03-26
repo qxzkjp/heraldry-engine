@@ -47,11 +47,6 @@ class AdminPanelModel extends Model
 	 * @var SessionHandler
 	 */
 	public $handler;
-	
-	/**
-	 * @var Array
-	 */
-	private $session;
 
 	/**
 	 * Create a new admin panel model.
@@ -60,13 +55,10 @@ class AdminPanelModel extends Model
 	 * @param SessionHandler $handler
 	 * @param Array $session
 	 */
-	public function __construct($config, $handler, $session=null)
+	public function __construct($config, $handler, $session=null,$server=null)
 	{
+		parent::__construct($session, $server);
 		$this->handler=$handler;
-		if($session!==null){
-			$this->session=$session;
-		}
-		parent::__construct();
 		try {
 			$this->mysqli = new mysqli(
 				$config['db.host'],
@@ -101,13 +93,6 @@ class AdminPanelModel extends Model
 		$this->sessions = $this->handler->get_all();
 	}
 	
-	public function getSession(){
-		if(!isset($this->session)){
-			return $_SESSION;
-		}else{
-			return $this->session;
-		}
-	}
 	
 	public function trimLogs(){
 		$stmt = $this->mysqli->prepare(

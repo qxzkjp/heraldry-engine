@@ -20,4 +20,10 @@ class Controller
 	{
 		$this->model=$model;
 	}
+	
+	public function checkPrivNotLess($val){
+		$sesh = &$this->model->getSession();
+		return array_key_exists('accessLevel',$sesh)
+			&& $sesh['accessLevel'] <= $val;
+	}
 }

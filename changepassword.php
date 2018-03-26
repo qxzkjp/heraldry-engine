@@ -4,8 +4,7 @@ $app = require 'bootstrap/bootstrap.php';
 use HeraldryEngine\AdminPanel\AdminPanelModel;
 use HeraldryEngine\AdminPanel\AdminPanelView;
 use HeraldryEngine\AdminPanel\AdminPanelController;
-
-HeraldryEngine\PrivilegeCheck::requireAuth();
+use HeraldryEngine\PrivilegeCheck;
 
 /**
  * @var array $config
@@ -17,6 +16,8 @@ $handler = $app['session_handler'];
 $model = new AdminPanelModel($config, $handler);
 $controller = new AdminPanelController($model);
 $view = new AdminPanelView($controller,$model);
+
+PrivilegeCheck::requireAuth($controller);
 
 if(array_key_exists("newPassword", $_POST) && array_key_exists("checkPassword", $_POST)){
 	if(array_key_exists('ID',$_POST)){

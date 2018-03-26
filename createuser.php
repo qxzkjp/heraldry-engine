@@ -4,8 +4,7 @@ $app = require 'bootstrap/bootstrap.php';
 use HeraldryEngine\AdminPanel\AdminPanelModel;
 use HeraldryEngine\AdminPanel\AdminPanelView;
 use HeraldryEngine\AdminPanel\AdminPanelController;
-
-HeraldryEngine\PrivilegeCheck::requireAdmin();
+use HeraldryEngine\PrivilegeCheck;
 
 /**
  * @var array $config
@@ -17,6 +16,8 @@ $handler = $app['session_handler'];
 $model = new AdminPanelModel($config, $handler);
 $controller = new AdminPanelController($model);
 $view = new AdminPanelView($controller,$model);
+
+HeraldryEngine\PrivilegeCheck::requireAdmin($controller);
 
 if(array_key_exists("newUser",$_POST)){
 	$username=strtolower($_POST["newUser"]);

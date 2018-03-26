@@ -4,13 +4,15 @@ $app = require 'bootstrap/bootstrap.php';
 use HeraldryEngine\Mvc\Model;
 use HeraldryEngine\Mvc\View;
 use HeraldryEngine\Mvc\Controller;
-
-HeraldryEngine\PrivilegeCheck::requireAuth();
+use HeraldryEngine\PrivilegeCheck;
 
 //the model and controller do nothing here, as it's essentially a static page
 $model = new Model();
 $controller = new Controller($model);
 $view = new View($controller,$model);
+
+PrivilegeCheck::requireAuth($controller);
+
 $view->setTemplate("templates/template.php");
 $view->setParam("content","blazon.php");
 $view->setParam("primaryHead","Heraldry");

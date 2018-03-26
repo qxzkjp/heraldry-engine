@@ -22,10 +22,22 @@ class Model
 	public $debugMessage;
 	
 	/**
+	 * @var Array
+	 */
+	private $session;
+	
+	/**
+	 * @var Array
+	 */
+	private $server;
+	
+	/**
 	 * Create a new model.
 	 */
-	public function __construct()
+	public function __construct($session=null, $server=null)
 	{
+		$this->session=$session;
+		$this->server=$server;
 		$errorMessage="";
 		$successMessage="";
 		$debugMessage="";
@@ -37,5 +49,21 @@ class Model
 	public function prepareModel()
 	{
 
+	}
+	
+	public function &getSession(){
+		if(!isset($this->session)){
+			return $_SESSION;
+		}else{
+			return $this->session;
+		}
+	}
+	
+	public function &getServer(){
+		if(!isset($this->server)){
+			return $_SERVER;
+		}else{
+			return $this->server;
+		}
 	}
 }

@@ -2,16 +2,15 @@
 namespace HeraldryEngine;
 
 class PrivilegeCheck {
-	public static function requireAuth(){
-		if(!array_key_exists('accessLevel',$_SESSION)
-			|| $_SESSION["accessLevel"] > 2){
+	public static function requireAuth($controller){
+		if(!$controller->checkPrivNotLess(1)){
 			header('Location: login.php', TRUE, 303);
 			exit("tried to redirect");
 		}
 	}
-	public static function requireAdmin(){
-		PrivilegeCheck::requireAuth();
-		if($_SESSION["accessLevel"] != 0 ){
+	public static function requireAdmin($controller){
+		PrivilegeCheck::requireAuth($controller);
+		if(!$controller->checkPrivNotLess(0)){
 			header('HTTP/1.0 403 Forbidden');
 			exit("Fuck off, Chris.");
 		}

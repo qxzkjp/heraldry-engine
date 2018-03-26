@@ -2,6 +2,7 @@
 namespace HeraldryEngine\AdminPanel;
 
 use HeraldryEngine\Mvc\Controller;
+use HeraldryEngine\UserAgentParser;
 
 class AdminPanelController extends Controller
 {
@@ -123,6 +124,79 @@ class AdminPanelController extends Controller
 			}
 		}
 		return $rtn;
+	}
+	
+	public function authenticateUser($uname, $pword){
+		$uname=strtolower($uname);
+		$ret=false;
+		$stmt = $this->model->mysqli->prepare(
+			"SELECT COUNT(*) FROM failureLogs ".
+			"WHERE userName=? AND accessTime > (NOW() - INTERVAL 5 MINUTE);");
+		$stmt->bind_param("s", $uname);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		$row = $result->fetch_row();
+		$attempts = $row[0];
+		$stmt->close();
+		if($attempts < 50){
+			$stmt = $this->model->mysqli->prepare(
+				"SELECT * FROM users WHERE userName = ?");
+			$stmt->bind_param("s", $uname);
+			$stmt->execute();
+			$result = $stmt->get_result();
+			$ids=[];
+			if($result->num_rows > 1){
+				$this->model->debugMessage=
+					"Login error: more than one user with the given username!";
+			}else if($result->num_rows > 0){
+				$row = $result->fetch_assoc();
+				if(password_verify($pword,$row['pHash'])){
+					$ret=$row;
+				}
+			}
+			$stmt->close();
+			if($ret === false){
+				$this->model->errorMessage = "Wrong username or password.";
+				$stmt = $this->model->mysqli->prepare(
+						"INSERT INTO failureLogs ".
+						"(userName, accessTime, IP, isIPv6) ".
+						"VALUES (?, NOW(), INET6_ATON(?), IS_IPV6(?));");
+				$stmt->bind_param(
+					"iss",
+					$uname,
+					$_SERVER['REMOTE_ADDR'],
+					$_SERVER['REMOTE_ADDR']);
+				$stmt->execute();
+			}
+		} else {
+			$this->model->errorMessage = "You are rate limited. Chillax, bruh.";
+		}
+		return $ret;
+	}
+	
+	public function createUserSession($row){
+		$this->model->getSession()['userID'] = (int)$row['ID'];
+		$this->model->getSession()['accessLevel'] = (int)$row['accessLevel'];
+		$this->model->getSession()['userName'] = $row['userName'];
+		$this->model->getSession()['startTime']=time();
+		$this->model->getSession()['userIP']=
+			$this->model->getServer()['REMOTE_ADDR'];
+		$this->model->getSession()['OS']=
+			UserAgentParser::getOS($this->model->getServer());
+		$this->model->getSession()['browser']=
+			UserAgentParser::getBrowser($this->model->getServer());
+		//get geolocation data from freegeoip (and drop line break)
+		$this->model->getSession()['geoIP'] = substr(file_get_contents(
+			"https://freegeoip.net/csv/".$this->model->getSession()['userIP']
+			), 0, -2);
+		$sections=explode(",",$this->model->getSession()['geoIP']);
+		if($sections[2]!=""){
+			$this->model->getSession()['countryName']=$sections[2];
+		}
+		if($sections[5]!=""){
+			$this->model->getSession()['city']=$sections[5];
+		}
+		return true;
 	}
 	
 	public function collectGarbage()
