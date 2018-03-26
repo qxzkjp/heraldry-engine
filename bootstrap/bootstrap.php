@@ -25,7 +25,7 @@ if (session_status() === PHP_SESSION_NONE) {
 	session_start();
 	if (array_key_exists("expiry",$_SESSION)) {
 		if ($_SESSION["expiry"] < time()) {
-			require __DIR__ . "/../logout.php";
+			\HeraldryEngine\PrivilegeCheck::logOut();
 		}
 	}
 	$_SESSION["expiry"]=time() + $lifetime;

@@ -1,11 +1,11 @@
 <?php
 $app = require 'bootstrap/bootstrap.php';
-require "utility/requireAdmin.php";
 
 use HeraldryEngine\AdminPanel\AdminPanelModel;
 use HeraldryEngine\AdminPanel\AdminPanelView;
 use HeraldryEngine\AdminPanel\AdminPanelController;
-use HeraldryEngine\SessionHandler;
+
+HeraldryEngine\PrivilegeCheck::requireAdmin();
 
 /**
  * @var array $config

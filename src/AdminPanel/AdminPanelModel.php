@@ -37,6 +37,11 @@ class AdminPanelModel extends Model
 	 * @var string
 	 */
 	public $successMessage;
+	
+	/**
+	 * @var string
+	 */
+	public $debugMessage;
 
 	/**
 	 * @var SessionHandler
@@ -65,7 +70,9 @@ class AdminPanelModel extends Model
 		}
 
 		$this->handler = $handler;
-		$this->errorMsg="";
+		$this->errorMessage="";
+		$this->successMessage="";
+		$this->debugMessage="";
 	}
 
 	/**

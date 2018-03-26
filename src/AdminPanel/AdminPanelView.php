@@ -13,6 +13,7 @@ class AdminPanelView extends View
 		$this->setParam("sessionList", $this->model->sessions);
 		$this->setParam("errorMessage", $this->model->errorMessage);
 		$this->setParam("successMessage", $this->model->successMessage);
+		$this->setParam("debugMessage", $this->model->debugMessage);
 		parent::render();
 	}
 }

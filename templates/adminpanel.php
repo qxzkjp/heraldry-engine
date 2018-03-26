@@ -85,7 +85,13 @@
 					</tr>
 					<?php
 					foreach($this->params['sessionList'] as $id => $data){
-						if(is_array($data) && array_key_exists("userID",$data)){
+						if(!is_array($data)){
+							$data=[
+								"userID" => "-1",
+								"geoIP" => "Unknown"
+							];
+						}
+						if(array_key_exists("userID",$data)){
 							if(!array_key_exists("expiry",$data)
 								|| $data["expiry"] >= time()){
 					?>
@@ -93,7 +99,11 @@
 						<td><?=$id?></td>
 						<td><?php
 						if(array_key_exists("userID",$data)){
-							echo $this->params['users'][$data["userID"]];
+							if($data['userID']>=0){
+								echo $this->params['users'][$data["userID"]];
+							}else{
+								echo "Corrupted Session";
+							}
 						}
 						?></td>
 						<td><?php
@@ -119,6 +129,8 @@
 							if(array_key_exists("startTime",$data)){
 								date_default_timezone_set('Europe/London');
 								echo date('d/m/Y H:i:s', $data["startTime"]);
+							}else{
+								echo "Unknown";
 							}
 						?></td>
 						<td><?php

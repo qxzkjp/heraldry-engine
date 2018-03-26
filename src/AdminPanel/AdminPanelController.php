@@ -55,7 +55,33 @@ class AdminPanelController extends Controller
 			$this->model->errorMessage = "Unable to change  user access level: unknown access level.";
 		}
 	}
-
+	
+	public function createUser($userName, $password, $checkPassword, $accessLevel){
+		if($password!=$checkPassword){
+			$this->model->errorMessage=
+				"Could not create user \"$userName\": passwords did not match.";
+			$rtn=false;
+		}else{
+			$pHash=password_hash($password,PASSWORD_DEFAULT);
+			$stmt = $this->model->mysqli->prepare(
+				"INSERT INTO users (userName, pHash, accessLevel) VALUES (?, ?, ?);");
+			$stmt->bind_param("ssi", $userName, $pHash, $accessLevel);
+			try{
+				$rtn = $stmt->execute();
+			}catch(Exception $e) {
+				error_log($e->getMessage());
+				$rtn=false;
+			}
+			if($rtn){
+				$this->model->successMessage="User \"$userName\" created successfully.";
+			}else{
+				$this->model->errorMessage="Could not create user \"$userName\". Name taken?";
+				$this->model->debugMessage .= $this->model->mysqli->error . "<br/>";
+			}
+		}
+		return $rtn;
+	}
+	
 	public function collectGarbage()
 	{
 		$this->model->handler->gc(ini_get('session.gc_maxlifetime'));

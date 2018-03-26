@@ -1,11 +1,11 @@
 <?php
-require "vendor/autoload.php";
-require "utility/session.php";
-require "utility/requireAuth.php";
+$app = require 'bootstrap/bootstrap.php';
 
 use HeraldryEngine\Mvc\Model;
 use HeraldryEngine\Mvc\View;
 use HeraldryEngine\Mvc\Controller;
+
+HeraldryEngine\PrivilegeCheck::requireAuth();
 
 //the model and controller do nothing here, as it's essentially a static page
 $model = new Model();
