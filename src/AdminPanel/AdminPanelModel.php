@@ -60,18 +60,11 @@ class AdminPanelModel extends Model
 	 * @param SessionHandler $handler
 	 * @param Array $session
 	 */
-	public function __construct()
+	public function __construct($config, $handler, $session=null)
 	{
-		$numArgs=func_num_args();
-		if($numArgs<2){
-			throw new BadMethodCallException(
-				"Too few arguments passed to AdminPanelModel::__construct"
-				);
-		}
-		$config=func_get_arg(0);
 		$this->handler=func_get_arg(1);
-		if($numArgs>=3){
-			$this->session=func_get_arg(2);
+		if($session!==null){
+			$this->session=$session;
 		}
 		parent::__construct();
 		try {
