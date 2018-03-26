@@ -62,7 +62,7 @@ class AdminPanelModel extends Model
 	 */
 	public function __construct($config, $handler, $session=null)
 	{
-		$this->handler=func_get_arg(1);
+		$this->handler=$handler;
 		if($session!==null){
 			$this->session=$session;
 		}
