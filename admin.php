@@ -1,10 +1,20 @@
 <?php
-require "utility/session.php";
+$app = require 'bootstrap/bootstrap.php';
 require "utility/requireAdmin.php";
-require "utility/adminmvc.php";
 
+use HeraldryEngine\AdminPanel\AdminPanelModel;
+use HeraldryEngine\AdminPanel\AdminPanelView;
+use HeraldryEngine\AdminPanel\AdminPanelController;
+use HeraldryEngine\SessionHandler;
 
-$model = new AdminPanelModel();
+/**
+ * @var array $config
+ * @var SessionHandler $handler
+ */
+$config = $app['config'];
+$handler = $app['session_handler'];
+
+$model = new AdminPanelModel($config, $handler);
 $controller = new AdminPanelController($model);
 $view = new AdminPanelView($controller,$model);
 
@@ -31,7 +41,7 @@ $view->setParam("content","adminpanel.php");
 $view->setParam("pageName","admin.php");
 $view->setParam("primaryHead","Secret Admin Shit");
 $view->setParam("scriptList",[
-	"jquery-3.2.1.min",
+	"vendor/jquery-3.2.1.min",
 	"ui",
 	"enable",
 	"post"
@@ -55,5 +65,3 @@ $view->setParam("menuList",[
 ]);
 
 $view->render();
-
-?>
