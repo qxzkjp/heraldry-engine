@@ -14,4 +14,7 @@ INSERT INTO failureLogs (userID, accessTime, IP, isIPv6) VALUES (?, NOW(), INET6
 SELECT COUNT(*) FROM failureLogs WHERE userName=? AND accessTime > (NOW() - INTERVAL 5 MINUTE);
 
 /*access counts from individual subnets*/
-SELECT userName, SUBSTR(IP,1,8) as subnet, COUNT(*) FROM failureLogs WHERE isIPv6 = TRUE GROUP BY userName, subnet
+SELECT userName, IF(isIPv6, SUBSTR(IP,1,8), SUBSTR(IP,1,3)) as subnet, COUNT(*) FROM failureLogs GROUP BY userName, subnet;
+
+/*trim logs*/
+DELETE FROM failureLogs WHERE accessTime < (NOW() - INTERVAL 7 DAY);

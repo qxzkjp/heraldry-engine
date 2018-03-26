@@ -82,6 +82,49 @@ class AdminPanelController extends Controller
 		return $rtn;
 	}
 	
+	public function changeUserPassword($id, $password, $checkPassword){
+		$sesh=$this->model->getSession();
+		$rtn=false;
+		if($id != $sesh['userID']){
+			$errorPrefix="Could not change password for user id $id: ";
+			$succMsg="Password for user ID $id changed successfully.";
+		}else{
+			$errorPrefix="Could not change password for your account: ";
+			$succMsg="Password for your account changed successfully.";
+		}
+		if($id != $sesh['userID'] &&
+			(!array_key_exists('accessLevel', $sesh)
+				|| $sesh['accessLevel'] > 0)
+		){
+			$this->model->errorMessage = $errorPrefix . 
+				"you are not an administrator.";
+		}else if($password != $checkPassword){
+			$this->model->errorMessage = $errorPrefix . 
+				"passwords do not match.";
+		}else{
+			$pHash=password_hash($_POST["newPassword"], PASSWORD_DEFAULT);
+			$stmt = $this->model->mysqli->prepare("UPDATE users SET pHash = ? WHERE ID = ?");
+			$stmt->bind_param("si", $pHash, $id);
+			try{
+				$rtn = $stmt->execute();
+			}catch(Exception $e) {
+				error_log($e->getMessage());
+				$rtn=false;
+			}
+			$stmt->close();
+			if($rtn){
+				$this->model->successMessage=$succMsg;
+			}else{
+				$this->model->errorMessage=$errorPrefix."database error.";
+			}
+			if($this->model->mysqli->error!=""){
+				$this->model->debugMessage .= 
+					$this->model->mysqli->error . "<br/>";
+			}
+		}
+		return $rtn;
+	}
+	
 	public function collectGarbage()
 	{
 		$this->model->handler->gc(ini_get('session.gc_maxlifetime'));

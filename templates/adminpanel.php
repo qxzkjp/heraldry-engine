@@ -1,10 +1,4 @@
 		<div id="bottomHalf" style="font-family:serif">
-			<?php if($this->params['errorMessage']!=""):?>
-				<p class="error"><?=$this->params['errorMessage']?></p>
-			<?php endif?>
-			<?php if($this->params['successMessage']!=""):?>
-				<p><?=$this->params['successMessage']?></p>
-			<?php endif?>
 			<h3>Users</h3>
 				<table>
 					<tr>

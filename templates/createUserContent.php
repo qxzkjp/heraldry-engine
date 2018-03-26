@@ -1,14 +1,4 @@
 			<div id="bottomHalf">
-<?php if($this->params['errorMessage']!=""):?>
-				<p class="error"><?=$this->params['errorMessage']?></p>
-<?php endif?>
-<?php if($this->params['successMessage']!=""):?>
-				<p><?=$this->params['successMessage']?></p>
-<?php endif?>
-<?php if(array_key_exists("debug", $this->params)
-			&& $this->params['debugMessage']!=""):?>
-				<p><?=$this->params['debugMessage']?></p>
-<?php endif?>
 
 				<form action="<?=$this->params['pageName']?>" method="post">
 					<table>

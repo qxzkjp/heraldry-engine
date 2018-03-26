@@ -54,6 +54,9 @@ class View
 	 */
 	public function render()
 	{
+		$this->setParam("errorMessage", $this->model->errorMessage);
+		$this->setParam("successMessage", $this->model->successMessage);
+		$this->setParam("debugMessage", $this->model->debugMessage);
 		require $this->template;
 	}
 
@@ -86,6 +89,9 @@ class View
 	 */
 	public function appendParam($name, $value)
 	{
+		if(!isset($this->params[$name])){
+			$this->params[$name]=[];
+		}
 		array_push($this->params[$name], $value);
 	}
 }

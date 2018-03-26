@@ -7,11 +7,28 @@ namespace HeraldryEngine\Mvc;
 class Model
 {
 	/**
+	 * @var string
+	 */
+	public $errorMessage;
+
+	/**
+	 * @var string
+	 */
+	public $successMessage;
+	
+	/**
+	 * @var string
+	 */
+	public $debugMessage;
+	
+	/**
 	 * Create a new model.
 	 */
 	public function __construct()
 	{
-
+		$errorMessage="";
+		$successMessage="";
+		$debugMessage="";
 	}
 
 	/**

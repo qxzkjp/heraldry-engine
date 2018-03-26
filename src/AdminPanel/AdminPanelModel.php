@@ -47,15 +47,33 @@ class AdminPanelModel extends Model
 	 * @var SessionHandler
 	 */
 	public $handler;
+	
+	/**
+	 * @var Array
+	 */
+	private $session;
 
 	/**
 	 * Create a new admin panel model.
 	 *
 	 * @param array $config
 	 * @param SessionHandler $handler
+	 * @param Array $session
 	 */
-	public function __construct($config, SessionHandler $handler)
+	public function __construct()
 	{
+		$numArgs=func_num_args();
+		if($numArgs<2){
+			throw new BadMethodCallException(
+				"Too few arguments passed to AdminPanelModel::__construct"
+				);
+		}
+		$config=func_get_arg(0);
+		$this->handler=func_get_arg(1);
+		if($numArgs>=3){
+			$this->session=func_get_arg(2);
+		}
+		parent::__construct();
 		try {
 			$this->mysqli = new mysqli(
 				$config['db.host'],
@@ -68,11 +86,7 @@ class AdminPanelModel extends Model
 			error_log($e->getMessage());
 			exit('Error connecting to database'); //Should be a message a typical user could understand
 		}
-
-		$this->handler = $handler;
-		$this->errorMessage="";
-		$this->successMessage="";
-		$this->debugMessage="";
+		
 	}
 
 	/**
@@ -92,5 +106,20 @@ class AdminPanelModel extends Model
 		}
 
 		$this->sessions = $this->handler->get_all();
+	}
+	
+	public function getSession(){
+		if(!isset($this->session)){
+			return $_SESSION;
+		}else{
+			return $this->session;
+		}
+	}
+	
+	public function trimLogs(){
+		$stmt = $this->mysqli->prepare(
+			"DELETE FROM failureLogs WHERE accessTime < (NOW() - INTERVAL 7 DAY);"
+			);
+		return $stmt->execute();
 	}
 }

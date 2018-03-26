@@ -52,6 +52,9 @@ $view->setParam("cssList",[
 	],
 	[
 		"name" => "wide"
+	],
+	[
+		"name" => "adminpanel"
 	]]);
 $view->setParam("menuList",[
 	[

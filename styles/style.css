@@ -424,3 +424,12 @@ table.center {
 	margin-left: auto; 
 	margin-right: auto;
 }
+
+.error {
+	color: red;
+}
+
+/*this makes PHP errors more readable*/
+.xdebug-error {
+	font-family:serif;
+}
