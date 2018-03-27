@@ -12,7 +12,7 @@ if (file_exists(__DIR__ . '/../config/config.php'))
 $app['config'] = $config;
 
 // Session handler
-$app['session_handler'] = new \HeraldryEngine\SessionHandler();
+$app['session_handler'] = new \HeraldryEngine\SessionHandler($config['session.dir']);
 
 // if a session isn't open, set one up
 if (session_status() === PHP_SESSION_NONE) {

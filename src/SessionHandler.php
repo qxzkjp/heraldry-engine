@@ -7,10 +7,22 @@ use SessionHandlerInterface;
 class SessionHandler implements SessionHandlerInterface
 {
 	private $savePath;
-
+	private $suffix;
+	
+	public function __construct($suffix=""){
+		$this->suffix=$suffix;
+	}
+	
 	public function open($savePath, $sessionName)
 	{
 		$this->savePath = $savePath;
+		if($this->suffix!="" && 
+			$this->suffix[0]!='/' && 
+			substr($this->savePath, -1)!='/')
+		{
+			$this->savePath .= '/';
+		}
+		$this->savePath .= $this->suffix;
 
 		if (!is_dir($this->savePath)) {
 			mkdir($this->savePath, 0777);

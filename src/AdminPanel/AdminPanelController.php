@@ -160,12 +160,22 @@ class AdminPanelController extends Controller
 				$stmt = $this->model->mysqli->prepare(
 						"INSERT INTO failureLogs ".
 						"(userName, accessTime, IP, isIPv6) ".
-						"VALUES (?, NOW(), INET6_ATON(?), IS_IPV6(?));");
+						"VALUES (?, NOW(), UNHEX(?), ?);");
+				//var_dump($this->model->mysqli->error);
+				$rawAddr = bin2hex(inet_pton($this->model->getServer()['REMOTE_ADDR']));
+				//var_dump($rawAddr);
+				$isIPv6 = filter_var(
+							$this->model->getServer()['REMOTE_ADDR'], 
+							FILTER_VALIDATE_IP,
+							FILTER_FLAG_IPV6
+							)!==false;
+				//var_dump($isIPv6);
 				$stmt->bind_param(
-					"iss",
+					"ssi",
 					$uname,
-					$_SERVER['REMOTE_ADDR'],
-					$_SERVER['REMOTE_ADDR']);
+					$rawAddr,
+					$isIPv6
+					);
 				$stmt->execute();
 			}
 		} else {

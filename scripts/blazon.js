@@ -20,7 +20,7 @@ $(document).ready(function () {
     }
     //AJAX request to get the movable charges and draw initial arms
     var xhr = new XMLHttpRequest;
-    xhr.open('get', 'movables.svg', true);
+    xhr.open('get', 'SVG/movables.svg', true);
     xhr.onreadystatechange = function () {
         if (xhr.readyState != 4) return;//4 means completed
         //load SVG document from request
