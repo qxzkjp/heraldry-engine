@@ -1,6 +1,6 @@
 @font-face {
-    font-family: "medieval";
-    src: url("../fonts/bloodandblade.ttf");
+	font-family: "medieval";
+	src: url("../fonts/bloodandblade.ttf");
 }
 
 @font-face {
@@ -10,17 +10,17 @@
 
 
 html {
-    font-size: 16px;
-    font-family: "medieval", serif;
-    background-image: url("../images/erminesmall.svg");
-    background-color: #FFFFFF;
-    background-size: 50px;
-    margin: 0;
-    color: #FFFFFF;
-    /*  these two magic lines stop content moving around
+	font-size: 16px;
+	font-family: "Georgia", serif;
+	background-image: url("../images/erminesmall.svg");
+	background-color: #FFFFFF;
+	background-size: 50px;
+	margin: 0;
+	color: #FFFFFF;
+	/*  these two magic lines stop content moving around
         when a scrollbar appears/disappears             */
-    overflow-x: hidden;
-    width: 100vw;
+	overflow-x: hidden;
+	width: 100vw;
 }
 
 body {
@@ -30,14 +30,14 @@ body {
 }
 
 #content {
-    /*  these next two lines make content cover the whole
+	/*  these next two lines make content cover the whole
         height of the screen without causing an overflow
         where it wasn't needed                              */
-    min-height: 100vh;
-    box-sizing: border-box;
-    padding: 15px 20px 5px 20px;
-    margin: 0 auto;
-    background-color: #0000FF;
+	min-height: 100vh;
+	box-sizing: border-box;
+	padding: 15px 20px 5px 20px;
+	margin: 0 auto;
+	background-color: #0000FF;
 }
 
 p, li, a {
@@ -58,12 +58,13 @@ a {
 }
 
 h1 {
-    margin: 0;
-    text-shadow: 3px 3px 1px black;
-    font-weight: normal;
-    font-size: 60px;
-    text-align: left;
-    color: yellow;
+	font-family: "medieval";
+	margin: 0;
+	text-shadow: 3px 3px 1px black;
+	font-weight: normal;
+	font-size: 60px;
+	text-align: left;
+	color: yellow;
 }
 
 h1::first-letter {
@@ -72,12 +73,12 @@ h1::first-letter {
 }
 
 h2 {
-    margin: 20px 0;
-    text-shadow: 3px 3px 1px black;
-    font-weight: normal;
-    font-size: 50px;
-    text-align: left;
-    color: yellow;
+	margin: 20px 0;
+	text-shadow: 3px 3px 1px black;
+	font-weight: normal;
+	font-size: 50px;
+	text-align: left;
+	color: yellow;
 }
 
 h2::first-letter {
@@ -86,22 +87,22 @@ h2::first-letter {
 }
 
 #mainHead {
-    display: flex;
-    align-items: flex-start;
-    margin: 0 0 10px 0;
+	display: flex;
+	align-items: flex-start;
+	margin: 0 0 10px 0;
 }
 
 #mainHead {
-    flex-direction: column;
+	flex-direction: column;
 }
 
 #heraldryHead {
-    padding: 0;
+	padding: 0;
 }
 
 #engineHead {
-    margin: 0 0 0 0;
-    text-indent: 1.75em;
+	margin: 0 0 0 0;
+	text-indent: 1.75em;
 }
 
 @media (min-height: 850px){
@@ -132,15 +133,15 @@ h2::first-letter {
 }
 
 #pleaseHeading,#waitHeading{
-    color: white;
+	color: white;
 }
 
 #pleaseHeading {
-    margin: 0 0 0 -100px;
+	margin: 0 0 0 -100px;
 }
 
 #waitHeading {
-    margin: 0 0 0 100px;
+	margin: 0 0 0 100px;
 }
 
 img {
@@ -187,6 +188,7 @@ input, select, textarea, button{
 }
 
 #blazonButton {
+	font-family: "medieval";
 	font-size:20pt;
 	width:100%;
 }
@@ -227,19 +229,19 @@ input, select, textarea, button{
 }
 
 #menuContainer {
-    position: fixed;
-    top: 0px;
-    width: 100vw;
-    z-index: 1;
+	position: fixed;
+	top: 0px;
+	width: 100vw;
+	z-index: 1;
 }
 
 #innerMenuContainer {
-    position: relative;
-    margin: 0 auto;
-    top: 0px;
-    width: 100%;
-    z-index: 1;
-    margin: 0 auto;
+	position: relative;
+	margin: 0 auto;
+	top: 0px;
+	width: 100%;
+	z-index: 1;
+	margin: 0 auto;
 }
 
 #menuButton {
@@ -271,39 +273,39 @@ input, select, textarea, button{
 	overflow: hidden;
 	box-shadow: -10px 0 10px 1px rgba(0, 0, 0, .5);
 	font-family: serif;
-    display: flex;
-    flex-direction: column;
+	display: flex;
+	flex-direction: column;
 }
 
 .menu-list {
-    flex-grow: 1;
+	flex-grow: 1;
 }
 
 .menu-list > * {
-    padding-left: 25px;
-    margin-left: 40px;
-    overflow:hidden;
+	padding-left: 25px;
+	margin-left: 40px;
+	overflow:hidden;
 }
 
 .demoBlazon {
-    margin: 5px 5px 5px 0;
-    cursor: pointer;
-    transition: color 0.4s;
-    /* background-color: rgb(150,150,150); */
-    /* border-radius: 10px; */
-    /* padding: 5px; */
+	margin: 5px 5px 5px 0;
+	cursor: pointer;
+	transition: color 0.4s;
+	/* background-color: rgb(150,150,150); */
+	/* border-radius: 10px; */
+	/* padding: 5px; */
 }
 
 #exampleContainer > .demoBlazon + .demoBlazon::before {
-    display:block;
-    content:"";
-    border-top: 1px solid black;
-    margin: 5px 0;
+	display:block;
+	content:"";
+	border-top: 1px solid black;
+	margin: 5px 0;
 }
 
 .demoBlazon:hover {
-    color: rgb(132, 173, 216);
-    transition: color 0.4s;
+	color: rgb(132, 173, 216);
+	transition: color 0.4s;
 }
 
 svg, div {
@@ -312,7 +314,7 @@ svg, div {
 }
 
 .menu-item {
-    flex: 1;
+	flex: 1;
 	background-color: rgb(100,100,100);
 	font-size:20px;
 	margin: 10px 0px 10px 40px;
@@ -352,11 +354,11 @@ svg, div {
 }*/
 
 .showing#toggleSyntax {
-    background-color: rgb(123, 136, 150);
+	background-color: rgb(123, 136, 150);
 }
 
 .showing#toggleSyntax:hover {
-    background-color: rgb(133, 146, 170);
+	background-color: rgb(133, 146, 170);
 }
 
 #topMenuSpacer {
@@ -365,9 +367,9 @@ svg, div {
 
 #innerMenu {
 	width: 300px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
 }
 
 .heraldry-charge {
@@ -377,59 +379,50 @@ svg, div {
 }
 
 #disableBackground {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: black;
-    opacity: 0.7;
-    z-index: 3;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: black;
+	opacity: 0.7;
+	z-index: 3;
 }
 
 .noOverflow {
-    overflow: hidden;
+	overflow: hidden;
 }
 
 .loadingScreen {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: black;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: white;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: black;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	color: white;
 }
 
 #dotContainer {
-    position:relative;
+	position:relative;
 }
 
 .blazonText {
-    display:none;
+	display:none;
 }
 
 #versionContainer {
-    font-size: 14px;
-    text-align: right;
-    margin: 5px 25px;
-    line-height: 1.3;
+	font-size: 14px;
+	text-align: right;
+	margin: 5px 25px;
+	line-height: 1.3;
 }
 
 table.center {
-	margin-left: auto; 
+	margin-left: auto;
 	margin-right: auto;
-}
-
-.error {
-	color: red;
-}
-
-/*this makes PHP errors more readable*/
-.xdebug-error {
-	font-family:serif;
 }

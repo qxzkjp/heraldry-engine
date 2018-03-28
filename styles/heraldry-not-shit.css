@@ -1,0 +1,101 @@
+#content {
+    background-color: #111;
+}
+
+#menuButton {
+    fill: #bbb;
+}
+
+#menuButton:hover {
+    fill: #fff;
+}
+
+h1 {
+    color: white;
+    text-shadow: 3px 3px 1px #555;
+}
+
+#blazonText {
+    background-color: #333;
+}
+
+.heraldry-super {
+    stroke: black;
+    stroke-width: 5;
+}
+
+.heraldry-ermine {
+    fill: url(#ermine);
+}
+
+.heraldry-ermine.bend {
+    fill: url(#ermine-bend);
+}
+
+.heraldry-ermine.bend-sinister {
+    fill: url(#ermine-sinister);
+}
+
+.heraldry-ermines {
+    fill: url(#ermines);
+}
+
+.heraldry-ermines.bend {
+    fill: url(#ermines-bend);
+}
+
+.heraldry-ermines.bend-sinister {
+    fill: url(#ermines-sinister);
+}
+
+/* Yellow */
+.heraldry-or {
+    fill: #f9dc29;
+}
+
+/* White */
+.heraldry-argent {
+    fill: #fff;
+}
+
+/* Blue */
+.heraldry-azure {
+    fill: #1961c5;
+}
+
+/* Red */
+.heraldry-gules {
+    fill: #bd1c35;
+    /*fill: #ce0638;*/
+}
+
+/* Green */
+.heraldry-vert {
+    fill: #1f8a3a;
+}
+
+/* Purple */
+.heraldry-purpure {
+    fill: #783390;
+}
+
+/* Black */
+.heraldry-sable {
+    fill: #111;
+}
+
+/* Orange */
+.heraldry-tenny {
+    fill: #f59510;
+}
+
+/* Brown */
+.heraldry-brown {
+    fill: #8e4720;
+}
+
+/* Sanguine */
+.heraldry-sanguine {
+    fill: #7b242a;
+    /*fill: #772227;*/
+}
