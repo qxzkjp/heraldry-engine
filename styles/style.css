@@ -1,428 +1,428 @@
 @font-face {
-	font-family: "medieval";
-	src: url("../fonts/bloodandblade.ttf");
+    font-family: "medieval";
+    src: url("../fonts/bloodandblade.ttf");
 }
 
 @font-face {
-	font-family: "mInitial";
-	src: url("../fonts/GoudyInitialen.ttf");
+    font-family: "mInitial";
+    src: url("../fonts/GoudyInitialen.ttf");
 }
 
 
 html {
-	font-size: 16px;
-	font-family: "Georgia", serif;
-	background-image: url("../images/erminesmall.svg");
-	background-color: #FFFFFF;
-	background-size: 50px;
-	margin: 0;
-	color: #FFFFFF;
-	/*  these two magic lines stop content moving around
+    font-size: 16px;
+    font-family: "Georgia", serif;
+    background-image: url("../images/erminesmall.svg");
+    background-color: #FFFFFF;
+    background-size: 50px;
+    margin: 0;
+    color: #FFFFFF;
+    /*  these two magic lines stop content moving around
         when a scrollbar appears/disappears             */
-	overflow-x: hidden;
-	width: 100vw;
+    overflow-x: hidden;
+    width: 100vw;
 }
 
 body {
-	margin: 0 auto;
-	/* background-color: #0000FF; */
-	position: relative;
+    margin: 0 auto;
+    /* background-color: #0000FF; */
+    position: relative;
 }
 
 #content {
-	/*  these next two lines make content cover the whole
+    /*  these next two lines make content cover the whole
         height of the screen without causing an overflow
         where it wasn't needed                              */
-	min-height: 100vh;
-	box-sizing: border-box;
-	padding: 15px 20px 5px 20px;
-	margin: 0 auto;
-	background-color: #0000FF;
+    min-height: 100vh;
+    box-sizing: border-box;
+    padding: 15px 20px 5px 20px;
+    margin: 0 auto;
+    background-color: #0000FF;
 }
 
 p, li, a {
-	line-height: 1.1;
-	/* letter-spacing: 1px; */
+    line-height: 1.1;
+    /* letter-spacing: 1px; */
 }
 
 a {
-	color: gold;
+    color: gold;
 }
 
 .console {
-	background-color: #000000;
-	border: 6px solid #CFB53B;
-	line-height: 1;
-	font-family: monospace;
-	color: #00FF00;
+    background-color: #000000;
+    border: 6px solid #CFB53B;
+    line-height: 1;
+    font-family: monospace;
+    color: #00FF00;
 }
 
 h1 {
-	font-family: "medieval";
-	margin: 0;
-	text-shadow: 3px 3px 1px black;
-	font-weight: normal;
-	font-size: 60px;
-	text-align: left;
-	color: yellow;
+    font-family: "medieval";
+    margin: 0;
+    text-shadow: 3px 3px 1px black;
+    font-weight: normal;
+    font-size: 60px;
+    text-align: left;
+    color: yellow;
 }
 
 h1::first-letter {
-	font-family: "mInitial","medieval",monospace;
-	font-size: 100px;
+    font-family: "mInitial","medieval",monospace;
+    font-size: 100px;
 }
 
 h2 {
-	margin: 20px 0;
-	text-shadow: 3px 3px 1px black;
-	font-weight: normal;
-	font-size: 50px;
-	text-align: left;
-	color: yellow;
+    margin: 20px 0;
+    text-shadow: 3px 3px 1px black;
+    font-weight: normal;
+    font-size: 50px;
+    text-align: left;
+    color: yellow;
 }
 
 h2::first-letter {
-	font-family: "mInitial","medieval",monospace;
-	font-size: 85px;
+    font-family: "mInitial","medieval",monospace;
+    font-size: 85px;
 }
 
 #mainHead {
-	display: flex;
-	align-items: flex-start;
-	margin: 0 0 10px 0;
+    display: flex;
+    align-items: flex-start;
+    margin: 0 0 10px 0;
 }
 
 #mainHead {
-	flex-direction: column;
+    flex-direction: column;
 }
 
 #heraldryHead {
-	padding: 0;
+    padding: 0;
 }
 
 #engineHead {
-	margin: 0 0 0 0;
-	text-indent: 1.75em;
+    margin: 0 0 0 0;
+    text-indent: 1.75em;
 }
 
 @media (min-height: 850px){
-	@media(min-width: 540px) {
-		#mainHead {
-			margin: 0 0 15px 0;
-			flex-direction: row;
-			align-items: flex-end;
-			justify-content: center;
-		}
-		#heraldryHead {
-			/* display: inline-block; */
-			padding: 0;
-		}
+    @media(min-width: 540px) {
+        #mainHead {
+            margin: 0 0 15px 0;
+            flex-direction: row;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        #heraldryHead {
+            /* display: inline-block; */
+            padding: 0;
+        }
 
-		#engineHead {
-			Font-size: 60px;
-			/* display: inline-block; */
-			/*margin: 0 0 0 0.5em;*/
-			text-indent: 0;
-		}
+        #engineHead {
+            Font-size: 60px;
+            /* display: inline-block; */
+            /*margin: 0 0 0 0.5em;*/
+            text-indent: 0;
+        }
 
-		#engineHead::first-letter {
-			/*font-family: inherit;*/
-			font-size: 100px;
-		}
-	}
+        #engineHead::first-letter {
+            /*font-family: inherit;*/
+            font-size: 100px;
+        }
+    }
 }
 
 #pleaseHeading,#waitHeading{
-	color: white;
+    color: white;
 }
 
 #pleaseHeading {
-	margin: 0 0 0 -100px;
+    margin: 0 0 0 -100px;
 }
 
 #waitHeading {
-	margin: 0 0 0 100px;
+    margin: 0 0 0 100px;
 }
 
 img {
-	display: block;
-	margin: 0 auto;
+    display: block;
+    margin: 0 auto;
 }
 
 input, select, textarea, button{
-	font-family:inherit;
-	font-size:inherit;
+    font-family:inherit;
+    font-size:inherit;
 }
 
 .clear { clear: both; }
 
 .invisible {
-	display : none;
+    display : none;
 }
 
 #wrapper {
-	display: flex;
-	margin: 5px 0;
+    display: flex;
+    margin: 5px 0;
 }
 #left {
-	flex: 1 1 75%; /*flex-grow flex-shrink flex-basis*/
+    flex: 1 1 75%; /*flex-grow flex-shrink flex-basis*/
 }
 #middle {
-	flex: 0 0 auto;
-	padding:0.5em;
+    flex: 0 0 auto;
+    padding:0.5em;
 }
 #right {
-	flex: 0 0 auto;
-	display:flex;
-	flex-direction:column;
-	justify-content:center;
+    flex: 0 0 auto;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
 }
 
 #shapeSelect {
-	padding-bottom: 5px;
+    padding-bottom: 5px;
 }
 
 #styleSelect {
-	border-top: 2px solid black;
-	padding-top: 5px;
+    border-top: 2px solid black;
+    padding-top: 5px;
 }
 
 #blazonButton {
-	font-family: "medieval";
-	font-size:20pt;
-	width:100%;
+    font-family: "medieval";
+    font-size:20pt;
+    width:100%;
 }
 
 #buttonContainer {
-	margin: 20px 0 0 0;
+    margin: 20px 0 0 0;
 }
 
 #blazonText {
-	background-color:black;
-	color:white;
-	resize: none;
-	border:5px solid black;
-	width:100%;
-	height:100%;
-	box-sizing: border-box;
+    background-color:black;
+    color:white;
+    resize: none;
+    border:5px solid black;
+    width:100%;
+    height:100%;
+    box-sizing: border-box;
 }
 
 #escutcheonContainer {
-	max-width: 100%;
-	max-height: 100vh;
+    max-width: 100%;
+    max-height: 100vh;
 }
 
 #syntax {
-	margin: 20px 0;
-	/*display: none;*/
+    margin: 20px 0;
+    /*display: none;*/
 }
 
 #movable_charges{
-	width: 0;
-	height: 0;
-	padding: 0;
-	margin: 0;
+    width: 0;
+    height: 0;
+    padding: 0;
+    margin: 0;
 }
 
 .heraldry-invisible {
-	fill:none;
+    fill:none;
 }
 
 #menuContainer {
-	position: fixed;
-	top: 0px;
-	width: 100vw;
-	z-index: 1;
+    position: fixed;
+    top: 0px;
+    width: 100vw;
+    z-index: 1;
 }
 
 #innerMenuContainer {
-	position: relative;
-	margin: 0 auto;
-	top: 0px;
-	width: 100%;
-	z-index: 1;
-	margin: 0 auto;
+    position: relative;
+    margin: 0 auto;
+    top: 0px;
+    width: 100%;
+    z-index: 1;
+    margin: 0 auto;
 }
 
 #menuButton {
-	position: absolute;
-	top: 0;
-	right: 0;
-	width: 30px;
-	opacity: 0.35;
-	margin: 5px 5px;
-	z-index: 2;
-	cursor: pointer;
-	fill: black;
-	transition: fill 0.4s;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 30px;
+    opacity: 0.35;
+    margin: 5px 5px;
+    z-index: 2;
+    cursor: pointer;
+    fill: black;
+    transition: fill 0.4s;
 }
 
 #menuButton:hover {
-	fill: rgb(200,200,200);
-	scale: 1.5;
-	transition: fill 0.4s;
+    fill: rgb(200,200,200);
+    scale: 1.5;
+    transition: fill 0.4s;
 }
 
 #sideMenu {
-	height: 100vh;
-	width: 300px;
-	position: absolute;
-	top: 0;
-	right: 0;
-	background-color: grey;
-	overflow: hidden;
-	box-shadow: -10px 0 10px 1px rgba(0, 0, 0, .5);
-	font-family: serif;
-	display: flex;
-	flex-direction: column;
+    height: 100vh;
+    width: 300px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: grey;
+    overflow: hidden;
+    box-shadow: -10px 0 10px 1px rgba(0, 0, 0, .5);
+    font-family: serif;
+    display: flex;
+    flex-direction: column;
 }
 
 .menu-list {
-	flex-grow: 1;
+    flex-grow: 1;
 }
 
 .menu-list > * {
-	padding-left: 25px;
-	margin-left: 40px;
-	overflow:hidden;
+    padding-left: 25px;
+    margin-left: 40px;
+    overflow:hidden;
 }
 
 .demoBlazon {
-	margin: 5px 5px 5px 0;
-	cursor: pointer;
-	transition: color 0.4s;
-	/* background-color: rgb(150,150,150); */
-	/* border-radius: 10px; */
-	/* padding: 5px; */
+    margin: 5px 5px 5px 0;
+    cursor: pointer;
+    transition: color 0.4s;
+    /* background-color: rgb(150,150,150); */
+    /* border-radius: 10px; */
+    /* padding: 5px; */
 }
 
 #exampleContainer > .demoBlazon + .demoBlazon::before {
-	display:block;
-	content:"";
-	border-top: 1px solid black;
-	margin: 5px 0;
+    display:block;
+    content:"";
+    border-top: 1px solid black;
+    margin: 5px 0;
 }
 
 .demoBlazon:hover {
-	color: rgb(132, 173, 216);
-	transition: color 0.4s;
+    color: rgb(132, 173, 216);
+    transition: color 0.4s;
 }
 
 svg, div {
-	margin: 0;
-	padding: 0;
+    margin: 0;
+    padding: 0;
 }
 
 .menu-item {
-	flex: 1;
-	background-color: rgb(100,100,100);
-	font-size:20px;
-	margin: 10px 0px 10px 40px;
-	padding: 5px 25px;
-	border-radius:30px 0 0 30px;
-	cursor: pointer;
-	color: inherit;
-	text-decoration:inherit;
-	/*width: 100%;*/
-	display: block;
-	line-height: 1.5;
-	letter-spacing: 1px;
-	transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
-	box-sizing: border-box;
+    flex: 1;
+    background-color: rgb(100,100,100);
+    font-size:20px;
+    margin: 10px 0px 10px 40px;
+    padding: 5px 25px;
+    border-radius:30px 0 0 30px;
+    cursor: pointer;
+    color: inherit;
+    text-decoration:inherit;
+    /*width: 100%;*/
+    display: block;
+    line-height: 1.5;
+    letter-spacing: 1px;
+    transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
+    box-sizing: border-box;
 }
 
 .menu-item:hover {
-	background-color: rgb(110,110,110);
-	box-shadow: 0 0 10px 5px rgba(0, 0, 0, .5);
-	margin: 10px 0px 10px 20px;
-	transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
+    background-color: rgb(110,110,110);
+    box-shadow: 0 0 10px 5px rgba(0, 0, 0, .5);
+    margin: 10px 0px 10px 20px;
+    transition: background-color 0.4s, margin 0.4s, box-shadow 0.4s;
 }
 
 .menu-item.active {
-	background-color: rgb(110,110,110);
-	box-shadow: 0 0 10px 5px rgba(0, 0, 0, .5);
-	margin: 10px 0px 10px 20px;
+    background-color: rgb(110,110,110);
+    box-shadow: 0 0 10px 5px rgba(0, 0, 0, .5);
+    margin: 10px 0px 10px 20px;
 }
 
 /*
 #toggleSyntax {
-	background-color: rgb(100,100,120);
+    background-color: rgb(100,100,120);
 }
 
 #toggleSyntax:hover {
-	background-color: rgb(110,110,140);
+    background-color: rgb(110,110,140);
 }*/
 
 .showing#toggleSyntax {
-	background-color: rgb(123, 136, 150);
+    background-color: rgb(123, 136, 150);
 }
 
 .showing#toggleSyntax:hover {
-	background-color: rgb(133, 146, 170);
+    background-color: rgb(133, 146, 170);
 }
 
 #topMenuSpacer {
-	padding:30px;
+    padding:30px;
 }
 
 #innerMenu {
-	width: 300px;
-	flex-grow: 1;
-	display: flex;
-	flex-direction: column;
+    width: 300px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .heraldry-charge {
-	stroke-width: 0.3px;
-	stroke: black;
-	fill: none;
+    stroke-width: 0.3px;
+    stroke: black;
+    fill: none;
 }
 
 #disableBackground {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100vw;
-	height: 100vh;
-	background-color: black;
-	opacity: 0.7;
-	z-index: 3;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    opacity: 0.7;
+    z-index: 3;
 }
 
 .noOverflow {
-	overflow: hidden;
+    overflow: hidden;
 }
 
 .loadingScreen {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: black;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	color: white;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
 }
 
 #dotContainer {
-	position:relative;
+    position:relative;
 }
 
 .blazonText {
-	display:none;
+    display:none;
 }
 
 #versionContainer {
-	font-size: 14px;
-	text-align: right;
-	margin: 5px 25px;
-	line-height: 1.3;
+    font-size: 14px;
+    text-align: right;
+    margin: 5px 25px;
+    line-height: 1.3;
 }
 
 table.center {
-	margin-left: auto;
-	margin-right: auto;
+    margin-left: auto;
+    margin-right: auto;
 }

@@ -1,58 +1,58 @@
 .heraldry-super {
-	stroke: black;
-	stroke-width: 5;
+    stroke: black;
+    stroke-width: 5;
 }
 
 .heraldry-ermine {
-	fill: url(#ermine);
+    fill: url(#ermine);
 }
 
 .heraldry-ermine.bend {
-	fill: url(#ermine-bend);
+    fill: url(#ermine-bend);
 }
 
 .heraldry-ermine.bend-sinister {
-	fill: url(#ermine-sinister);
+    fill: url(#ermine-sinister);
 }
 
 .heraldry-ermines {
-	fill: url(#ermines);
+    fill: url(#ermines);
 }
 
 .heraldry-ermines.bend {
-	fill: url(#ermines-bend);
+    fill: url(#ermines-bend);
 }
 
 .heraldry-ermines.bend-sinister {
-	fill: url(#ermines-sinister);
+    fill: url(#ermines-sinister);
 }
 
 .heraldry-or {
-	fill: yellow;
+    fill: yellow;
 }
 
 .heraldry-argent {
-	fill: white;
+    fill: white;
 }
 
 .heraldry-azure {
-	fill: blue;
+    fill: blue;
 }
 
 .heraldry-gules {
-	fill: red;
+    fill: red;
 }
 
 .heraldry-vert {
-	fill: green;
+    fill: green;
 }
 
 .heraldry-purpure {
-	fill: purple;
+    fill: purple;
 }
 
 .heraldry-sable {
-	fill: black;
+    fill: black;
 }
 
 .heraldry-tenny {
