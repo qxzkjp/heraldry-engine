@@ -3,6 +3,7 @@ namespace HeraldryEngine\AdminPanel;
 
 use HeraldryEngine\Mvc\Controller;
 use HeraldryEngine\UserAgentParser;
+use UAParser\Parser;
 
 class AdminPanelController extends Controller
 {
@@ -191,10 +192,12 @@ class AdminPanelController extends Controller
 		$this->model->getSession()['startTime']=time();
 		$this->model->getSession()['userIP']=
 			$this->model->getServer()['REMOTE_ADDR'];
-		$this->model->getSession()['OS']=
-			UserAgentParser::getOS($this->model->getServer());
-		$this->model->getSession()['browser']=
-			UserAgentParser::getBrowser($this->model->getServer());
+		
+		$parser = Parser::create();
+		$result = $parser->parse($this->model->getServer()['HTTP_USER_AGENT']);
+		
+		$this->model->getSession()['OS'] = $result->os->toString();
+		$this->model->getSession()['browser']=$result->ua->family;
 		//get geolocation data from freegeoip (and drop line break)
 		$this->model->getSession()['geoIP'] = substr(file_get_contents(
 			"https://freegeoip.net/csv/".$this->model->getSession()['userIP']
