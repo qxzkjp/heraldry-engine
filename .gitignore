@@ -54,7 +54,10 @@ scripts/jquery-3.2.1.min.js
 .htaccess
 
 # Composer dependencies
-/vendor/
+vendor/
 
-#protect Chris from himself
+# Config
 config/config.php
+
+# JetBrains IDE
+.idea/

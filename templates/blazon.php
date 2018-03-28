@@ -1,10 +1,10 @@
-			<div style="text-align:center;overflow: none;" id="dotContainer">
+            <div style="text-align:center;overflow: none;" id="dotContainer">
 <?php require "startingsvg.php"; ?>
                 <div id="shieldCover" class="loadingScreen">
                     <h1 id="pleaseHeading">Please</h1>
                     <h2 id="waitHeading">Wait...</h2>
                 </div>
-			</div>
+            </div>
             <div id="bottomHalf">
                 <div id="wrapper">
                     <div id="left">
@@ -19,6 +19,7 @@
                         <div id="styleSelect">
                             <input type="radio" name="style" value="normal" onchange="changeHeraldryCSS('heraldry.css')" checked> Full colour<br>
                             <input type="radio" name="style" value="bw" onchange="changeHeraldryCSS('heraldry-bw.css')"> Line art<br>
+                            <input type="radio" name="style" value="bw" onchange="changeHeraldryCSS('heraldry-not-shit.css')"> Not shit<br>
                         </div>
                     </div>
                 </div>
@@ -35,4 +36,4 @@
                         -node3<br>
                     </div>
                 </div>
-			</div>
+            </div>
