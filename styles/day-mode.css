@@ -1,0 +1,20 @@
+#content {
+    background-color: #1961c5;
+}
+
+#menuButton {
+    fill: black;
+}
+
+#menuButton:hover {
+    fill: rgb(200,200,200);
+}
+
+h1 {
+    color:#f9dc29;
+    text-shadow: 3px 3px 1px black;
+}
+
+#blazonText {
+    background-color:black;
+}

@@ -29,13 +29,10 @@ $view->setParam("scriptList",[
 	]);
 $view->setParam("cssList",[
 	[
-		"name" => "style"
-	],
-	[
 		"name" => "narrow"
 	],
 	[
-		"name" => "heraldry",
+		"name" => "heraldry-not-shit",
 		"id" => "heraldry-css"
 	]]);
 $view->setParam("menuList",[
@@ -51,7 +48,14 @@ $view->setParam("menuList",[
 	[
 		"href" => "#",
 		"label" => "Toggle syntax display",
-		"id" => "toggleSyntax"
+		"id" => "toggleSyntax",
+		"toggle" => true
+	],
+	[
+		"href" => "#",
+		"label" => "Night mode",
+		"id" => "toggleNight",
+		"toggle" => true
 	],
 	[
 		"href" => "https://github.com/qxzkjp",

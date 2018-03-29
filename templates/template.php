@@ -6,6 +6,8 @@
 		<title>Heraldry Engine</title>
 		<link rel="icon" type="image/x-icon" href="logo.png" />
 		<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+		<link href='styles/style.css' rel='stylesheet' type='text/css'>
+		<link href='styles/day-mode.css' id="day-css" rel='stylesheet' type='text/css'>
 		<?php foreach($this->params["cssList"] as $item):?>
 		<link
 			<?php if(array_key_exists("id",$item)):?>
@@ -35,6 +37,9 @@
 									$class="menu-item";
 									if(array_key_exists("expandable",$item)){
 										$class=$class." expanding-button";
+									}
+									if(array_key_exists("toggle",$item)){
+										$class=$class." toggle-button";
 									}
 							?>
 

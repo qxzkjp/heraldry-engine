@@ -37,7 +37,6 @@ body {
     box-sizing: border-box;
     padding: 15px 20px 5px 20px;
     margin: 0 auto;
-    background-color: #0000FF;
 }
 
 p, li, a {
@@ -60,11 +59,9 @@ a {
 h1 {
     font-family: "medieval";
     margin: 0;
-    text-shadow: 3px 3px 1px black;
     font-weight: normal;
     font-size: 60px;
     text-align: left;
-    color: yellow;
 }
 
 h1::first-letter {
@@ -198,7 +195,6 @@ input, select, textarea, button{
 }
 
 #blazonText {
-    background-color:black;
     color:white;
     resize: none;
     border:5px solid black;
@@ -253,12 +249,10 @@ input, select, textarea, button{
     margin: 5px 5px;
     z-index: 2;
     cursor: pointer;
-    fill: black;
     transition: fill 0.4s;
 }
 
 #menuButton:hover {
-    fill: rgb(200,200,200);
     scale: 1.5;
     transition: fill 0.4s;
 }
@@ -315,7 +309,7 @@ svg, div {
 
 .menu-item {
     flex: 1;
-    background-color: rgb(100,100,100);
+	background-color: rgb(100,100,100);
     font-size:20px;
     margin: 10px 0px 10px 40px;
     padding: 5px 25px;
@@ -353,11 +347,11 @@ svg, div {
     background-color: rgb(110,110,140);
 }*/
 
-.showing#toggleSyntax {
+.showing.toggle-button {
     background-color: rgb(123, 136, 150);
 }
 
-.showing#toggleSyntax:hover {
+.showing.toggle-button:hover {
     background-color: rgb(133, 146, 170);
 }
 

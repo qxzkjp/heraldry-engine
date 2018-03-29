@@ -47,9 +47,6 @@ $view->setParam("scriptList",[
 	]);
 $view->setParam("cssList",[
 	[
-		"name" => "style"
-	],
-	[
 		"name" => "narrow"
 	]]);
 $view->setParam("menuList",[

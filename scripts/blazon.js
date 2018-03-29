@@ -3,6 +3,7 @@
 var debugEnabled = false;
 var inputEnabled = false;
 var initialBlazon = "Azure, a bend Or";
+var nightMode = false;
 
 $(document).ready(function () {
     var debugCookie = getCookie("debug");
@@ -57,6 +58,14 @@ $(document).ready(function () {
                 $("#toggleSyntax").removeClass("showing");
                 return false;
             }
+        }else if (evt.target.id === "toggleNight") {
+			evt.preventDefault();
+            if(isNightMode()){
+				$("#toggleNight").removeClass("showing");
+			}else{
+				$("#toggleNight").addClass("showing");
+			}
+			toggleNight();
         }
     });
     $("#menuContainer").on("click", ".demoBlazon", function (evt) {
@@ -182,4 +191,17 @@ function setSyntaxCookie(val) {
 
 function setCookie(name, val) {
     document.cookie = name + "=" + val + ";max-age=31536000";
+}
+
+function isNightMode(){
+	return nightMode;
+}
+
+function toggleNight(){
+	nightMode=!nightMode;
+	if(nightMode){
+		$("#day-css").attr("href","styles/night-mode.css")
+	}else{
+		$("#day-css").attr("href","styles/day-mode.css")
+	}
 }

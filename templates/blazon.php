@@ -17,9 +17,8 @@
                             <input type="radio" name="shape" value="A" onchange="changeShield(ellipsePath)">Spiritual<br>
                         </div>
                         <div id="styleSelect">
-                            <input type="radio" name="style" value="normal" onchange="changeHeraldryCSS('heraldry.css')" checked> Full colour<br>
+                            <input type="radio" name="style" value="normal" onchange="changeHeraldryCSS('heraldry-not-shit.css')" checked> Full colour<br>
                             <input type="radio" name="style" value="bw" onchange="changeHeraldryCSS('heraldry-bw.css')"> Line art<br>
-                            <input type="radio" name="style" value="bw" onchange="changeHeraldryCSS('heraldry-not-shit.css')"> Not shit<br>
                         </div>
                     </div>
                 </div>
