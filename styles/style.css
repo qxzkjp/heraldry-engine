@@ -21,7 +21,6 @@ html {
         when a scrollbar appears/disappears             */
     overflow-x: hidden;
     width: 100vw;
-	transition: all 1s;
 }
 
 body {
@@ -31,7 +30,7 @@ body {
 }
 
 #content, #heraldryHead, #engineHead, #blazonText {
-	transition: all 1s;
+	transition: background-color 1s, color 1s;
 }
 
 #content {
