@@ -30,7 +30,9 @@ body {
 }
 
 #content, #heraldryHead, #engineHead, #blazonText {
-	transition: background-color 1s, color 1s;
+	transition: background-color 1s ease-in,
+			color 1s ease-in, 
+			text-shadow 1s ease-in;
 }
 
 #content {
