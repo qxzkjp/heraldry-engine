@@ -52,12 +52,6 @@ $view->setParam("menuList",[
 		"toggle" => true
 	],
 	[
-		"href" => "#",
-		"label" => "Night mode",
-		"id" => "toggleNight",
-		"toggle" => true
-	],
-	[
 		"href" => "https://github.com/qxzkjp",
 		"label" => "GitHub page",
 	]

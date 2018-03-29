@@ -57,6 +57,13 @@ class View
 		$this->setParam("errorMessage", $this->model->errorMessage);
 		$this->setParam("successMessage", $this->model->successMessage);
 		$this->setParam("debugMessage", $this->model->debugMessage);
+		if(null !== $this->model->getCookie("nightMode") &&
+			"" !== $this->model->getCookie("nightMode") ){
+			$this->setParam("nightMode","true");
+		}
+		if(array_key_exists("userID",$this->model->getSession())){
+			$this->setParam("loggedIn","true");
+		}
 		require $this->template;
 	}
 

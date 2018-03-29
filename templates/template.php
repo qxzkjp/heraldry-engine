@@ -7,7 +7,11 @@
 		<link rel="icon" type="image/x-icon" href="logo.png" />
 		<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 		<link href='styles/style.css' rel='stylesheet' type='text/css'>
+		<?php if(array_key_exists("nightMode", $this->params)): ?>
+		<link href='styles/night-mode.css' id="day-css" rel='stylesheet' type='text/css'>
+		<?php else: ?>
 		<link href='styles/day-mode.css' id="day-css" rel='stylesheet' type='text/css'>
+		<?php endif ?>
 		<?php foreach($this->params["cssList"] as $item):?>
 		<link
 			<?php if(array_key_exists("id",$item)):?>
@@ -57,7 +61,10 @@
 								}?>
 							<?php endforeach ?>
 
-							<?php if(array_key_exists("userID",$_SESSION)):?>
+							<a href="#" class="menu-item toggle-button" id="toggleNight">
+								Night mode</a>
+							
+							<?php if(array_key_exists("loggedIn",$this->params)):?>
 
 							<a href="logout.php" class="menu-item">Log out</a>
 							<?php else:?>

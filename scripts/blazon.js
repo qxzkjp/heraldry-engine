@@ -3,7 +3,7 @@
 var debugEnabled = false;
 var inputEnabled = false;
 var initialBlazon = "Azure, a bend Or";
-var nightMode = false;
+toggleFunction["toggleSyntax"]=toggleSyntax;
 
 $(document).ready(function () {
     var debugCookie = getCookie("debug");
@@ -45,29 +45,7 @@ $(document).ready(function () {
         $("#syntax").show();
         $("#toggleSyntax").addClass("showing");
     }
-    $("#menuContainer").on("click", ".menu-item", function (evt) {
-        if (evt.target.id === "toggleSyntax") {
-			evt.preventDefault();
-            $("#syntax").slideToggle();
-            if (getSyntaxCookie() == "") {
-                setSyntaxCookie("show");
-                $("#toggleSyntax").addClass("showing");
-                return false;
-            } else {
-                setSyntaxCookie("");
-                $("#toggleSyntax").removeClass("showing");
-                return false;
-            }
-        }else if (evt.target.id === "toggleNight") {
-			evt.preventDefault();
-            if(isNightMode()){
-				$("#toggleNight").removeClass("showing");
-			}else{
-				$("#toggleNight").addClass("showing");
-			}
-			toggleNight();
-        }
-    });
+	
     $("#menuContainer").on("click", ".demoBlazon", function (evt) {
         if (inputEnabled) {
             var newTextElem = $(this).find(".blazonText")[0];
@@ -179,29 +157,20 @@ function getSyntaxCookie() {
     return document.cookie.replace(/(?:(?:^|.*;\s*)showSyntax\s*\=\s*([^;]*).*$)|^.*$/, "$1");
 }
 
-function getCookie(name) {
-    //magic incantation, do not touch
-    var regexp = new RegExp("(?:(?:^|.*;\\s*)" + name + "\\s*\\=\\s*([^;]*).*$)|^.*$");
-    return document.cookie.replace(regexp, "$1");
-}
-
 function setSyntaxCookie(val) {
     document.cookie = "showSyntax=" + val + ";max-age=31536000";
-}
-
-function setCookie(name, val) {
-    document.cookie = name + "=" + val + ";max-age=31536000";
 }
 
 function isNightMode(){
 	return nightMode;
 }
 
-function toggleNight(){
-	nightMode=!nightMode;
-	if(nightMode){
-		$("#day-css").attr("href","styles/night-mode.css")
-	}else{
-		$("#day-css").attr("href","styles/day-mode.css")
+function toggleSyntax(){
+	$("#syntax").slideToggle();
+	if (getSyntaxCookie() == "") {
+		setSyntaxCookie("show");
+	} else {
+		setSyntaxCookie("");
 	}
+	return true;
 }

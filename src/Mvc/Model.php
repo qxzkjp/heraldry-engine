@@ -34,10 +34,11 @@ class Model
 	/**
 	 * Create a new model.
 	 */
-	public function __construct($session=null, $server=null)
+	public function __construct($session=null, $server=null, $cookies=null)
 	{
 		$this->session=$session;
 		$this->server=$server;
+		$this->cookies=$cookies;
 		$errorMessage="";
 		$successMessage="";
 		$debugMessage="";
@@ -64,6 +65,13 @@ class Model
 			return $_SERVER;
 		}else{
 			return $this->server;
+		}
+	}
+	public function getCookie($str){
+		if(!isset($this->cookies)){
+			return $_COOKIE[$str];
+		}else{
+			return $this->cookies[$str];
 		}
 	}
 }

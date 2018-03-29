@@ -21,12 +21,17 @@ html {
         when a scrollbar appears/disappears             */
     overflow-x: hidden;
     width: 100vw;
+	transition: all 1s;
 }
 
 body {
     margin: 0 auto;
     /* background-color: #0000FF; */
     position: relative;
+}
+
+#content, #heraldryHead, #engineHead, #blazonText {
+	transition: all 1s;
 }
 
 #content {
