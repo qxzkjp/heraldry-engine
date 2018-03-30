@@ -186,28 +186,34 @@ class AdminPanelController extends Controller
 	}
 	
 	public function createUserSession($row){
-		$this->model->getSession()['userID'] = (int)$row['ID'];
-		$this->model->getSession()['accessLevel'] = (int)$row['accessLevel'];
-		$this->model->getSession()['userName'] = $row['userName'];
-		$this->model->getSession()['startTime']=time();
-		$this->model->getSession()['userIP']=
-			$this->model->getServer()['REMOTE_ADDR'];
+		$this->model->getSession()->setVar('userID',(int)$row['ID']);
+		$this->model->getSession()->setVar('accessLevel',(int)$row['accessLevel']);
+		$this->model->getSession()->setVar('userName',$row['userName']);
+		$this->model->getSession()->setVar('startTime',time());
+		$this->model->getSession()->setVar('userIP',
+			$this->model->getServer()->getVar('REMOTE_ADDR'));
 		
 		$parser = Parser::create();
-		$result = $parser->parse($this->model->getServer()['HTTP_USER_AGENT']);
+		$result = $parser->parse(
+			$this->model->getServer()->getVar('HTTP_USER_AGENT')
+			);
 		
-		$this->model->getSession()['OS'] = $result->os->toString();
-		$this->model->getSession()['browser']=$result->ua->family;
+		$this->model->getSession()->setVar('OS', $result->os->toString());
+		$this->model->getSession()->setVar('browser',$result->ua->family);
 		//get geolocation data from freegeoip (and drop line break)
-		$this->model->getSession()['geoIP'] = substr(file_get_contents(
-			"https://freegeoip.net/csv/".$this->model->getSession()['userIP']
-			), 0, -2);
-		$sections=explode(",",$this->model->getSession()['geoIP']);
+		$this->model->getSession()->setVar(
+			'geoIP',
+			substr(file_get_contents(
+				"https://freegeoip.net/csv/".
+				$this->model->getSession()->getVar('userIP')
+				), 0, -2)
+			);
+		$sections=explode(",",$this->model->getSession()->getVar('geoIP'));
 		if($sections[2]!=""){
-			$this->model->getSession()['countryName']=$sections[2];
+			$this->model->getSession()->setVar('countryName',$sections[2]);
 		}
 		if($sections[5]!=""){
-			$this->model->getSession()['city']=$sections[5];
+			$this->model->getSession()->setVar('city',$sections[5]);
 		}
 		return true;
 	}

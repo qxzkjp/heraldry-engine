@@ -12,7 +12,7 @@ use HeraldryEngine\AdminPanel\AdminPanelController;
 $config = $app['config'];
 $handler = $app['session_handler'];
 
-$model = new AdminPanelModel($config, $handler);
+$model = new AdminPanelModel($config, $handler, $app['request']);
 $controller = new AdminPanelController($model);
 $view = new AdminPanelView($controller,$model);
 

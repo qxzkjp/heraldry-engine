@@ -1,5 +1,6 @@
 <?php
 namespace HeraldryEngine\Mvc;
+use HeraldryEngine\Http\Request;
 
 /**
  * A model.
@@ -22,23 +23,16 @@ class Model
 	public $debugMessage;
 	
 	/**
-	 * @var Array
+	 * @var HeraldryEngine\Http\Request
 	 */
-	private $session;
-	
-	/**
-	 * @var Array
-	 */
-	private $server;
+	private $request;
 	
 	/**
 	 * Create a new model.
 	 */
-	public function __construct($session=null, $server=null, $cookies=null)
+	public function __construct($request)
 	{
-		$this->session=$session;
-		$this->server=$server;
-		$this->cookies=$cookies;
+		$this->request=$request;
 		$errorMessage="";
 		$successMessage="";
 		$debugMessage="";
@@ -52,35 +46,14 @@ class Model
 
 	}
 	
-	public function &getSession(){
-		if(!isset($this->session)){
-			return $_SESSION;
-		}else{
-			return $this->session;
-		}
+	public function getSession(){
+		return $this->request->getSession();
 	}
 	
-	public function &getServer(){
-		if(!isset($this->server)){
-			return $_SERVER;
-		}else{
-			return $this->server;
-		}
+	public function getServer(){
+		return $this->request->getServer();
 	}
-	public function getCookie($str){
-		if(!isset($this->cookies)){
-			if(array_key_exists($str,$_COOKIE)){
-				return $_COOKIE[$str];
-			}else{
-				return "";
-			}
-			
-		}else{
-			if(array_key_exists($str,$this->cookies)){
-				return $this->cookies[$str];
-			}else{
-				return "";
-			}
-		}
+	public function getCookies(){
+		return $this->request->getCookies();
 	}
 }

@@ -53,11 +53,11 @@ class AdminPanelModel extends Model
 	 *
 	 * @param array $config
 	 * @param SessionHandler $handler
-	 * @param Array $session
+	 * @param Request $request
 	 */
-	public function __construct($config, $handler, $session=null,$server=null,$cookies=null)
+	public function __construct($config, $handler, $request)
 	{
-		parent::__construct($session, $server, $cookies);
+		parent::__construct($request);
 		$this->handler=$handler;
 		try {
 			$this->mysqli = new mysqli(

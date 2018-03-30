@@ -1,6 +1,8 @@
 <?php
 require __DIR__ . '/../vendor/autoload.php';
 
+use HeraldryEngine\Http\Request;
+
 $app = [];
 
 // Config
@@ -31,5 +33,8 @@ if (session_status() === PHP_SESSION_NONE) {
 	$_SESSION["expiry"]=time() + $lifetime;
 	setcookie(session_name(), session_id(), $_SESSION["expiry"]);
 }
+
+//put this here so that any changes to the cookies are registered
+$app['request'] = Request::createFromSuperGlobals();
 
 return $app;

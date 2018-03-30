@@ -7,7 +7,7 @@ use HeraldryEngine\Mvc\Controller;
 use HeraldryEngine\PrivilegeCheck;
 
 //the model and controller do nothing here, as it's essentially a static page
-$model = new Model();
+$model = new Model($app['request']);
 $controller = new Controller($model);
 $view = new View($controller,$model);
 
