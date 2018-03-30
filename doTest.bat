@@ -1,2 +1,2 @@
-call ./vendor/bin/phpunit --bootstrap ./vendor/autoload.php ./tests/ModelTest
+call ./vendor/bin/phpunit --bootstrap ./vendor/autoload.php --testdox tests
 pause
