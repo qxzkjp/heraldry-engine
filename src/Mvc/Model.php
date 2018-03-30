@@ -69,9 +69,18 @@ class Model
 	}
 	public function getCookie($str){
 		if(!isset($this->cookies)){
-			return $_COOKIE[$str];
+			if(array_key_exists($str,$_COOKIE)){
+				return $_COOKIE[$str];
+			}else{
+				return "";
+			}
+			
 		}else{
-			return $this->cookies[$str];
+			if(array_key_exists($str,$this->cookies)){
+				return $this->cookies[$str];
+			}else{
+				return "";
+			}
 		}
 	}
 }

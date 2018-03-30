@@ -7,7 +7,7 @@ CREATE TABLE failureLogs (
 	IP VARBINARY(16) NOT NULL,
 	isIPv6 BOOLEAN NOT NULL,
 	PRIMARY KEY(logNum)
-)
+);
 
 INSERT INTO failureLogs (userID, accessTime, IP, isIPv6) VALUES (?, NOW(), INET6_ATON(?), IS_IPV6(?));
 
