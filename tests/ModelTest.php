@@ -8,6 +8,9 @@ use HeraldryEngine\Http\SessionContainer;
 use HeraldryEngine\Http\ServerContainer;
 use HeraldryEngine\Http\CookieContainer;
 
+/**
+ * @testdox Generic model class
+ */
 final class ModelTestCase extends TestCase{
 	public function testGetingAnUnsetCookieReturnsAnEmptyString(){
 		$model = new Model(
@@ -33,6 +36,74 @@ final class ModelTestCase extends TestCase{
 		$this->assertEquals(
 			'value',
 			$model->getCookies()->getCookie('cookie')
+		);
+	}
+	public function testGetingAnUnsetSessionVariableReturnsNull(){
+		$model = new Model(
+			new Request(
+				new CookieContainer([]),
+				new ServerContainer([]),
+				new SessionContainer([])
+			)
+		);
+		$this->assertNull(
+			$model->getSession()->getVar('nonexistent')
+		);
+	}
+	public function testGetingASetSessionVariableReturnsTheCorrectValue(){
+		$model = new Model(
+			new Request(
+				new CookieContainer([]),
+				new ServerContainer([]),
+				new SessionContainer(['variable'=>'value'])
+			)
+		);
+		$this->assertEquals(
+			'value',
+			$model->getSession()->getVar('variable')
+		);
+	}
+	public function testSettingASessionVariableWorksAsExpected(){
+		$model = new Model(
+			new Request(
+				new CookieContainer([]),
+				new ServerContainer([]),
+				new SessionContainer(['variable'=>'value'])
+			)
+		);
+		$model->getSession()->setVar('otherVariable','otherValue');
+		$this->assertEquals(
+			'value',
+			$model->getSession()->getVar('variable')
+		);
+		$this->assertEquals(
+			'otherValue',
+			$model->getSession()->getVar('otherVariable')
+		);
+	}
+	public function testGetingAnUnsetServerVariableReturnsNull(){
+		$model = new Model(
+			new Request(
+				new CookieContainer([]),
+				new ServerContainer([]),
+				new SessionContainer([])
+			)
+		);
+		$this->assertNull(
+			$model->getServer()->getVar('nonexistent')
+		);
+	}
+	public function testGetingASetServerVariableReturnsTheCorrectValue(){
+		$model = new Model(
+			new Request(
+				new CookieContainer([]),
+				new ServerContainer(['variable'=>'value']),
+				new SessionContainer([])
+			)
+		);
+		$this->assertEquals(
+			'value',
+			$model->getServer()->getVar('variable')
 		);
 	}
 }
