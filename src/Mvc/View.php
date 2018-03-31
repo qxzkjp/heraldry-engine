@@ -98,6 +98,18 @@ class View
 		if(!isset($this->params[$name])){
 			$this->params[$name]=[];
 		}
+		if(!is_array($this->params[$name])){
+			$this->params[$name]=[$this->params[$name]];
+		}
 		array_push($this->params[$name], $value);
+	}
+	
+	/**
+	 * Get a parameter.
+	 *
+	 * @param string $name
+	 */
+	public function getParam($name){
+		return $this->params[$name];
 	}
 }

@@ -20,8 +20,15 @@ class SessionContainer{
 	}
 	
 	public static function createFromSuperGlobal(){
+		return SessionContainer::createFromReference($_SESSION);
+	}
+	
+	/**
+	* @param array $ref
+	*/
+	public static function createFromReference(&$ref){
 		$ret=new SessionContainer([]);
-		$ret->setReference($_SESSION);
+		$ret->setReference($ref);
 		return $ret;
 	}
 	

@@ -81,6 +81,44 @@ final class ModelTestCase extends TestCase{
 			$model->getSession()->getVar('otherVariable')
 		);
 	}
+	public function testSettingASessionReferenceWorksAsExpected(){
+		$sessionReferent = ['variable'=>'value','otherVariable'=>'otherValue'];
+		$session = SessionContainer::createFromReference($sessionReferent);
+		$model = new Model(
+			new Request(
+				new CookieContainer([]),
+				new ServerContainer([]),
+				$session
+			)
+		);
+		$model->getSession()->setVar('variable','mutated');
+		$model->getSession()->setVar('newVariable','newValue');
+		$this->assertEquals(
+			'mutated',
+			$model->getSession()->getVar('variable')
+		);
+		$this->assertEquals(
+			'otherValue',
+			$model->getSession()->getVar('otherVariable')
+		);
+		$this->assertEquals(
+			'newValue',
+			$model->getSession()->getVar('newVariable')
+		);
+		$this->assertEquals(
+			'mutated',
+			$sessionReferent['variable']
+		);
+		$this->assertEquals(
+			'otherValue',
+			$sessionReferent['otherVariable']
+		);
+		$this->assertEquals(
+			'newValue',
+			$sessionReferent['newVariable']
+		);
+	}
+	
 	public function testGetingAnUnsetServerVariableReturnsNull(){
 		$model = new Model(
 			new Request(
