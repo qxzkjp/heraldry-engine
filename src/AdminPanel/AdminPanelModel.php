@@ -91,13 +91,22 @@ class AdminPanelModel extends Model
 		}
 
 		$this->sessions = $this->handler->get_all();
+		$stmt->close();
 	}
 	
 	
 	public function trimLogs(){
 		$stmt = $this->mysqli->prepare(
-			"DELETE FROM failureLogs WHERE accessTime < (NOW() - INTERVAL 7 DAY);"
+			"DELETE FROM failureLogs WHERE accessTime < (NOW() - INTERVAL 7 DAY)"
 			);
 		return $stmt->execute();
+	}
+	
+	public function prepareStatement($queryString){
+		return $this->mysqli->prepare($queryString);
+	}
+	
+	public function lastDatabaseError(){
+		return $this->mysqli->error;
 	}
 }

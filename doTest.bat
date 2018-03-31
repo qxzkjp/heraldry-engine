@@ -1,2 +1,3 @@
-call ./vendor/bin/phpunit --bootstrap ./vendor/autoload.php --testdox tests
-pause
+@ECHO OFF
+CALL ./vendor/bin/phpunit -v --bootstrap ./vendor/autoload.php --testdox tests
+PAUSE
