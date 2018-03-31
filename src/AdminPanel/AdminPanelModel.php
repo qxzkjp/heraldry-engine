@@ -99,7 +99,9 @@ class AdminPanelModel extends Model
 		$stmt = $this->mysqli->prepare(
 			"DELETE FROM failureLogs WHERE accessTime < (NOW() - INTERVAL 7 DAY)"
 			);
-		return $stmt->execute();
+		$ret = $stmt->execute();
+		$stmt->close();
+		return $ret;
 	}
 	
 	public function prepareStatement($queryString){

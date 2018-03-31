@@ -12,7 +12,7 @@ use HeraldryEngine\Http\CookieContainer;
  * @testdox Generic model class
  */
 final class ModelTestCase extends TestCase{
-	public function testGetingAnUnsetCookieReturnsAnEmptyString(){
+	public function testGettingAnUnsetCookieReturnsAnEmptyString(){
 		$model = new Model(
 			new Request(
 				new CookieContainer([]),
@@ -25,7 +25,7 @@ final class ModelTestCase extends TestCase{
 			$model->getCookies()->getCookie('nonexistent')
 		);
 	}
-	public function testGetingASetCookieReturnsTheCorrectValue(){
+	public function testGettingASetCookieReturnsTheCorrectValue(){
 		$model = new Model(
 			new Request(
 				new CookieContainer(['cookie'=>'value']),
@@ -38,7 +38,7 @@ final class ModelTestCase extends TestCase{
 			$model->getCookies()->getCookie('cookie')
 		);
 	}
-	public function testGetingAnUnsetSessionVariableReturnsNull(){
+	public function testGettingAnUnsetSessionVariableReturnsNull(){
 		$model = new Model(
 			new Request(
 				new CookieContainer([]),
@@ -50,7 +50,7 @@ final class ModelTestCase extends TestCase{
 			$model->getSession()->getVar('nonexistent')
 		);
 	}
-	public function testGetingASetSessionVariableReturnsTheCorrectValue(){
+	public function testGettingASetSessionVariableReturnsTheCorrectValue(){
 		$model = new Model(
 			new Request(
 				new CookieContainer([]),
@@ -119,7 +119,7 @@ final class ModelTestCase extends TestCase{
 		);
 	}
 	
-	public function testGetingAnUnsetServerVariableReturnsNull(){
+	public function testGettingAnUnsetServerVariableReturnsNull(){
 		$model = new Model(
 			new Request(
 				new CookieContainer([]),
@@ -131,7 +131,7 @@ final class ModelTestCase extends TestCase{
 			$model->getServer()->getVar('nonexistent')
 		);
 	}
-	public function testGetingASetServerVariableReturnsTheCorrectValue(){
+	public function testGettingASetServerVariableReturnsTheCorrectValue(){
 		$model = new Model(
 			new Request(
 				new CookieContainer([]),
