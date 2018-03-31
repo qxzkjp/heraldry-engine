@@ -11,6 +11,6 @@ class AdminPanelView extends View
 		$this->setParam("users", $this->model->users);
 		$this->setParam("userRows", $this->model->userRows);
 		$this->setParam("sessionList", $this->model->sessions);
-		parent::render();
+		return parent::render();
 	}
 }

@@ -65,4 +65,4 @@ $view->setParam("menuList",[
 	]
 ]);
 
-$view->render();
+echo $view->render();

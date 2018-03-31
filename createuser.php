@@ -56,4 +56,4 @@ $view->setParam("menuList",[
 	]
 ]);
 $view->setParam("debug",true);
-$view->render();
+echo $view->render();

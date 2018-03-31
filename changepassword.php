@@ -62,4 +62,5 @@ if($_SESSION["accessLevel"]==0){
 if(array_key_exists('ID', $_POST)){
 	$view->setParam("changeID", $_POST['ID']);
 }
-$view->render();
+
+echo $view->render();

@@ -91,6 +91,4 @@ $view->setParam("demoBlazons", [
 	]
 ]);
 
-$view->render();
-
-?>
+echo $view->render();

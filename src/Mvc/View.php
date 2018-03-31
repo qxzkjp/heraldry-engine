@@ -63,7 +63,9 @@ class View
 		if(null !== $this->model->getSession()->getVar('userID')){
 			$this->setParam("loggedIn","true");
 		}
+		ob_start();
 		require $this->template;
+		return ob_get_clean();
 	}
 
 	/**
