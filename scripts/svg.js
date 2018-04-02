@@ -2573,3 +2573,12 @@ Path.prototype.toNode = function (){
     this.setNodeAttr(path);
     return path;
 }
+
+function getDownloadBlazon(){
+	var missingCss =".heraldry-invisible{display:none}.heraldry-charge{stroke-width: 0.3px; stroke: black; fill: none;}";
+	var temp = SVG.cloneNode(true);
+	$(temp).find('#svgBackground').remove();
+	$(temp).prepend('<style>'+colourCss+
+	missingCss+'</style>');
+	return temp.outerHTML;
+}

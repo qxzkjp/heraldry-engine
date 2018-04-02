@@ -25,6 +25,7 @@ $view->setParam("scriptList",[
 	"svg",
 	"ui",
 	"blazon",
+	"post",
 	"enable"
 	]);
 $view->setParam("cssList",[
@@ -35,6 +36,7 @@ $view->setParam("cssList",[
 		"name" => "heraldry-not-shit",
 		"id" => "heraldry-css"
 	]]);
+$uuid = $controller->createGUID();
 $view->setParam("menuList",[
 	[
 		"href" => "readme.md",
@@ -53,7 +55,12 @@ $view->setParam("menuList",[
 	],
 	[
 		"href" => "https://github.com/qxzkjp",
-		"label" => "GitHub page",
+		"label" => "GitHub page"
+	],
+	[
+		"href" => "#",
+		"label" => "Download Blazon",
+		"onclick" => "post('download.php',{'UUID':'$uuid', 'blazon':getDownloadBlazon()});"
 	]
 ]);
 if($_SESSION["accessLevel"]==0){

@@ -4,7 +4,8 @@ var debugEnabled = false;
 var inputEnabled = false;
 var initialBlazon = "Azure, a bend Or";
 toggleFunction["toggleSyntax"]=toggleSyntax;
-
+var colourCss;
+var lineArtCss;
 $(document).ready(function () {
     var debugCookie = getCookie("debug");
     if (debugCookie != "") {
@@ -66,6 +67,18 @@ $(document).ready(function () {
             $("#blazonText")[0].focus();
         }
     });
+	$.ajax({
+    url: "/styles/heraldry-bw.css",
+    dataType: "text",
+    success: function(cssText) {
+        lineArtCss=cssText;
+    }});
+	$.ajax({
+    url: "/styles/heraldry-not-shit.css",
+    dataType: "text",
+    success: function(cssText) {
+        colourCss=cssText;
+    }});
 });
 
 function enableDebugging() {

@@ -635,7 +635,7 @@
 							<rect x="50" y="50" width="50" height="50" fill="rgb(200,200,200)"/>
 						</pattern>
 					</defs>
-					<rect x="0" y="0" width="100%" height="100%" fill="url(#chequeredBG)" />
+					<rect id="svgBackground" x="0" y="0" width="100%" height="100%" fill="url(#chequeredBG)" />
 					<g id="escutcheon">
 						<!-- alternative shield outline (my creation) -->
 						<!--path
