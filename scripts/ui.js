@@ -59,3 +59,7 @@ function getCookie(name) {
 function setCookie(name, val) {
     document.cookie = name + "=" + val + ";max-age=31536000";
 }
+
+function doNothing(){
+	return false;
+}

@@ -22,3 +22,8 @@ function post(path, params, method) {
 	document.body.appendChild(form);
 	form.submit();
 }
+
+function clickPost(path,params,method){
+	post(path, params, method);
+	return false;
+}

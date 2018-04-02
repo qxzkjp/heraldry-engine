@@ -60,7 +60,7 @@ $view->setParam("menuList",[
 	[
 		"href" => "#",
 		"label" => "Download Blazon",
-		"onclick" => "post('download.php',{'UUID':'$uuid', 'blazon':getDownloadBlazon()});"
+		"onclick" => "clickPost('download.php',{'UUID':'$uuid', 'blazon':getDownloadBlazon()});"
 	]
 ]);
 if($_SESSION["accessLevel"]==0){
