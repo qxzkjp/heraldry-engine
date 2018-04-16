@@ -11,7 +11,8 @@
     ],
     "minimum-stability": "stable",
     "require": {
-        "ua-parser/uap-php": "^3.5"
+        "ua-parser/uap-php": "^3.5",
+        "silex/silex": "~2.0"
     },
     "autoload": {
         "psr-4": {

@@ -1,5 +1,8 @@
 <?php
 namespace HeraldryEngine\Mvc;
+use HeraldryEngine\Http\Request;
+use Silex;
+use Symfony;
 
 /**
  * A view.
@@ -21,31 +24,29 @@ class View
 	private $params;
 
 	/**
-	 * The model.
+	 * The application object
 	 *
 	 * @var Model
 	 */
-	protected $model;
+	protected $app;
 
-	/**
-	 * The controller.
-	 *
-	 * TODO: Review. The view shouldn't need to know about the controller.
-	 *
-	 * @var Controller
-	 */
-	protected $controller;
+    /**
+     * The request object
+     *
+     * @var Request
+     */
+	protected $request;
 
 	/**
 	 * Create a new view.
 	 *
-	 * @param Controller $controller
-	 * @param Model $model
+	 * @param Silex\Application $model
+	 * @param Symfony\Component\HttpFoundation\Request $request
 	 */
-	public function __construct($controller, $model)
+	public function __construct(&$model, &$request)
 	{
-		$this->controller=$controller;
-		$this->model=$model;
+		$this->app=&$model;
+		$this->request=&$request;
 		$this->params=[];
 	}
 
@@ -54,13 +55,13 @@ class View
 	 */
 	public function render()
 	{
-		$this->setParam("errorMessage", $this->model->errorMessage);
-		$this->setParam("successMessage", $this->model->successMessage);
-		$this->setParam("debugMessage", $this->model->debugMessage);
-		if("" !== $this->model->getCookies()->getCookie("nightMode") ){
+		$this->setParam("errorMessage", $this->app['errorMessage']);
+		$this->setParam("successMessage", $this->app['successMessage']);
+		$this->setParam("debugMessage", $this->app['debugMessage']);
+		if("" !== $this->request->cookies->get("nightMode") ){
 			$this->setParam("nightMode","true");
 		}
-		if(null !== $this->model->getSession()->getVar('userID')){
+		if(null !== $this->app['session']->getVar('userID')){
 			$this->setParam("loggedIn","true");
 		}
 		ob_start();

@@ -1,5 +1,6 @@
 <?php
 namespace HeraldryEngine\Mvc;
+use Silex;
 
 /**
  * A controller.
@@ -9,21 +10,20 @@ class Controller
 	/**
 	 * @var Model
 	 */
-	protected $model;
+	protected $app;
 
 	/**
 	 * Create a new controller.
 	 *
-	 * @param Model $model
+	 * @param Silex\Application $app
 	 */
-	public function __construct($model)
+	public function __construct(&$app)
 	{
-		$this->model=$model;
+		$this->app=&$app;
 	}
 	
 	public function checkPrivNotLess($val){
-		$sesh = $this->model->getSession();
-		$al=$sesh->getVar('accessLevel');
+		$al=$this->app['session']->getVar('accessLevel');
 		return (isset($al) && $al <= $val);
 	}
 	
@@ -46,20 +46,20 @@ class Controller
 }
 	
 	public function createGUID(){
-		$this->model->getSession()->setVar('UUID',$this->getGUID());
-		return $this->model->getSession()->getVar('UUID');
+		$this->app['session']->setVar('UUID', $this->getGUID());
+		return $this->app['session']->getVar('UUID');
 	}
 	
 	public function checkGUID($uuid){
-		if($this->model->getSession()->getVar('UUID')==''){
+		if($this->app['session']->getVar('UUID')==''){
 			return false;
 		}
-		$ret = $this->model->getSession()->getVar('UUID') == $uuid;
+		$ret = $this->app['session']->getVar('UUID') == $uuid;
 		//UUID is burned up once used
-		if($ret){
+		//if($ret){
 			//this was good security policy, but it took too long to make work
 			//$this->model->getSession()->setVar('UUID','');
-		}
+		//}
 		return $ret;
 	}
 }

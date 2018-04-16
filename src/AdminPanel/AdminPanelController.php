@@ -1,91 +1,126 @@
 <?php
 namespace HeraldryEngine\AdminPanel;
 
+use Exception;
+use HeraldryEngine\DatabaseContainer;
 use HeraldryEngine\Mvc\Controller;
-use HeraldryEngine\UserAgentParser;
+use HeraldryEngine\SecurityContext;
+use Symfony\Component\HttpFoundation\Request;
 use UAParser\Parser;
+use Silex;
 
 class AdminPanelController extends Controller
 {
+    /**
+     * @var DatabaseContainer
+     */
+    private $db;
+    /**
+     * @var Request
+     */
+    private $request;
+    public function __construct(Silex\Application $app, Request $request){
+        parent::__construct($app);
+        $this->request = $request;
+        $this->db = $app['db'];
+    }
 	public function deleteSession($id)
 	{
 		if ($id==session_id()) {
 			$error = true;
 		} else {
-			$error = !$this->model->handler->destroy($id);
+			$error = !$this->app['handler']->destroy($id);
 		}
 
 		if ($error) {
-			$this->model->errorMessage="Could not delete session";
+			$this->app['errorMessage']="Could not delete session";
 		} else {
-			$this->model->successMessage="Session deleted successfully";
+			$this->app['successMessage']="Session deleted successfully";
 		}
 	}
 
-	public function deleteUser($id)
+    /**
+     * @param int $id
+     */
+    public function deleteUser($id)
 	{
-		$stmt = $this->model->mysqli->prepare(
-			"DELETE FROM users WHERE ID = ?;"
+		$stmt = $this->db->prepareQuery(
+			/** @lang MySQL */
+            'DELETE FROM users WHERE ID = ?;'
 		);
 		$stmt->bind_param("i", $id);
 
 		if (false === $stmt->execute()) {
-			$this->model->errorMessage = "Could not delete user: database error";
+			$this->app['errorMessage'] = "Could not delete user: database error";
 		} else {
-			$this->model->successMessage = "User id $id deleted successfully";
+			$this->app['successMessage'] = "User id $id deleted successfully";
 		}
 
 		$stmt->close();
 	}
 
-	public function changeUserAccess($id, $accessLevel)
+    /**
+     * @param int $id
+     * @param int $accessLevel
+     */
+    public function changeUserAccess($id, $accessLevel)
 	{
 		if ($accessLevel >= 0 && $accessLevel <= 2) {
-			$stmt = $this->model->mysqli->prepare(
-				"UPDATE users SET accessLevel=? WHERE ID = ?;"
+            $stmt = $this->db->prepareQuery(
+				/** @lang MySQL */
+                "UPDATE users SET accessLevel=? WHERE ID = ?;"
 			);
 			$stmt->bind_param("ii",$accessLevel, $id);
 
 			if (false === $stmt->execute()) {
-				$this->model->errorMessage = "Unable to change  user access level: database error.";
+				$this->app['errorMessage'] = "Unable to change  user access level: database error.";
 			} else {
-				$this->model->successMessage = "User id $id access level changed successfully.";
+				$this->app['successMessage'] = "User id $id access level changed successfully.";
 			}
 
 			$stmt->close();
 		} else {
-			$this->model->errorMessage = "Unable to change  user access level: unknown access level.";
+			$this->app['errorMessage'] = "Unable to change  user access level: unknown access level.";
 		}
 	}
-	
-	public function createUser($userName, $password, $checkPassword, $accessLevel){
+
+    /**
+     * @param string $userName
+     * @param string $password
+     * @param string $checkPassword
+     * @param int $accessLevel
+     * @return bool
+     */
+    public function createUser($userName, $password, $checkPassword, $accessLevel){
 		if($password!=$checkPassword){
-			$this->model->errorMessage=
+			$this->app['errorMessage'] =
 				"Could not create user \"$userName\": passwords did not match.";
-			$rtn=false;
+			$rtn = false;
 		}else{
 			$pHash=password_hash($password,PASSWORD_DEFAULT);
-			$stmt = $this->model->mysqli->prepare(
-				"INSERT INTO users (userName, pHash, accessLevel) VALUES (?, ?, ?);");
+            $stmt = $this->db->prepareQuery(
+				/** @lang MySQL */
+                "INSERT INTO users (userName, pHash, accessLevel) VALUES (?, ?, ?);"
+            );
 			$stmt->bind_param("ssi", $userName, $pHash, $accessLevel);
 			try{
 				$rtn = $stmt->execute();
 			}catch(Exception $e) {
 				error_log($e->getMessage());
-				$rtn=false;
+				$rtn = false;
 			}
 			if($rtn){
-				$this->model->successMessage="User \"$userName\" created successfully.";
+				$this->app['successMessage'] = "User \"$userName\" created successfully.";
 			}else{
-				$this->model->errorMessage="Could not create user \"$userName\". Name taken?";
-				$this->model->debugMessage .= $this->model->mysqli->error . "<br/>";
+				$this->app['errorMessage'] = "Could not create user \"$userName\". Name taken?";
+				$this->app['debugMessage'] .= $this->db->getLastSqlError() . "<br/>";
 			}
 		}
 		return $rtn;
 	}
-	
+
 	public function changeUserPassword($id, $password, $checkPassword){
-		$sesh=$this->model->getSession();
+		$sesh=$this->app['session'];
 		$rtn=false;
 		if($id != $sesh['userID']){
 			$errorPrefix="Could not change password for user id $id: ";
@@ -95,44 +130,49 @@ class AdminPanelController extends Controller
 			$succMsg="Password for your account changed successfully.";
 		}
 		if($id != $sesh['userID'] &&
-			(!array_key_exists('accessLevel', $sesh)
+			(!$sesh->offsetExists('accessLevel')
 				|| $sesh['accessLevel'] > 0)
 		){
-			$this->model->errorMessage = $errorPrefix . 
+			$this->app->errorMessage = $errorPrefix .
 				"you are not an administrator.";
 		}else if($password != $checkPassword){
-			$this->model->errorMessage = $errorPrefix . 
+			$this->app->errorMessage = $errorPrefix .
 				"passwords do not match.";
 		}else{
-			$pHash=password_hash($_POST["newPassword"], PASSWORD_DEFAULT);
-			$stmt = $this->model->mysqli->prepare("UPDATE users SET pHash = ? WHERE ID = ?");
+			$pHash=password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $this->db->prepareQuery(
+                /** @lang MySQL */
+            "UPDATE users SET pHash = ? WHERE ID = ?"
+            );
 			$stmt->bind_param("si", $pHash, $id);
 			try{
 				$rtn = $stmt->execute();
 			}catch(Exception $e) {
 				error_log($e->getMessage());
-				$rtn=false;
+				$rtn = false;
 			}
 			$stmt->close();
 			if($rtn){
-				$this->model->successMessage=$succMsg;
+				$this->app['successMessage'] = $succMsg;
 			}else{
-				$this->model->errorMessage=$errorPrefix."database error.";
+				$this->app['errorMessage'] = $errorPrefix."database error.";
 			}
-			if($this->model->mysqli->error!=""){
-				$this->model->debugMessage .= 
-					$this->model->mysqli->error . "<br/>";
+			if($this->db->getLastSqlError() != ""){
+				$this->app['debugMessage'] .=
+                    $this->db->getLastSqlError() . "<br/>";
 			}
 		}
 		return $rtn;
 	}
-	
+
 	public function authenticateUser($uname, $pword){
 		$uname=strtolower($uname);
 		$ret=false;
-		$stmt = $this->model->mysqli->prepare(
+        $stmt = $this->db->prepareQuery(
+            /** @lang MySQL */
 			"SELECT COUNT(*) FROM failureLogs ".
-			"WHERE userName=? AND accessTime > (NOW() - INTERVAL 5 MINUTE);");
+			"WHERE userName=? AND accessTime > (NOW() - INTERVAL 5 MINUTE);"
+        );
 		$stmt->bind_param("s", $uname);
 		$stmt->execute();
 		$result = $stmt->get_result();
@@ -140,33 +180,35 @@ class AdminPanelController extends Controller
 		$attempts = $row[0];
 		$stmt->close();
 		if($attempts < 50){
-			$stmt = $this->model->mysqli->prepare(
-				"SELECT * FROM users WHERE userName = ?");
+            $stmt = $this->db->prepareQuery(
+                /** @lang MySQL */
+				"SELECT * FROM users WHERE userName = ?"
+            );
 			$stmt->bind_param("s", $uname);
 			$stmt->execute();
 			$result = $stmt->get_result();
-			$ids=[];
 			if($result->num_rows > 1){
-				$this->model->debugMessage=
+				$this->app['debugMessage'] =
 					"Login error: more than one user with the given username!";
 			}else if($result->num_rows > 0){
 				$row = $result->fetch_assoc();
-				if(password_verify($pword,$row['pHash'])){
+				if(password_verify($pword, $row['pHash'])){
 					$ret=$row;
 				}
 			}
 			$stmt->close();
 			if($ret === false){
-				$this->model->errorMessage = "Wrong username or password.";
-				$stmt = $this->model->mysqli->prepare(
+				$this->app['errorMessage'] = "Wrong username or password.";
+                $stmt = $this->db->prepareQuery(
+                        /** @lang MySQL */
 						"INSERT INTO failureLogs ".
 						"(userName, accessTime, IP, isIPv6) ".
-						"VALUES (?, NOW(), UNHEX(?), ?);");
-				//var_dump($this->model->mysqli->error);
-				$rawAddr = bin2hex(inet_pton($this->model->getServer()['REMOTE_ADDR']));
-				//var_dump($rawAddr);
+						"VALUES (?, NOW(), UNHEX(?), ?);"
+                );
+                $addr = $this->request->server->get('REMOTE_ADDR');
+				$rawAddr = bin2hex(inet_pton($addr));
 				$isIPv6 = filter_var(
-							$this->model->getServer()['REMOTE_ADDR'], 
+							$addr,
 							FILTER_VALIDATE_IP,
 							FILTER_FLAG_IPV6
 							)!==false;
@@ -180,47 +222,53 @@ class AdminPanelController extends Controller
 				$stmt->execute();
 			}
 		} else {
-			$this->model->errorMessage = "You are rate limited. Chillax, bruh.";
+			$this->app->errorMessage = "You are rate limited. Chillax, bruh.";
 		}
 		return $ret;
 	}
-	
+
 	public function createUserSession($row){
-		$this->model->getSession()->setVar('userID',(int)$row['ID']);
-		$this->model->getSession()->setVar('accessLevel',(int)$row['accessLevel']);
-		$this->model->getSession()->setVar('userName',$row['userName']);
-		$this->model->getSession()->setVar('startTime',time());
-		$this->model->getSession()->setVar('userIP',
-			$this->model->getServer()->getVar('REMOTE_ADDR'));
-		
-		$parser = Parser::create();
+		$this->app['session']->setVar('userID',(int)$row['ID']);
+		$this->app['session']->setVar('accessLevel',(int)$row['accessLevel']);
+		$this->app['session']->setVar('userName',$row['userName']);
+		$this->app['session']->setVar('startTime',time());
+		$this->app['session']->setVar('userIP',
+			$this->request->server->get('REMOTE_ADDR'));
+
+		try {
+            $parser = Parser::create();
+        }catch(Exception $e){
+            error_log($e->getMessage());
+		    die();
+        }
 		$result = $parser->parse(
-			$this->model->getServer()->getVar('HTTP_USER_AGENT')
+			$this->request->server->get('HTTP_USER_AGENT')
 			);
-		
-		$this->model->getSession()->setVar('OS', $result->os->toString());
-		$this->model->getSession()->setVar('browser',$result->ua->family);
+
+		$this->app['session']->setVar('OS', $result->os->toString());
+		$this->app['session']->setVar('browser',$result->ua->family);
 		//get geolocation data from freegeoip (and drop line break)
-		$this->model->getSession()->setVar(
+		$this->app['session']->setVar(
 			'geoIP',
 			substr(file_get_contents(
 				"https://freegeoip.net/csv/".
-				$this->model->getSession()->getVar('userIP')
+                $this->app['session']->getVar('userIP')
 				), 0, -2)
 			);
-		$sections=explode(",",$this->model->getSession()->getVar('geoIP'));
+		$sections=explode(",",$this->app['session']->getVar('geoIP'));
 		if($sections[2]!=""){
-			$this->model->getSession()->setVar('countryName',$sections[2]);
+			$this->app['session']->setVar('countryName',$sections[2]);
 		}
 		if($sections[5]!=""){
-			$this->model->getSession()->setVar('city',$sections[5]);
+			$this->app['session']->setVar('city',$sections[5]);
 		}
+		$this->app['security'] = new SecurityContext($this->app['session']);
 		return true;
 	}
-	
+
 	public function collectGarbage()
 	{
-		$this->model->handler->gc(ini_get('session.gc_maxlifetime'));
-		$this->model->successMessage="Garbage collected successfully.";
+		$this->app['session_handler']->gc(ini_get('session.gc_maxlifetime'));
+		$this->app['successMessage']="Garbage collected successfully.";
 	}
 }

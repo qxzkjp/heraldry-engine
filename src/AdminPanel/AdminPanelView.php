@@ -7,10 +7,9 @@ class AdminPanelView extends View
 {
 	public function render()
 	{
-		$this->model->prepareModel();
-		$this->setParam("users", $this->model->users);
-		$this->setParam("userRows", $this->model->userRows);
-		$this->setParam("sessionList", $this->model->sessions);
+		$this->setParam("users", $this->app['params']['users']);
+		$this->setParam("userRows", $this->app['params']['userRows']);
+		$this->setParam("sessionList", $this->app['params']['sessions']);
 		return parent::render();
 	}
 }
