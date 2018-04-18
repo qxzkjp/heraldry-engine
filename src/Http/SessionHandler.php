@@ -1,5 +1,5 @@
 <?php
-namespace HeraldryEngine;
+namespace HeraldryEngine\Http;
 
 use SessionHandlerInterface;
 

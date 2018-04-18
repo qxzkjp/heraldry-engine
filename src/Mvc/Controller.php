@@ -46,15 +46,15 @@ class Controller
 }
 	
 	public function createGUID(){
-		$this->app['session']->setVar('UUID', $this->getGUID());
-		return $this->app['session']->getVar('UUID');
+		$this->app['session']->set('UUID', $this->getGUID());
+		return $this->app['session']->get('UUID');
 	}
 	
 	public function checkGUID($uuid){
-		if($this->app['session']->getVar('UUID')==''){
+		if($this->app['session']->get('UUID')==''){
 			return false;
 		}
-		$ret = $this->app['session']->getVar('UUID') == $uuid;
+		$ret = $this->app['session']->get('UUID') == $uuid;
 		//UUID is burned up once used
 		//if($ret){
 			//this was good security policy, but it took too long to make work

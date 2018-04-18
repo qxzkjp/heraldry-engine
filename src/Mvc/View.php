@@ -55,13 +55,11 @@ class View
 	 */
 	public function render()
 	{
-		$this->setParam("errorMessage", $this->app['errorMessage']);
-		$this->setParam("successMessage", $this->app['successMessage']);
-		$this->setParam("debugMessage", $this->app['debugMessage']);
-		if("" !== $this->request->cookies->get("nightMode") ){
+	    $this->params = array_merge($this->params, $this->app['params']);
+		if("" !== $this->request->cookies->get("nightMode","") ){
 			$this->setParam("nightMode","true");
 		}
-		if(null !== $this->app['session']->getVar('userID')){
+		if(null !== $this->app['session']->get('userID')){
 			$this->setParam("loggedIn","true");
 		}
 		ob_start();

@@ -66,10 +66,10 @@
 							
 							<?php if(array_key_exists("loggedIn",$this->params)):?>
 
-							<a href="logout.php" class="menu-item">Log out</a>
+							<a href="logout" class="menu-item">Log out</a>
 							<?php else:?>
 
-							<a href="login.php" class="menu-item">Log in</a>
+							<a href="login" class="menu-item">Log in</a>
 							<?php endif?>
 
 						</div>
@@ -90,14 +90,14 @@
 
 			</hgroup>
 			<div id="messageContainer">
-<?php if($this->params['errorMessage']!=""):?>
+<?php if( array_key_exists('errorMessage', $this->params)):?>
 				<p class="error"><?=$this->params['errorMessage']?></p>
 <?php endif?>
-<?php if($this->params['successMessage']!=""):?>
+<?php if(array_key_exists('successMessage',$this->params)):?>
 				<p><?=$this->params['successMessage']?></p>
 <?php endif?>
 <?php if(array_key_exists("debug", $this->params)
-			&& $this->params['debugMessage']!=""):?>
+			&& array_key_exists('debugMessage', $this->params)):?>
 				<p><?=$this->params['debugMessage']?></p>
 <?php endif?>
 			</div>

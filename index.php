@@ -1,8 +1,6 @@
 <?php
 
-use HeraldryEngine\AdminPanel\AdminPanelController;
 use HeraldryEngine\AdminPanel\AdminPanelView;
-use HeraldryEngine\Mvc\Model;
 use HeraldryEngine\Mvc\View;
 use HeraldryEngine\Mvc\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -105,7 +103,7 @@ $app->get('/', function(Silex\Application $app, Request $request){
 });
 
 $app->get('/login', function(Silex\Application $app, Request $request){
-    $view = new AdminPanelView($app, $request);
+    $view = new View($app, $request);
     $view->setTemplate("templates/template.php");
     $view->setParam("content","loginContent.php");
     $view->setParam("pageName","login");
@@ -128,22 +126,32 @@ $app->get('/login', function(Silex\Application $app, Request $request){
 });
 
 $app->post('/login', function(Silex\Application $app, Request $request){
-    $controller = new AdminPanelController($app, $request);
+    $controller = new \HeraldryEngine\LogIn\Controller($app['db'], $request);
     $uname = $request->request->get('username');
     $pword = $request->request->get('password');
     if(isset($uname) && isset($pword)){
-        $row = $controller->authenticateUser($uname, $pword);
-        if($row !== false){
-            $result = $controller->createUserSession($row);
-            if($result){
-                //redirect to the index page
-                return $app->redirect('/');
-            }
+        $ctx = $controller->authenticateUser($app['clock'], $app['session_lifetime'], $uname, $pword);
+        $app['params'] = array_merge($app['params'], $controller->GetParams());
+        if($ctx->GetUserID() != 0){
+            $app['security'] = $ctx;
+            $ctx->StoreContext($app['session']);
+            //redirect to the index page
+            return $app->redirect('/');
+        }else{
+            $subRequest = Request::create('/login', 'GET');
+            return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
         }
+    }else{
+        $subRequest = Request::create('/', 'GET');
+        return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
     }
+});
 
-    $subRequest = Request::create('/login', 'GET');
-    return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+$app->get('/logout', function(Silex\Application $app){
+    $app['session']->clear();
+    $app['security'] =  new \HeraldryEngine\SecurityContext($app['clock'], $app['session_lifetime']);
+    $app['security']->StoreContext($app['session']);
+    return $app->redirect('/login');
 });
 
 $app->run();
