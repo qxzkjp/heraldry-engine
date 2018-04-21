@@ -8,17 +8,23 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
+/**
+ * @var HeraldryEngine\Application $app
+ */
 $app = require 'bootstrap/bootstrap.php';
 
 /**
+ * This is here because Silex requires the callback to take a request and an application
+ * @noinspection PhpUnusedParameterInspection
  * @param Request $request
- * @param \Silex\Application $app
+ * @param Application $app
  * @return \Symfony\Component\HttpFoundation\RedirectResponse
  */
-$requireLoggedIn = function (Request $request, Silex\Application $app ){
+$requireLoggedIn = function (Request $request, Application $app ){
     if($app['security']->getAccessLevel()==ACCESS_LEVEL_NONE){
         return $app->redirect('/login');
     }
+    return null;
 };
 
 $app->get('/', function(Application $app, Request $request){
@@ -143,8 +149,7 @@ $app->post('/login', function(Application $app, Request $request){
         $ctx = $controller->authenticateUser($app['clock'], $app['session_lifetime'], $uname, $pword);
         $app['params'] = array_merge($app['params'], $controller->GetParams());
         if($ctx->GetUserID() != 0){
-            $app['security'] = $ctx;
-            $ctx->StoreContext($app['session']);
+            $app['security']->StoreContext($app['session']);
             //redirect to the index page
             return $app->redirect('/');
         }else{
@@ -164,7 +169,7 @@ $app->get('/logout', function(Application $app){
     return $app->redirect('/login');
 });
 
-$requireAdmin = function(Request $request, Silex\Application $app){
+$requireAdmin = function(Request $request, Application $app){
     if($app['security']->getAccessLevel()!=ACCESS_LEVEL_ADMIN){
         $view = new View($app, $request);
         $view->setTemplate("templates/template.php");
@@ -187,15 +192,20 @@ $requireAdmin = function(Request $request, Silex\Application $app){
         $content = $view->render();
         return new Response($content, Response::HTTP_FORBIDDEN);
     }
+    return null;
 };
 
 /**
  * @var \Silex\ControllerCollection $adminPages
  */
 $adminPages = $app['controllers_factory'];
+/**
+ * This is here because PHPStorm expects "Silex\mixed" instead of mixed. Pretty sure that's a bug.
+ * @noinspection PhpParamsInspection
+ */
 $adminPages->before($requireLoggedIn)->before($requireAdmin);
 
-$app->get('/permissions/view', function(Application $app, Request $request){
+$adminPages->get('/permissions/view', function(Application $app, Request $request){
     $view = new View($app, $request);
     $view->setTemplate("templates/template.php");
     $view->setParam("content","viewPermissions.php");
@@ -214,7 +224,6 @@ $app->get('/permissions/view', function(Application $app, Request $request){
         ]
     ]);
     $view->setParam("menuList",[]);
-    //$app['db']->prepareModel($app);
     $controller = new \HeraldryEngine\Permissions\DisplayController();
     $controller->listPermissions($app['entity_manager']);
     $app['params'] = array_merge($app['params'], $controller->getParams());
@@ -223,6 +232,10 @@ $app->get('/permissions/view', function(Application $app, Request $request){
 
 $app->get('/user/{id}',
     function(Application $app, Request $request, $id) : string {
+    /**
+     * @var User $user
+     * @var User[] $userList
+     */
     $view = new View($app, $request);
     $view->setTemplate("templates/template.php");
     $view->setParam("content","viewUser.php");
@@ -240,19 +253,11 @@ $app->get('/user/{id}',
             "name" => "narrow"
         ]
     ]);
-    /**
-     * @var \Doctrine\ORM\EntityManager $em
-     * @var User $user
-     */
-    $em = $app['entity_manager'];
     if(is_numeric($id)) {
-        $user = $em->getRepository(User::class)->find((int)$id);
+        $user = $app['entity_manager']->getRepository(User::class)->find((int)$id);
         $view->setParam("menuList", []);
     }else if(is_string($id)){
-        /**
-         * @var User[] $userList
-         */
-        $userList = $em->getRepository(User::class)->findBy(['userName'=>$id]);
+        $userList = $app['entity_manager']->getRepository(User::class)->findBy(['userName'=>$id]);
         if(count($userList)==1) {
             $user = $userList[0];
         }
@@ -282,5 +287,3 @@ $app->get('/user/{id}',
 });
 
 $app->run();
-
-

@@ -30,7 +30,8 @@ $app['session']->start();
 /** @noinspection PhpUnhandledExceptionInspection */
 $app['session_lifetime'] = new DateInterval('PT' . ini_get('session.gc_maxlifetime') . 'S');
 
-$app['clock'] = $app->protect( function(){return new DateTime();} );
+$app['clock'] = $app->protect( new \HeraldryEngine\Clock() );
+$now = ($app['clock'])();
 $app['security'] = new SecurityContext($app['clock'], $app['session_lifetime'], $app['session']);
 
 $isDevMode = true;
