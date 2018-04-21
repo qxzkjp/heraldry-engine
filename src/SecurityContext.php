@@ -23,7 +23,7 @@ class SecurityContext {
      */
 	private $accessLevel;
     /**
-     * @var int|null
+     * @var \DateTime|null
      */
 	private $startTime;
     /**
@@ -48,7 +48,7 @@ class SecurityContext {
     /**
      * SecurityContext constructor.
      * @param callable $clock
-     * @param int $lifetime
+     * @param \DateInterval $lifetime
      * @param $params array|SessionContainer|Session
      */
     public function __construct($clock, $lifetime, $params =[]){
@@ -59,16 +59,19 @@ class SecurityContext {
         $this->userIP = ArrayUtility::Get('userIP', $params);
         $this->countryName = ArrayUtility::Get('countryName', $params);
         $this->city = ArrayUtility::Get('city', $params);
-        $this->expiry = $this->startTime + $lifetime;
+        $this->expiry = $this->startTime->add($lifetime);
         $this->clock = $clock;
 	}
 
-	private function GetClock(){
+    /**
+     * @return \DateTime
+     */
+    private function GetClock(){
         return ($this->clock)();
     }
 
     public function isExpired(){
-        return ($this->GetClock()>$this->expiry);
+        return ($this->GetClock()->getTimestamp() > $this->expiry->getTimestamp());
     }
 
     /**

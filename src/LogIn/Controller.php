@@ -7,8 +7,13 @@
  */
 
 namespace HeraldryEngine\LogIn;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query;
 use Exception;
 use HeraldryEngine\DatabaseContainer;
+use HeraldryEngine\Dbo\FailureLog;
+use HeraldryEngine\Dbo\User;
 use HeraldryEngine\SecurityContext;
 use Symfony\Component\HttpFoundation\Request;
 use UAParser\Parser;
@@ -18,101 +23,94 @@ class Controller
     /**
      * @var DatabaseContainer
      */
-    public $db;
+    private $em;
     /**
      * @var Request
      */
-    public $request;
+    private $request;
     /**
      * @var array
      */
-    public $params;
+    private $params;
 
     /**
      * Controller constructor.
-     * @param DatabaseContainer $db
+     * @param EntityManager $em
      * @param Request $request
      */
-    public function __construct(DatabaseContainer $db, Request $request)
+    public function __construct(EntityManager $em, Request $request)
     {
-        $this->db = $db;
+        $this->em = $em;
         $this->request = $request;
         $this->params = [];
     }
 
     /**
      * @param callable $clock
-     * @param int $lifetime
+     * @param \DateInterval $lifetime
      * @param string $uname
      * @param string $pword
      * @return SecurityContext
+     * @throws Exception
      */
-    public function authenticateUser($clock, $lifetime, $uname, $pword){
+    public function authenticateUser($clock, \DateInterval $lifetime, $uname, $pword){
         $uname=strtolower($uname);
         /**
-         * @var \mysqli_stmt $stmt
+         * @var EntityRepository $logRepo
          */
-        $stmt = $this->db->prepareQuery(
-        /** @lang MySQL */
-            "SELECT COUNT(*) FROM failureLogs ".
-            "WHERE userName=? AND accessTime > (NOW() - INTERVAL 5 MINUTE);"
-        );
-        $stmt->bind_param("s", $uname);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $row = $result->fetch_row();
-        $attempts = $row[0];
-        $stmt->close();
-        if($attempts < 50){
-            $stmt = $this->db->prepareQuery(
-            /** @lang MySQL */
-                "SELECT * FROM users WHERE userName = ?"
-            );
-            $stmt->bind_param("s", $uname);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            if($result->num_rows > 1){
+        $logRepo = $this->em->getRepository('\HeraldryEngine\Dbo\FailureLog');
+        /**
+         * @var \Doctrine\ORM\QueryBuilder $qb
+         * @var \DateTime $now
+         */
+        $now=($clock)();
+        $qb = $logRepo->createQueryBuilder('l');
+        $qb->select('count(l)')
+            ->where(
+                $qb->expr()->eq('l.userName', ':un')
+            )
+            ->andWhere($qb->expr()->gt('l.accessTime',':fiveMinutesAgo'))
+            ->setParameter('un', 'admin')
+            ->setParameter('fiveMinutesAgo',$now->sub(new \DateInterval('PT5M')));
+        /**
+         * @var Query $query
+         */
+        $query = $qb->getQuery();
+        $failureCount = $query->getSingleScalarResult();
+        if($failureCount < 50){
+            $userRepo = $this->em->getRepository('\HeraldryEngine\Dbo\User');
+            $qb = $userRepo->createQueryBuilder('u');
+            $qb->select()
+                ->where($qb->expr()->eq('u.userName',':name'))
+                ->setParameter('name', $uname);
+            $query = $qb->getQuery();
+            $matches = $query->getResult();
+            $numMatches = count($matches);
+            if($numMatches > 1){
                 $this->params['debugMessage'] =
                     "Login error: more than one user with the given username!";
-            }else if($result->num_rows > 0){
-                $row = $result->fetch_assoc();
-                if(!password_verify($pword, $row['pHash'])){
-                    $row=false;
+            }else if($numMatches > 0){
+                /**
+                 * @var User $user
+                 */
+                $user = $matches[0];
+                if(!$user->checkPassword($pword)){
+                    $this->params['errorMessage'] = "Wrong username or password.";
+                    $log = new FailureLog($uname, $now, $this->request->server->get('REMOTE_ADDR'));
+                    $this->em->persist($log);
+                    if(!$this->em-flush()){
+                        $this->params['errorMessage'] .= "<br/>Database error!";
+                    };
                 }
-            }
-            $stmt->close();
-            if($row === false){
-                $this->params['errorMessage'] = "Wrong username or password.";
-                $stmt = $this->db->prepareQuery(
-                /** @lang MySQL */
-                    "INSERT INTO failureLogs ".
-                    "(userName, accessTime, IP, isIPv6) ".
-                    "VALUES (?, NOW(), UNHEX(?), ?);"
-                );
-                $addr = $this->request->server->get('REMOTE_ADDR');
-                $rawAddr = bin2hex(inet_pton($addr));
-                $isIPv6 = filter_var(
-                        $addr,
-                        FILTER_VALIDATE_IP,
-                        FILTER_FLAG_IPV6
-                    )!==false;
-                //var_dump($isIPv6);
-                $stmt->bind_param(
-                    "ssi",
-                    $uname,
-                    $rawAddr,
-                    $isIPv6
-                );
-                $stmt->execute();
             }
         } else {
             $this->params['errorMessage'] = "You are rate limited. Chillax, bruh.";
         }
-        if(is_array($row)) {
+        if(isset($user)) {
             $securityInfo = [];
-            $securityInfo['userID'] = (int)$row['ID'];
-            $securityInfo['accessLevel'] = (int)$row['accessLevel'];
-            $securityInfo['userName'] = $row['userName'];
+            $securityInfo['userID'] = $user->getID();
+            $securityInfo['accessLevel'] = $user->getAccessLevel();
+            $securityInfo['userName'] = $user->getUserName();
             $securityInfo['startTime'] = ($clock)();
             $securityInfo['userIP'] = $this->request->server->get('REMOTE_ADDR');
             try {

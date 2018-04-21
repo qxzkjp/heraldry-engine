@@ -42,10 +42,10 @@ function animateSideMenu(method = "toggle") {
 function toggleNight(){
 	cookie=getCookie("nightMode");
 	if(cookie==""){
-		$("#day-css").attr("href","styles/night-mode.css");
+		$("#day-css").attr("href","/styles/night-mode.css");
 		setCookie("nightMode","true");
 	}else{
-		$("#day-css").attr("href","styles/day-mode.css");
+		$("#day-css").attr("href","/styles/day-mode.css");
 		setCookie("nightMode","");
 	}
 }

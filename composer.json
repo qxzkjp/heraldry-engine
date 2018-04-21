@@ -12,7 +12,8 @@
     "minimum-stability": "stable",
     "require": {
         "ua-parser/uap-php": "^3.5",
-        "silex/silex": "~2.0"
+        "silex/silex": "~2.0",
+        "doctrine/orm": "^2.6"
     },
     "autoload": {
         "psr-4": {

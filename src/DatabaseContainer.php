@@ -7,9 +7,14 @@
  */
 
 namespace HeraldryEngine;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query;
+use Doctrine\ORM\QueryBuilder;
 use Exception;
+use HeraldryEngine\Dbo\User;
+use HeraldryEngine\Http\SessionHandler;
 use HeraldryEngine\Mvc\Model;
-use HeraldryEngine\SessionHandler;
 use mysqli;
 use Symfony\Component\HttpFoundation\Request;
 use Silex;
@@ -20,6 +25,11 @@ class DatabaseContainer
      * @var mysqli
      */
     private $mysqli;
+
+    /**
+     * @var EntityManager
+     */
+    private $em;
 
     /**
      * @var array
@@ -57,27 +67,27 @@ class DatabaseContainer
     public $handler;
 
     /**
+     * @var callable
+     */
+    private $clock;
+
+    /**
      * Create a new admin panel model.
      *
      * @param Silex\Application $app
      */
     public function __construct($app)
     {
-        $this->handler=$app['session_handler'];
         $config=$app['config'];
-        try {
-            $this->mysqli = new mysqli(
-                $config['db.host'],
-                $config['db.user'],
-                $config['db.pass'],
-                $config['db.name']
-            );
-            $this->mysqli->set_charset("utf8mb4");
-        } catch(Exception $e) {
-            error_log($e->getMessage());
-            exit('Error connecting to database'); //Should be a message a typical user could understand
-        }
-
+        $this->handler=$app['session_handler'];
+        $this->em = $app['entity_manager'];
+        $this->clock = $app['clock'];
+        $this->mysqli = new mysqli(
+            $config['db.host'],
+            $config['db.user'],
+            $config['db.pass'],
+            $config['db.name']
+        );
     }
 
     /**
@@ -86,35 +96,43 @@ class DatabaseContainer
      */
     public function prepareModel(Silex\Application $app)
     {
-        $stmt = $this->mysqli->prepare("SELECT * FROM users");
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $users=array();
-        $userRows=array();
-
-        while ($row = $result->fetch_assoc()) {
-            array_push($userRows,$row);
-            $users[(int)$row["ID"]]=$row["userName"];
-        }
+        $userRepo = $this->em->getRepository('HeraldryEngine\Dbo\User');
+        /**
+         * @var QueryBuilder $qb
+         */
+        $qb = $userRepo->createQueryBuilder('u');
+        $qb->select()->orderBy('u.id', 'ASC');
+        /**
+         * @var Query $query
+         */
+        $query = $qb->getQuery();
+        $query->execute();
+        $users = $query->getResult();
 
         $sessions = $app['session_handler']->get_all();
+
+        $userNames = [];
+        $userRows = [];
+        /**
+         * @var User $user
+         */
+        foreach ($users as $user){
+            $userNames[$user->getID()] = $user->getUserName();
+            $userRows[$user->getID()] = [
+                "id" => $user->getID(),
+                "userName" => $user->getUserName(),
+                "accessLevel" => $user->getAccessLevel()
+            ];
+        }
 
         $app['params'] = array_merge(
             $app['params'],
             [
-                'users'=>$users,
+                'users'=>$userNames,
                 'userRows'=>$userRows,
                 'sessions'=>$sessions
             ]
         );
-    }
-
-
-    public function trimLogs(){
-        $stmt = $this->mysqli->prepare(
-            "DELETE FROM failureLogs WHERE accessTime < (NOW() - INTERVAL 7 DAY);"
-        );
-        return $stmt->execute();
     }
 
     public function prepareQuery($query){

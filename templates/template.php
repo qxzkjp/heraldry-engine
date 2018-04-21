@@ -4,24 +4,24 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
 		<title>Heraldry Engine</title>
-		<link rel="icon" type="image/x-icon" href="logo.png" />
+		<link rel="icon" type="image/x-icon" href="/logo.png" />
 		<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-		<link href='styles/style.css' rel='stylesheet' type='text/css'>
+		<link href='/styles/style.css' rel='stylesheet' type='text/css'>
 		<?php if(array_key_exists("nightMode", $this->params)): ?>
-		<link href='styles/night-mode.css' id="day-css" rel='stylesheet' type='text/css'>
+		<link href='/styles/night-mode.css' id="day-css" rel='stylesheet' type='text/css'>
 		<?php else: ?>
-		<link href='styles/day-mode.css' id="day-css" rel='stylesheet' type='text/css'>
+		<link href='/styles/day-mode.css' id="day-css" rel='stylesheet' type='text/css'>
 		<?php endif ?>
 		<?php foreach($this->params["cssList"] as $item):?>
 		<link
 			<?php if(array_key_exists("id",$item)):?>
 			id="<?=$item["id"]?>"
 			<?php endif ?>
-			href="styles/<?=$item["name"]?>.css" rel="stylesheet" type="text/css">
+			href="/styles/<?=$item["name"]?>.css" rel="stylesheet" type="text/css">
 		<?php endforeach?>
 
 		<?php foreach($this->params["scriptList"] as $name):?>
-		<script type="text/javascript" src="scripts/<?=$name?>.js"></script>
+		<script type="text/javascript" src="/scripts/<?=$name?>.js"></script>
 		<?php endforeach?>
 
 	</head>
@@ -66,10 +66,10 @@
 							
 							<?php if(array_key_exists("loggedIn",$this->params)):?>
 
-							<a href="logout" class="menu-item">Log out</a>
+							<a href="/logout" class="menu-item">Log out</a>
 							<?php else:?>
 
-							<a href="login" class="menu-item">Log in</a>
+							<a href="/login" class="menu-item">Log in</a>
 							<?php endif?>
 
 						</div>
