@@ -29,9 +29,9 @@
 		<div id="menuContainer">
             <div id="innerMenuContainer">
                 <svg version="1.1" baseProfile="full" viewBox="0 0 100 100" id="menuButton" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="0" y="10" width="100" height="20" rx="10" ry="10" />
-                    <rect x="0" y="40" width="100" height="20" rx="10" ry="10" />
-                    <rect x="0" y="70" width="100" height="20" rx="10" ry="10" />
+                    <rect x="0" y="10" width="100" height="20" rx="10" ry="10" ></rect>
+                    <rect x="0" y="40" width="100" height="20" rx="10" ry="10" ></rect>
+                    <rect x="0" y="70" width="100" height="20" rx="10" ry="10" ></rect>
                 </svg>
                 <div id="sideMenu" style="display:none">
                     <div id="topMenuSpacer" class="clear"></div>
@@ -66,10 +66,12 @@
 							
 							<?php if(array_key_exists("loggedIn",$this->params)):?>
 
-							<a href="/logout" class="menu-item">Log out</a>
+							<!--suppress HtmlUnknownTarget -->
+                                <a href="/logout" class="menu-item">Log out</a>
 							<?php else:?>
 
-							<a href="/login" class="menu-item">Log in</a>
+							<!--suppress HtmlUnknownTarget -->
+                                <a href="/login" class="menu-item">Log in</a>
 							<?php endif?>
 
 						</div>
@@ -79,7 +81,7 @@
             </div>
 		</div>
 		<div id="content">
-			<hgroup id="mainHead">
+			<div id="mainHead">
 				<?php if(isset($this->params["primaryHead"])):?>
 				<h1 id="heraldryHead"><?=$this->params["primaryHead"]?>&nbsp;</h1>
 				<?php endif?>
@@ -88,7 +90,7 @@
 				<h1 id="engineHead"><?=$this->params["secondaryHead"]?></h1>
 				<?php endif?>
 
-			</hgroup>
+			</div>
 			<div id="messageContainer">
 <?php if( array_key_exists('errorMessage', $this->params)):?>
 				<p class="error"><?=$this->params['errorMessage']?></p>
@@ -101,7 +103,8 @@
 				<p><?=$this->params['debugMessage']?></p>
 <?php endif?>
 			</div>
-<?php require $this->params["content"]; ?>
+<?php /** @noinspection PhpIncludeInspection */
+require $this->params["content"]; ?>
 		</div>
 	</body>
 </html>

@@ -20,5 +20,6 @@
 						</tr>
 					</table>
 					<input type="submit" name="submit" value="Create user"/>
+                    <input type="hidden" name="CSRF" value="<?=$this->params['CSRF']?>">
 				</form>
 			</div>

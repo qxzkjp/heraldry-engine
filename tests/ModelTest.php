@@ -9,7 +9,10 @@ use HeraldryEngine\Http\ServerContainer;
 use HeraldryEngine\Http\CookieContainer;
 
 final class ModelTestCase extends TestCase{
-	public function testGetingAnUnsetCookieReturnsAnEmptyString(){
+    /**
+     * @throws Exception
+     */
+    public function testGettingAnUnsetCookieReturnsAnEmptyString(){
 		$model = new Model(
 			new Request(
 				new CookieContainer([]),
@@ -22,7 +25,11 @@ final class ModelTestCase extends TestCase{
 			$model->getCookies()->getCookie('nonexistent')
 		);
 	}
-	public function testGetingASetCookieReturnsTheCorrectValue(){
+
+    /**
+     * @throws Exception
+     */
+    public function testGettingASetCookieReturnsTheCorrectValue(){
 		$model = new Model(
 			new Request(
 				new CookieContainer(['cookie'=>'value']),

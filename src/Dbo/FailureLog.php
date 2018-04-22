@@ -145,13 +145,18 @@ class FailureLog
          * @var Query $query
          */
         $em = $app['entity_manager'];
-        $now = ($app['clock'])();
+
+        try {
+            $oneWeekFromNow = ($app['clock'])()->add(new \DateInterval('P7D'));
+        } catch (Exception $e) {
+            die("the impossible happened");
+        }
         $logRepo = $em->getRepository('HeraldryEngine\Dbo\FailureLog');
         $qb=$logRepo->createQueryBuilder('l');
         try {
             $qb->delete()->where(
                 $qb->expr()->lt('l.accessTime', ':oneWeekAgo')
-            )->setParameter('oneWeekAgo', $now->add(new \DateInterval('P7D')));
+            )->setParameter('oneWeekAgo', $oneWeekFromNow);
         } catch (Exception $e) {
             die('database error!');
         }

@@ -2,6 +2,7 @@
 namespace HeraldryEngine\Http;
 
 use SessionHandlerInterface;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 
 //this file is almost verbatim from the PHP manual
 class SessionHandler implements SessionHandlerInterface
@@ -76,16 +77,22 @@ class SessionHandler implements SessionHandlerInterface
 		return true;
 	}
 
-	//read all session data into an associative array by ID
+	//read all session data into symfony session objects
+    //note that these are not app-specific session objects, and so don't automatically check expiration
 	public function get_all()
 	{
-		$allsessions = array();
+		$sessionObjects = [];
 		$prefixLength=strlen("$this->savePath/sess_");
 		foreach (glob("$this->savePath/sess_*") as $file) {
 			$id = substr($file,$prefixLength);
 			$blob = (string) @file_get_contents($file);
-			$allsessions[$id] = @unserialize($blob);
+			$sessionData = @unserialize($blob);
+			if(is_array($sessionData)) {
+                $mockStorage = new MockArraySessionStorage($id);
+                $mockStorage->setSessionData($sessionData);
+                $sessionObjects[] = new \Symfony\Component\HttpFoundation\Session\Session($mockStorage);
+            }
 		}
-		return $allsessions;
+		return $sessionObjects;
 	}
 }

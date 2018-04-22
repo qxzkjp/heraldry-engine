@@ -26,7 +26,7 @@ class View
 	/**
 	 * The application object
 	 *
-	 * @var Model
+	 * @var \HeraldryEngine\Application
 	 */
 	protected $app;
 
@@ -40,7 +40,7 @@ class View
 	/**
 	 * Create a new view.
 	 *
-	 * @param Silex\Application $model
+	 * @param \HeraldryEngine\Application $model
 	 * @param Symfony\Component\HttpFoundation\Request $request
 	 */
 	public function __construct(&$model, &$request)
@@ -55,6 +55,7 @@ class View
 	 */
 	public function render()
 	{
+	    $this->params['CSRF'] = $this->app->setCSRF();
 	    $this->params = array_merge($this->params, $this->app['params']);
 		if("" !== $this->request->cookies->get("nightMode","") ){
 			$this->setParam("nightMode","true");
@@ -62,6 +63,8 @@ class View
 		if(null !== $this->app['session']->get('userID')){
 			$this->setParam("loggedIn","true");
 		}
+		$app = $this->app;
+		$params = $this->params;
 		ob_start();
 		require $this->template;
 		return ob_get_clean();

@@ -9,6 +9,8 @@
 namespace HeraldryEngine\Http;
 
 
+use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
+use Symfony\Component\HttpFoundation\Session\SessionBagProxy;
 use Symfony\Component\HttpFoundation\Session\Storage\MetadataBag;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 
@@ -45,19 +47,42 @@ class SessionStorage extends NativeSessionStorage
         if (!session_start()) {
             throw new \RuntimeException('Failed to start the session');
         }
-        //check for expired session
-        if (array_key_exists("expiry",$_SESSION)) {
-            if ($_SESSION["expiry"] < time()) {
-                session_unset();
-                $_SESSION['sessionExpired'] = true; //set flag to let us know previous session expired
-            }else {
-                $_SESSION["expiry"] = time() + $lifetime;
-            }
-        }
-        setcookie(session_name(), session_id(), time() + $lifetime);
 
+        setcookie(session_name(), session_id(), time() + $lifetime);
         $this->loadSession();
 
+        $bags = $this->bags;
+        /**
+         * Now we set up session expiry in a (hopefully) forward-compatible way
+         * @var SessionBagProxy $bag
+         * @var AttributeBag $attrib
+         * @var \DateTime $expiryDate
+         */
+        foreach ($bags as $bag) {
+            if($bag->getBag() instanceof AttributeBag){
+                $attrib = $bag->getBag();
+                if($attrib->has('expiry')){
+                    $expiryDate = $attrib->get('expiry');
+                    if($expiryDate instanceof \DateTime) {
+                        //TODO: expunge global state; lifetime should come from $app, and time() replace with $app['clock']
+                        //check for expired session
+                        if ($expiryDate->getTimestamp() < time()) {
+                            session_unset();
+                            session_regenerate_id();
+                            $attrib->set('sessionExpired', true);
+                        } else {
+                            try {
+                                $attrib->set('expiry', (new \DateTime())->add(new \DateInterval('PT' . $lifetime . 'S')));
+                            } catch (\Exception $e) {
+                                die('the impossible happened!');
+                            }
+                        }
+                    }else{
+                        $attrib->remove('expiry');
+                    }
+                }
+            }
+        }
         return true;
     }
 }

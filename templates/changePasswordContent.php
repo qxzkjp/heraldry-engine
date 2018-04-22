@@ -19,7 +19,8 @@
 					</table>
 					<input type="submit" name="submit" value="Change password"/>
 <?php if(array_key_exists("changeID", $this->params)):?>
-					<input type="hidden" name="ID" value="<?=$this->params["changeID"] ?>"></input>
+					<input type="hidden" name="ID" value="<?=$this->params["changeID"] ?>">
 <?php endif ?>
+                    <input type="hidden" name="CSRF" value="<?=$this->params['CSRF']?>">
 				</form>
 			</div>

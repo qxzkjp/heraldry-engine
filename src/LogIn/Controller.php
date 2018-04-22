@@ -101,6 +101,7 @@ class Controller
                     if(!$this->em-flush()){
                         $this->params['errorMessage'] .= "<br/>Database error!";
                     };
+                    unset($user);
                 }
             }
         } else {

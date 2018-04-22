@@ -7,54 +7,60 @@
 						<th>status</th>
 					</tr>
 					<?php
-						foreach($this->params['userRows'] as $row) {
-							$status;
-								if((int)$row['accessLevel'] == 0)
+                    /**
+                     * @var array $params
+                     * @var \HeraldryEngine\Application $app
+                     * @var \HeraldryEngine\Dbo\User $user
+                     */
+						foreach($params['users'] as $user) {
+						    $accessLevel = $user->getAccessLevel();
+								if($accessLevel == ACCESS_LEVEL_ADMIN)
 									$status="admin";
-								elseif ((int)$row['accessLevel'] == 1)
+								elseif ($accessLevel == ACCESS_LEVEL_USER)
 									$status="standard";
-								elseif ((int)$row['accessLevel'] == 2)
+								elseif ($accessLevel == ACCESS_LEVEL_NONE)
 									$status="disabled";
 								else
 									$status="unknown";
+								$id = $user->getID();
+								$name = $user->getUserName();
 						?>
 							<tr>
-								<td><?=$row['ID']?></td>
-								<td><?=$row['userName']?></td>
+								<td><?=$id?></td>
+								<td><?=$name?></td>
 								<td><?=$status?></td>
-								<td><a href="#"
-									onclick="post('changepassword.php',{'ID': '<?=$row['ID']?>'})"
-									>Change password</a>
+								<td><!--suppress HtmlUnknownTarget -->
+                                    <a href="/changepassword?ID=<?=$id?>">Change password</a>
 								</td>
 								<td><a href="#"
-									onclick="post('<?=$this->params["pageName"]?>',{'action' : 'deleteUser', 'ID': '<?=$row['ID']?>'})"
+									onclick="post('<?=$params["pageName"]?>',{'action' : 'deleteUser', 'ID': '<?=$id?>'});return false;"
 									>Delete user</a>
 								</td>
 								<td><?php
-									if($row["accessLevel"]!=0): 
+									if($accessLevel!=ACCESS_LEVEL_ADMIN):
 									?><a href="#"
-										onclick="post('<?=$this->params["pageName"]?>',{'action' : 'promoteUser', 'ID': '<?=$row['ID']?>'})"
+										onclick="post('<?=$params["pageName"]?>',{'action' : 'promoteUser', 'ID': '<?=$id?>'});return false;"
 										>Promote user</a>
 								<?php else: ?>
 										Promote user
 								<?php endif ?></td>
 								<td>
-<?php if($row["accessLevel"]<1): ?>
+<?php if($accessLevel<ACCESS_LEVEL_USER): ?>
 									<a href="#"
-										onclick="post('<?=$this->params["pageName"]?>',{'action' : 'demoteUser', 'ID': '<?=$row['ID']?>'})"
+										onclick="post('<?=$params["pageName"]?>',{'action' : 'demoteUser', 'ID': '<?=$id?>'});return false;"
 										>Demote user</a>
-<?php elseif($row["accessLevel"]>1): ?>
+<?php elseif($accessLevel>ACCESS_LEVEL_USER): ?>
 									<a href="#"
-										onclick="post('<?=$this->params["pageName"]?>',{'action' : 'demoteUser', 'ID': '<?=$row['ID']?>'})"
+										onclick="post('<?=$params["pageName"]?>',{'action' : 'demoteUser', 'ID': '<?=$id?>'});return false;"
 										>Enable user</a>
 <?php else: ?>
 									Demote user
 <?php endif ?>
 								</td>
 								<td><?php
-									if($row["accessLevel"]!=2):
+									if($accessLevel!=ACCESS_LEVEL_NONE):
 									?><a href="#"
-										onclick="post('<?=$this->params["pageName"]?>',{'action' : 'disableUser', 'ID': '<?=$row['ID']?>'})"
+										onclick="post('<?=$params["pageName"]?>',{'action' : 'disableUser', 'ID': '<?=$id?>'});return false;"
 										>Disable user</a>
 								<?php else: ?>
 										Disable user
@@ -78,79 +84,89 @@
 						<th></th>
 					</tr>
 					<?php
-					foreach($this->params['sessionList'] as $id => $data){
-						if(!is_array($data)){
-							$data=[
-								"userID" => "-1",
-								"geoIP" => "Unknown"
-							];
-						}
-						if(array_key_exists("userID",$data)){
-							if(!array_key_exists("expiry",$data)
-								|| $data["expiry"] >= time()){
+                    /**
+                     * @var \Symfony\Component\HttpFoundation\Session\Session $session
+                     */
+                    $userRepo = $app['entity_manager']->getRepository(\HeraldryEngine\Dbo\User::class);
+					foreach($params['sessions'] as $id => $session){
+					    if( $session->has('expiry') && !($session->get('expiry') instanceof \DateTime) ){
+					        $dt = new DateTime();
+					        $dt->setTimestamp($session->get('expiry'));
+					        $session->set('expiry',$dt);
+                        }
+						if($session->has('userID')){
+							if(!$session->has('expiry')
+								|| $session->get('expiry')->getTimestamp() >= $app['clock']->__invoke()->getTimestamp()){
 					?>
 					<tr>
-						<td><?=$id?></td>
+						<td><?=$session->getName()?></td>
 						<td><?php
-						if(array_key_exists("userID",$data)){
-							if($data['userID']>=0){
-								echo $this->params['users'][$data["userID"]];
+						if($session->has('userID')){
+						    $userID = $session->get('userID');
+							if( $userID >= 0){
+                                $user = $userRepo->find($userID);
+                                if(isset($user)) {
+                                    echo $user->getUserName();
+                                }else{
+                                    echo "Unknown user";
+                                }
 							}else{
 								echo "Corrupted Session";
 							}
 						}
 						?></td>
 						<td><?php
-							if(array_key_exists("userIP",$data)){
-								echo $data["userIP"];
+							if($session->has('userIP')){
+								echo $session->get("userIP");
 							}else{
 								echo "unknown";
 							}
-							echo "<!--".$data["geoIP"]."-->";
+							echo "<!--".$session->get("geoIP")."-->";
 						?></td>
 						<td><?php
-						if(array_key_exists("city",$data)){
-							echo $data["city"].", ";
+						if($session->has('city')){
+							echo $session->get("city").", ";
 						}
-						if(array_key_exists("countryName",$data)){
+						if($session->has('countryName')){
 							echo str_replace(" ","&nbsp;",
-								$data["countryName"]);
+								$session->get("countryName"));
 						}else{
 							echo "unknown";
 						}
 						?></td>
 						<td><?php
-							if(array_key_exists("startTime",$data)){
+							if($session->has('startTime')){
 								date_default_timezone_set('Europe/London');
-								echo date('d/m/Y H:i:s', $data["startTime"]);
+								echo $session->get("startTime")->format('d/m/Y H:i:s');
 							}else{
 								echo "Unknown";
 							}
 						?></td>
 						<td><?php
-							if(array_key_exists("expiry",$data)){
+							if($session->has('expiry')){
 								date_default_timezone_set('Europe/London');
-								echo date('d/m/Y H:i:s', $data["expiry"]);
+								echo $session->get("expiry")->format('d/m/Y H:i:s');
 							}else{
 								echo "Never";
 							}
 						?></td>
 						<td><?php
-							if(array_key_exists("browser",$data)){
-								echo $data["browser"];
+							if($session->has('browser')){
+								echo $session->get("browser");
 							}else{
 								echo "unknown";
 							}
 						?></td>
 						<td><?php
-							if(array_key_exists("OS",$data)){
-								echo str_replace(" ", "&nbsp;", $data["OS"]);
+							if($session->has('OS')){
+								echo str_replace(" ", "&nbsp;", $session->get("OS"));
 							}else{
 								echo "unknown";
 							}
 						?></td>
+                        <!-- TODO: remove dependence on global state -->
 						<td><?php if($id!=session_id()):?><a href="#"
-							onclick="post('<?=$this->params["pageName"]?>',{'action' : 'deleteSession', 'ID': '<?=$id?>'})">
+							onclick="post('<?=$params["pageName"]?>',{'action' : 'deleteSession', 'ID': '<?=$id?>'});return false;">
 							Delete session</a><?php endif ?>
 					</tr>
 					<?php
@@ -160,8 +176,7 @@
 				?></table>
 				<p>
 					<a href="#"
-						onclick="post('<?=$this->params["pageName"]?>',{'action' : 'garbageCollect'})"
+						onclick="post('<?=$params["pageName"]?>',{'action' : 'garbageCollect'});return false;"
 						>Collect garbage</a>
 				</p>
 			</div>
-		</div>

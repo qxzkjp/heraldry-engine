@@ -13,6 +13,18 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
  */
 $app = require 'bootstrap/bootstrap.php';
 
+$app->before(function(Request $request, Application $app){
+    /**
+     * @var \HeraldryEngine\Http\Session
+     */
+    $session = $app['session'];
+    if(!$request->request->has('CSRF') ||
+        !$app['session']->has('CSRF') ||
+        $request->request->get('CSRF') != $session->get('CSRF')){
+       $request->request = new \Symfony\Component\HttpFoundation\ParameterBag();
+    }
+});
+
 /**
  * This is here because Silex requires the callback to take a request and an application
  * @noinspection PhpUnusedParameterInspection
@@ -56,7 +68,7 @@ $app->get('/', function(Application $app, Request $request){
     $uuid = $controller->createGUID();
     $view->setParam("menuList",[
         [
-            "href" => "readme.md",
+            "href" => "/readme.md",
             "label" => "What is this?"
         ],
         [
@@ -82,12 +94,12 @@ $app->get('/', function(Application $app, Request $request){
     ]);
     if($app['security']->GetAccessLevel()==ACCESS_LEVEL_ADMIN){
         $view->appendParam("menuList",[
-            "href" => "admin.php",
+            "href" => "/admin",
             "label" => "Secret admin shit"
         ]);
     }else{
         $view->appendParam("menuList",[
-            "href" => "changepassword.php",
+            "href" => "/changepassword",
             "label" => "Change password"
         ]);
     }
@@ -122,7 +134,7 @@ $app->get('/login', function(Application $app, Request $request){
     $view = new View($app, $request);
     $view->setTemplate("templates/template.php");
     $view->setParam("content","loginContent.php");
-    $view->setParam("pageName","login");
+    $view->setParam("pageName","/login");
     $view->setParam("primaryHead","Log");
     $view->setParam("secondaryHead","In");
     $view->setParam("scriptList",[
@@ -137,7 +149,6 @@ $app->get('/login', function(Application $app, Request $request){
         ]
     ]);
     $view->setParam("menuList",[]);
-    $app['db']->prepareModel($app);
     return $view->render();
 });
 
@@ -149,6 +160,7 @@ $app->post('/login', function(Application $app, Request $request){
         $ctx = $controller->authenticateUser($app['clock'], $app['session_lifetime'], $uname, $pword);
         $app['params'] = array_merge($app['params'], $controller->GetParams());
         if($ctx->GetUserID() != 0){
+            $app['security'] = $ctx;
             $app['security']->StoreContext($app['session']);
             //redirect to the index page
             return $app->redirect('/');
@@ -230,6 +242,67 @@ $adminPages->get('/permissions/view', function(Application $app, Request $reques
     return $view->render();
 });
 
+$adminPages->get("/admin", function(Application $app, Request $request){
+    $view = new View($app,$request);
+    $view->setTemplate("templates/template.php");
+    $view->setParam("content","adminpanel.php");
+    $view->setParam("pageName","admin.php");
+    $view->setParam("primaryHead","Secret Admin Shit");
+    $view->setParam("scriptList",[
+        "vendor/jquery-3.2.1.min",
+        "ui",
+        "enable",
+        "post"
+    ]);
+    $view->setParam("cssList",[
+        [
+            "name" => "wide"
+        ],
+        [
+            "name" => "adminpanel"
+        ]]);
+    $view->setParam("menuList",[
+        [
+            "href" => "/",
+            "label" => "Back to blazonry"
+        ],
+        [
+            "href" => "/createuser",
+            "label" => "Create new user",
+        ]
+    ]);
+    $userRepo = $app['entity_manager']->getRepository(User::class);
+    $users = $userRepo->findAll();
+    $view->setParam("users", $users);
+    $view->setParam("sessions", $app['session_handler']->get_all());
+    return $view->render();
+});
+
+$adminPages->get("/createuser", function(Application $app, Request $request){
+    $controller = new \HeraldryEngine\CreateUser\Controller($app, $request);
+    return $controller->show();
+});
+
+$adminPages->post("/createuser", function(Application $app, Request $request){
+    $controller = new \HeraldryEngine\CreateUser\Controller($app, $request);
+    if($request->request->has('newUser')) {
+        if($request->request->has('newPassword') &&
+        $request->request->has('checkPassword')){
+            $controller->createUser(
+                $request->request->get('newUser'),
+                $request->request->has('asAdmin') ? ACCESS_LEVEL_ADMIN : ACCESS_LEVEL_USER,
+                $request->request->get('newPassword'),
+                $request->request->get('checkPassword')
+            );
+        }else{
+            $app->addParam('errorMessage','Something weird went wrong. User not created.');
+        }
+    }
+    return $controller->show();
+})->before($requireAdmin);//TODO: change this to a permission-based check
+
+$app->mount('/', $adminPages);
+
 $app->get('/user/{id}',
     function(Application $app, Request $request, $id) : string {
     /**
@@ -285,5 +358,40 @@ $app->get('/user/{id}',
     }
     return $view->render();
 });
+
+$app->get('/changepassword', function(Application $app, Request $request){
+    $controller = new \HeraldryEngine\ChangePassword\Controller($app, $request);
+    if($request->query->has('ID'))
+        $app['params'] = array_merge(
+            $app['params'],
+            [
+                'changeID' => $request->query->get('ID')
+            ]
+        );
+    return $controller->show();
+});
+
+$app->post('/changepassword', function(Application $app, Request $request){
+    $controller = new \HeraldryEngine\ChangePassword\Controller($app, $request);
+    if($request->request->has('newPassword') && $request->request->has('checkPassword')){
+        //TODO: replace with permission-based check
+        if($request->request->has('ID') && $app['security']->GetAccessLevel()==ACCESS_LEVEL_ADMIN){
+            $id = $request->request->get('ID');
+        }else{
+            $id = $app['security']->GetUserID();
+        }
+        $success = $controller->changeUserPassword(
+            $id,
+            $request->request->get('newPassword'),
+            $request->request->get('checkPassword')
+        );
+        if($success){
+            $app['params']= array_merge($app['params'],  ['successMessage' => "Password changed"]);
+        }else{
+            $app['params']= array_merge($app['params'],  ['errorMessage' => "Password not changed"]);
+        }
+    }
+    return $controller->show();
+})->before($requireLoggedIn);
 
 $app->run();

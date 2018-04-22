@@ -2,6 +2,7 @@
 namespace HeraldryEngine;
 
 use HeraldryEngine\Http\SessionContainer;
+use HeraldryEngine\Interfaces\ClockInterface;
 use HeraldryEngine\Utility\ArrayUtility;
 use Symfony\Component\HttpFoundation\Session\Session;
 
@@ -42,12 +43,22 @@ class SecurityContext {
      * @var int|null
      */
 	private $expiry;
-
+    /**
+     * @var ClockInterface
+     */
 	private $clock;
+    /**
+     * @var string
+     */
+    private $OS;
+    /**
+     * @var string
+     */
+    private $browser;
 
     /**
      * SecurityContext constructor.
-     * @param callable $clock
+     * @param ClockInterface $clock
      * @param \DateInterval $lifetime
      * @param $params array|SessionContainer|Session
      */
@@ -59,7 +70,10 @@ class SecurityContext {
         $this->userIP = ArrayUtility::Get('userIP', $params);
         $this->countryName = ArrayUtility::Get('countryName', $params);
         $this->city = ArrayUtility::Get('city', $params);
-        $this->expiry = $this->startTime->add($lifetime);
+        $this->OS = ArrayUtility::Get('OS', $params);
+        $this->browser = ArrayUtility::Get('browser', $params);
+        $this->expiry = $this->startTime;
+        $this->expiry->add($lifetime);
         $this->clock = $clock;
 	}
 
@@ -121,8 +135,14 @@ class SecurityContext {
         $sesh->set('accessLevel', $this->accessLevel);
         $sesh->set('startTime', $this->startTime);
         $sesh->set('userIP', $this->userIP);
-        $sesh->set('countryName', $this->countryName);
-        $sesh->set('city', $this->city);
+        if(isset($this->countryName))
+            $sesh->set('countryName', $this->countryName);
+        if(isset($this->city))
+            $sesh->set('city', $this->city);
+        if(isset($this->OS))
+            $sesh->set('OS', $this->OS);
+        if(isset($this->browser))
+            $sesh->set('browser', $this->browser);
         $sesh->set('expiry', $this->expiry);
     }
 }
