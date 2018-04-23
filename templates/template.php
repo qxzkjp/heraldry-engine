@@ -21,9 +21,13 @@
 		<?php endforeach?>
 
 		<?php foreach($this->params["scriptList"] as $name):?>
-		<script type="text/javascript" src="/scripts/<?=$name?>.js"></script>
+		<script type="text/javascript" src="/scripts/<?=$name?>.js" defer></script>
 		<?php endforeach?>
-
+        <?php if(array_key_exists('CSRF', $params)):?>
+        <script type="text/javascript">
+            window.CSRF="<?=$params['CSRF']?>";
+        </script>
+        <?php endif ?>
 	</head>
 	<body>
 		<div id="menuContainer">
@@ -55,7 +59,7 @@
 								<?php if(array_key_exists("onclick",$item)){
 									echo 'onclick="'.$item["onclick"].'"';
 								}?> >
-								<?=$item["label"]?></a>
+                                <?=$item["label"]?></a>
 								<?php if(array_key_exists("expandable",$item)){
 										require $item["expandable"];
 								}?>

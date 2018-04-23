@@ -1755,6 +1755,7 @@ function setBlazon(str) {
     if (tree === undefined) {
         return false;
     } else {
+    	$('#downloadButton').attr('data-post', JSON.stringify({'blazon':getDownloadBlazon()}));
         return true;
     }
 }

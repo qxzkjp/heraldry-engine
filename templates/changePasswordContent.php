@@ -1,5 +1,5 @@
 			<div id="bottomHalf">
-				<form action="<?=$this->params['pageName']?>" method="post">
+				<form action="<?=$params['path']?>" method="post">
 				<p>
 <?php if(array_key_exists("changeID", $this->params)): ?>
 				Changing password for user ID <?php echo $this->params["changeID"] ?></p>

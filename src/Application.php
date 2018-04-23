@@ -24,6 +24,10 @@ use HeraldryEngine\Http\SessionHandler;
  */
 class Application extends \Silex\Application
 {
+    /**
+     * @var bool
+     */
+    private $hasCSRF = false;
     public function __construct(array $values = [])
     {
         $this['params'] = [];
@@ -49,9 +53,14 @@ class Application extends \Silex\Application
         }
     }
 
-    public function setCSRF(){
-        $guid = $this->getGUID();
-        $this['session']->set('CSRF', $guid);
+    public function getCSRF(){
+        if(!$this->hasCSRF) {
+            $guid = $this->getGUID();
+            $this['session']->set('CSRF', $guid);
+            $this->hasCSRF = true;
+        }else{
+            $guid = $this['session']->get('CSRF');
+        }
         return $guid;
     }
 

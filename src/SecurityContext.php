@@ -85,7 +85,10 @@ class SecurityContext {
     }
 
     public function isExpired(){
-        return ($this->GetClock()->getTimestamp() > $this->expiry->getTimestamp());
+        $now = $this->GetClock()->getTimestamp();
+        if($now === false) //if time has overflowed, assume we've expires
+            return true;
+        return ( $now > $this->expiry->getTimestamp());
     }
 
     /**
@@ -110,6 +113,14 @@ class SecurityContext {
 	}
 
     /**
+     * @return string
+     */
+    public function getUserIP(): string
+    {
+        return (isset($this->userIP) && !$this->isExpired())?$this->userIP:"";
+    }
+
+    /**
      * @return array
      */
     public function GetLocation(){
@@ -129,6 +140,25 @@ class SecurityContext {
         return $ret;
     }
 
+    /**
+     * @return string
+     */
+    public function getBrowser(): string
+    {
+        return (isset($this->browser) && !$this->isExpired())?$this->browser:"";
+    }
+
+    /**
+     * @return string
+     */
+    public function getOS(): string
+    {
+        return (isset($this->OS) && !$this->isExpired())?$this->OS:"";
+    }
+
+    /**
+     * @param Session $sesh
+     */
     public function StoreContext(Session $sesh){
         $sesh->set('userID', $this->id);
         $sesh->set('userName', $this->userName);

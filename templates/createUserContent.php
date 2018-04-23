@@ -1,6 +1,6 @@
 			<div id="bottomHalf">
 
-				<form action="<?=$this->params['pageName']?>" method="post">
+				<form action="<?=$params['path']?>" method="post">
 					<table>
 						<tr>
 							<td>User name</td>

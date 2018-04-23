@@ -4,6 +4,7 @@ use HeraldryEngine\Application;
 use HeraldryEngine\Dbo\User;
 use HeraldryEngine\Mvc\View;
 use HeraldryEngine\Mvc\Controller;
+use HeraldryEngine\Utility\DateUtility;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -18,10 +19,14 @@ $app->before(function(Request $request, Application $app){
      * @var \HeraldryEngine\Http\Session
      */
     $session = $app['session'];
+    $app['unsafe_post'] = $request->request;
     if(!$request->request->has('CSRF') ||
         !$app['session']->has('CSRF') ||
         $request->request->get('CSRF') != $session->get('CSRF')){
-       $request->request = new \Symfony\Component\HttpFoundation\ParameterBag();
+        $request->request = new \Symfony\Component\HttpFoundation\ParameterBag();
+        $app['CSRF'] = false;
+    }else{
+        $app['CSRF'] = true;
     }
 });
 
@@ -40,7 +45,6 @@ $requireLoggedIn = function (Request $request, Application $app ){
 };
 
 $app->get('/', function(Application $app, Request $request){
-    $controller = new Controller($app);
     $view = new View($app, $request);
     $view->setTemplate("templates/template.php");
     $view->setParam("content","blazon.php");
@@ -65,7 +69,6 @@ $app->get('/', function(Application $app, Request $request){
             "name" => "heraldry-not-shit",
             "id" => "heraldry-css"
         ]]);
-    $uuid = $controller->createGUID();
     $view->setParam("menuList",[
         [
             "href" => "/readme.md",
@@ -87,9 +90,9 @@ $app->get('/', function(Application $app, Request $request){
             "label" => "GitHub page"
         ],
         [
-            "href" => "#",
+            "href" => "/download",
             "label" => "Download Blazon",
-            "onclick" => "clickPost('download.php',{'UUID':'$uuid', 'blazon':getDownloadBlazon()});"
+            "id" => "downloadButton"
         ]
     ]);
     if($app['security']->GetAccessLevel()==ACCESS_LEVEL_ADMIN){
@@ -154,8 +157,9 @@ $app->get('/login', function(Application $app, Request $request){
 
 $app->post('/login', function(Application $app, Request $request){
     $controller = new \HeraldryEngine\LogIn\Controller($app['entity_manager'], $request);
-    $uname = $request->request->get('username');
-    $pword = $request->request->get('password');
+    //we don't need CSRF protection on the login form. at least not yet.
+    $uname = $app['unsafe_post']->get('username');
+    $pword = $app['unsafe_post']->get('password');
     if(isset($uname) && isset($pword)){
         $ctx = $controller->authenticateUser($app['clock'], $app['session_lifetime'], $uname, $pword);
         $app['params'] = array_merge($app['params'], $controller->GetParams());
@@ -242,7 +246,11 @@ $adminPages->get('/permissions/view', function(Application $app, Request $reques
     return $view->render();
 });
 
-$adminPages->get("/admin", function(Application $app, Request $request){
+$app->get('/admin', function(Application $app){
+    return $app->redirect('/admin/');
+});
+
+$adminPages->get("/", function(Application $app, Request $request){
     $view = new View($app,$request);
     $view->setTemplate("templates/template.php");
     $view->setParam("content","adminpanel.php");
@@ -267,7 +275,7 @@ $adminPages->get("/admin", function(Application $app, Request $request){
             "label" => "Back to blazonry"
         ],
         [
-            "href" => "/createuser",
+            "href" => "/admin/createuser",
             "label" => "Create new user",
         ]
     ]);
@@ -300,8 +308,6 @@ $adminPages->post("/createuser", function(Application $app, Request $request){
     }
     return $controller->show();
 })->before($requireAdmin);//TODO: change this to a permission-based check
-
-$app->mount('/', $adminPages);
 
 $app->get('/user/{id}',
     function(Application $app, Request $request, $id) : string {
@@ -359,39 +365,74 @@ $app->get('/user/{id}',
     return $view->render();
 });
 
+$adminPages->get('/changepassword/{id}', function(Application $app, Request $request, $id){
+    $controller = new \HeraldryEngine\ChangePassword\Controller($app, $request);
+    $app->addParam('changeID', $id);
+    return $controller->show(true);
+});
+
+$adminPages->post('/changepassword/{id}', function(Application $app, Request $request, $id){
+    $controller = new \HeraldryEngine\ChangePassword\Controller($app, $request);
+    $controller->doPasswordChange($id);
+    return $controller->show(true);
+});
+
 $app->get('/changepassword', function(Application $app, Request $request){
     $controller = new \HeraldryEngine\ChangePassword\Controller($app, $request);
-    if($request->query->has('ID'))
-        $app['params'] = array_merge(
-            $app['params'],
-            [
-                'changeID' => $request->query->get('ID')
-            ]
-        );
     return $controller->show();
-});
+})->before($requireLoggedIn);
 
 $app->post('/changepassword', function(Application $app, Request $request){
     $controller = new \HeraldryEngine\ChangePassword\Controller($app, $request);
-    if($request->request->has('newPassword') && $request->request->has('checkPassword')){
-        //TODO: replace with permission-based check
-        if($request->request->has('ID') && $app['security']->GetAccessLevel()==ACCESS_LEVEL_ADMIN){
-            $id = $request->request->get('ID');
-        }else{
-            $id = $app['security']->GetUserID();
-        }
-        $success = $controller->changeUserPassword(
-            $id,
-            $request->request->get('newPassword'),
-            $request->request->get('checkPassword')
-        );
-        if($success){
-            $app['params']= array_merge($app['params'],  ['successMessage' => "Password changed"]);
-        }else{
-            $app['params']= array_merge($app['params'],  ['errorMessage' => "Password not changed"]);
-        }
-    }
+    $controller->doPasswordChange($app->security->GetUserID());
     return $controller->show();
 })->before($requireLoggedIn);
+
+$adminPages->post('/setaccess/{al}/{id}', function(Application $app, Request $request, $al, $id){
+    $controller = new \HeraldryEngine\SetAccess\Controller($app, $request);
+    //TODO: permission-based check
+    if($app['CSRF']){
+        $controller->setAccess($id, $al);
+    }
+    return $app->redirect('/admin/');
+});
+
+$adminPages->post('/deleteuser/{id}', function(Application $app, Request $request, $id){
+    $controller = new \HeraldryEngine\DeleteUser\Controller($app, $request);
+    //TODO: permission-based check
+    if($app['CSRF']){
+        $controller->deleteUser($id);
+    }
+    return $app->redirect('/admin/');
+});
+
+$adminPages->post('/collectgarbage',function(Application $app, Request $request){
+    if($app['CSRF']) {
+        $app['session_handler']->gc(DateUtility::dateIntervalToSeconds($app['session_lifetime']));
+        $app->addParam('successMessage', "Garbage collected successfully.");
+    }
+    return $app->redirect('/admin/');
+});
+
+$app->post('/download', function(Application $app, Request $request){
+    $blazon="";
+    if($app['CSRF'] && $request->request->has('blazon')){
+        $blazon = $request->request->get('blazon');
+        $response = new Response(
+            $blazon,
+            Response::HTTP_OK,
+            array(
+                'content-type' => 'image/svg+xml',
+                'Content-Disposition' => 'attachment',
+                'filename' => 'blazon.SVG'
+            )
+        );
+    }else{
+        $response = $app->redirect('/');
+    }
+    return $response;
+});
+
+$app->mount('/admin', $adminPages);
 
 $app->run();

@@ -27,3 +27,15 @@ function clickPost(path,params,method){
 	post(path, params, method);
 	return false;
 }
+
+$(document).ready(function (){
+	$('html').on('click', 'a[data-post]', function(evt){
+		evt.preventDefault();
+		if(evt.target.dataset.post != "")
+			var params = JSON.parse(evt.target.dataset.post);
+		else
+			var params = {};
+		params.CSRF = window.CSRF;
+		post(evt.target.href,params);
+	});
+});

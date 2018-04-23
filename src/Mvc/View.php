@@ -55,7 +55,7 @@ class View
 	 */
 	public function render()
 	{
-	    $this->params['CSRF'] = $this->app->setCSRF();
+	    $this->params['CSRF'] = $this->app->getCSRF();
 	    $this->params = array_merge($this->params, $this->app['params']);
 		if("" !== $this->request->cookies->get("nightMode","") ){
 			$this->setParam("nightMode","true");
@@ -63,6 +63,7 @@ class View
 		if(null !== $this->app['session']->get('userID')){
 			$this->setParam("loggedIn","true");
 		}
+		$this->setParam('path', $this->request->getRequestUri());
 		$app = $this->app;
 		$params = $this->params;
 		ob_start();

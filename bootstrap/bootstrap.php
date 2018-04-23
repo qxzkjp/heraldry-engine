@@ -8,7 +8,6 @@ use HeraldryEngine\Http\Session;
 use HeraldryEngine\SecurityContext;
 use HeraldryEngine\Http\SessionHandler;
 use HeraldryEngine\Application;
-use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 
 /**

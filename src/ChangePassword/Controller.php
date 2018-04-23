@@ -30,6 +30,10 @@ class Controller
      * @var int
      */
     protected $errorCode;
+    /**
+     * @var int
+     */
+    protected $id = 0;
     const ERROR_SUCCESS = 0;
     const ERROR_BAD_PASSWORD = 1;
     const ERROR_BAD_USER = 2;
@@ -59,6 +63,7 @@ class Controller
          * @var EntityRepository $userRepo
          * @var User $user
          */
+        $this->id = $id;
         if($newPassword != $checkPassword){
             $this->errorCode = $this::ERROR_BAD_PASSWORD;
             return false;
@@ -86,9 +91,10 @@ class Controller
     }
 
     /**
+     * @param bool $displayUserID
      * @return string | Response
      */
-    public function show() {
+    public function show($displayUserID = false) {
         $view = new View($this->app, $this->request);
         $view->setTemplate("templates/template.php");
         $view->setParam("content","changePasswordContent.php");
@@ -108,18 +114,40 @@ class Controller
 
         if($this->app['security']->GetAccessLevel() == ACCESS_LEVEL_ADMIN){
             $view->appendParam("menuList",[
-                "href" => "admin.php",
+                "href" => "/admin",
                 "label" => "Secret admin shit"
             ]);
         }else{
             $view->appendParam("menuList",[
-                "href" => "index.php",
+                "href" => "/",
                 "label" => "Back to blazonry"
             ]);
         }
-        if( $this->request->request->has('ID')){
-            $view->setParam("changeID", $this->request->request->get('ID'));
+        if( $displayUserID){
+            $view->setParam("changeID", $this->id);
         }
         return $view->render();
+    }
+
+    /**
+     * @param int $id
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function doPasswordChange(int $id){
+        if($this->request->request->has('newPassword') && $this->request->request->has('checkPassword')){
+            //TODO: permission-based check
+            $this->app->addParam('changeID', $id);
+            $success = $this->changeUserPassword(
+                $id,
+                $this->request->request->get('newPassword'),
+                $this->request->request->get('checkPassword')
+            );
+            if($success){
+                $this->app->addParam('successMessage', 'Password changed');
+            }else{
+                $this->app->addParam('errorMessage', 'Password not changed');
+            }
+        }
     }
 }

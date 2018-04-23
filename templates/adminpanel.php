@@ -30,38 +30,28 @@
 								<td><?=$name?></td>
 								<td><?=$status?></td>
 								<td><!--suppress HtmlUnknownTarget -->
-                                    <a href="/changepassword?ID=<?=$id?>">Change password</a>
+                                    <a href="/admin/changepassword/<?=$id?>">Change password</a>
 								</td>
-								<td><a href="#"
-									onclick="post('<?=$params["pageName"]?>',{'action' : 'deleteUser', 'ID': '<?=$id?>'});return false;"
-									>Delete user</a>
+								<td><a href="/admin/deleteuser/<?=$id?>" data-post >Delete user</a>
 								</td>
 								<td><?php
 									if($accessLevel!=ACCESS_LEVEL_ADMIN):
-									?><a href="#"
-										onclick="post('<?=$params["pageName"]?>',{'action' : 'promoteUser', 'ID': '<?=$id?>'});return false;"
-										>Promote user</a>
+									?><a href="/admin/setaccess/0/<?=$id?>" data-post >Promote user</a>
 								<?php else: ?>
 										Promote user
 								<?php endif ?></td>
 								<td>
 <?php if($accessLevel<ACCESS_LEVEL_USER): ?>
-									<a href="#"
-										onclick="post('<?=$params["pageName"]?>',{'action' : 'demoteUser', 'ID': '<?=$id?>'});return false;"
-										>Demote user</a>
+									<a href="/admin/setaccess/1/<?=$id?>" data-post >Demote user</a>
 <?php elseif($accessLevel>ACCESS_LEVEL_USER): ?>
-									<a href="#"
-										onclick="post('<?=$params["pageName"]?>',{'action' : 'demoteUser', 'ID': '<?=$id?>'});return false;"
-										>Enable user</a>
+									<a href="/admin/setaccess/1/<?=$id?>" data-post >Enable user</a>
 <?php else: ?>
 									Demote user
 <?php endif ?>
 								</td>
 								<td><?php
 									if($accessLevel!=ACCESS_LEVEL_NONE):
-									?><a href="#"
-										onclick="post('<?=$params["pageName"]?>',{'action' : 'disableUser', 'ID': '<?=$id?>'});return false;"
-										>Disable user</a>
+									?><a href="/admin/setaccess/2/<?=$id?>" data-post >Disable user</a>
 								<?php else: ?>
 										Disable user
 								<?php endif ?></td>
@@ -89,6 +79,7 @@
                      */
                     $userRepo = $app['entity_manager']->getRepository(\HeraldryEngine\Dbo\User::class);
 					foreach($params['sessions'] as $id => $session){
+					    $id = $session->getName();
 					    if( $session->has('expiry') && !($session->get('expiry') instanceof \DateTime) ){
 					        $dt = new DateTime();
 					        $dt->setTimestamp($session->get('expiry'));
@@ -165,8 +156,7 @@
 							}
 						?></td>
                         <!-- TODO: remove dependence on global state -->
-						<td><?php if($id!=session_id()):?><a href="#"
-							onclick="post('<?=$params["pageName"]?>',{'action' : 'deleteSession', 'ID': '<?=$id?>'});return false;">
+						<td><?php if($id!=session_id()):?><a href="/deletesession/<?=$id?>" data-post >
 							Delete session</a><?php endif ?>
 					</tr>
 					<?php
@@ -175,8 +165,7 @@
 					}
 				?></table>
 				<p>
-					<a href="#"
-						onclick="post('<?=$params["pageName"]?>',{'action' : 'garbageCollect'});return false;"
-						>Collect garbage</a>
+					<!--suppress HtmlUnknownTarget -->
+                    <a href="/admin/collectgarbage" data-post >Collect garbage</a>
 				</p>
 			</div>
