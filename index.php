@@ -423,8 +423,7 @@ $app->post('/download', function(Application $app, Request $request){
             Response::HTTP_OK,
             array(
                 'content-type' => 'image/svg+xml',
-                'Content-Disposition' => 'attachment',
-                'filename' => 'blazon.SVG'
+                'Content-Disposition' => 'attachment; filename=blazon.svg',
             )
         );
     }else{

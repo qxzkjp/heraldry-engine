@@ -20,27 +20,6 @@ $(document).ready(function () {
     if (tempString !== null) {
         initialBlazon = tempString;
     }
-    //AJAX request to get the movable charges and draw initial arms
-    var xhr = new XMLHttpRequest;
-    xhr.open('get', 'SVG/movables.svg', true);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState != 4) return;//4 means completed
-        //load SVG document from request
-        SVG_MOVABLES = xhr.responseXML.documentElement;
-        SVG_MOVABLES = document.importNode(SVG_MOVABLES, true);
-        SVG = document.getElementById("escutcheonContainer");
-        jqSVG = $("#escutcheonContainer");
-        //once charges are set up, draw the initial arms
-        $('#blazonText')[0].value = initialBlazon;
-        setBlazon($('#blazonText')[0].value);
-        //update the history state to correctly represent the initial state of the page
-        var stateObj = { blazon: initialBlazon };
-        history.replaceState(stateObj, "", window.location.href);
-        //and finally, now that everything is ready, enable input
-        enableInput();
-        $("#blazonText")[0].focus();
-    };
-    xhr.send();
 
     if (getSyntaxCookie() != "") {
         $("#syntax").show();
@@ -67,18 +46,49 @@ $(document).ready(function () {
             $("#blazonText")[0].focus();
         }
     });
-	$.ajax({
-    url: "/styles/heraldry-bw.css",
-    dataType: "text",
-    success: function(cssText) {
-        lineArtCss=cssText;
-    }});
-	$.ajax({
-    url: "/styles/heraldry-not-shit.css",
-    dataType: "text",
-    success: function(cssText) {
-        colourCss=cssText;
-    }});
+	var lineCssAjax = function(){
+	    return $.ajax({
+            url: "/styles/heraldry-bw.css",
+            dataType: "text",
+            success: function(cssText) {
+                lineArtCss=cssText;
+            }});
+    };
+    var colourCssAjax = function() {
+        $.ajax({
+            url: "/styles/heraldry-not-shit.css",
+            dataType: "text",
+            success: function (cssText) {
+                colourCss = cssText;
+            }
+        });
+    };
+    var movablesAjax = function(){
+        return $.ajax({
+            url: 'SVG/movables.svg',
+            dataType: "text",
+            success: function (movablestext) {
+                //load SVG document from request
+                var xml = $.parseXML(movablestext);
+                SVG_MOVABLES = document.importNode($(xml).find('svg')[0], true);
+            }
+        })
+    };
+    $.when(colourCssAjax(), lineCssAjax(), movablesAjax()).done(function(){
+        //set up initial arms
+        SVG = document.getElementById("escutcheonContainer");
+        jqSVG = $("#escutcheonContainer");
+        //once charges are set up, draw the initial arms
+        var blazonTextEl = $('#blazonText')[0];
+        blazonTextEl.value = initialBlazon;
+        setBlazon(blazonTextEl.value);
+        //update the history state to correctly represent the initial state of the page
+        var stateObj = {blazon: initialBlazon};
+        history.replaceState(stateObj, "", window.location.href);
+        //and finally, now that everything is ready, enable input
+        enableInput();
+        blazonTextEl.focus();
+    });
 });
 
 function enableDebugging() {
