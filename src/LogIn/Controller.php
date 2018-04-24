@@ -11,11 +11,15 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query;
 use Exception;
+use HeraldryEngine\Application;
 use HeraldryEngine\DatabaseContainer;
 use HeraldryEngine\Dbo\FailureLog;
 use HeraldryEngine\Dbo\User;
+use HeraldryEngine\Mvc\View;
 use HeraldryEngine\SecurityContext;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use UAParser\Parser;
 
 class Controller
@@ -146,5 +150,57 @@ class Controller
 
     public function GetParams(){
         return $this->params;
+    }
+
+    public static function Show(Application $app, Request $req){
+        $view = new View($app, $req);
+        $view->setTemplate("templates/template.php");
+        $view->setParam("content","loginContent.php");
+        $view->setParam("pageName","/login");
+        $view->setParam("primaryHead","Log");
+        $view->setParam("secondaryHead","In");
+        $view->setParam("scriptList",[
+            "ui",
+            "enable",
+        ]);
+        $view->setParam("cssList",[
+            [
+                "name" => "narrow"
+            ]
+        ]);
+        $view->setParam("menuList",[]);
+        return new Response($view->render(), Response::HTTP_OK);
+    }
+
+    /**
+     * @param Application $app
+     * @param Request $req
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @throws Exception
+     */
+    public static function DoLogin(Application $app, Request $req){
+        $controller = new Controller($app['entity_manager'], $req);
+        //we don't need CSRF protection on the login form. at least not yet.
+        $uname = $app['unsafe_post']->get('username');
+        $pword = $app['unsafe_post']->get('password');
+        if(isset($uname) && isset($pword)){
+            $ctx = $controller->authenticateUser($app['clock'], $app['session_lifetime'], $uname, $pword);
+            $app['params'] = array_merge($app['params'], $controller->GetParams());
+            if($ctx->GetUserID() != 0){
+                $app['security'] = $ctx;
+                $app['security']->StoreContext($app['session']);
+                $uri = "/";
+                if($app->session->has("previousPage"))
+                    $uri = $app->session->get("previousPage");
+                //redirect to the index page
+                return $app->redirect($uri);
+            }else{
+                $subRequest = Request::create('/login', 'GET');
+                return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+            }
+        }else{
+            $subRequest = Request::create('/login', 'GET');
+            return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+        }
     }
 }

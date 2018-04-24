@@ -20,6 +20,8 @@
 			href="/styles/<?=$item["name"]?>.css" rel="stylesheet" type="text/css">
 		<?php endforeach?>
 
+        <script type="text/javascript" src="/scripts/vendor/jquery-3.2.1.min.js" defer></script>
+        <script type="text/javascript" src="/scripts/post.js" defer></script>
 		<?php foreach($this->params["scriptList"] as $name):?>
 		<script type="text/javascript" src="/scripts/<?=$name?>.js" defer></script>
 		<?php endforeach?>
@@ -71,7 +73,7 @@
 							<?php if(array_key_exists("loggedIn",$this->params)):?>
 
 							<!--suppress HtmlUnknownTarget -->
-                                <a href="/logout" class="menu-item">Log out</a>
+                                <a href="/logout" class="menu-item" data-post >Log out</a>
 							<?php else:?>
 
 							<!--suppress HtmlUnknownTarget -->

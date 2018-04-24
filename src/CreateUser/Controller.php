@@ -82,7 +82,6 @@ class Controller
         $view->setParam("primaryHead","Create");
         $view->setParam("secondaryHead","User");
         $view->setParam("scriptList",[
-            "vendor/jquery-3.2.1.min",
             "ui",
             "enable"
         ]);

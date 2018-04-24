@@ -3,11 +3,9 @@
 use HeraldryEngine\Application;
 use HeraldryEngine\Dbo\User;
 use HeraldryEngine\Mvc\View;
-use HeraldryEngine\Mvc\Controller;
 use HeraldryEngine\Utility\DateUtility;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 /**
  * @var HeraldryEngine\Application $app
@@ -38,151 +36,31 @@ $app->before(function(Request $request, Application $app){
  * @return \Symfony\Component\HttpFoundation\RedirectResponse
  */
 $requireLoggedIn = function (Request $request, Application $app ){
+    $app->session->remove("previousPage");
     if($app['security']->getAccessLevel()==ACCESS_LEVEL_NONE){
+        $uri = $request->getRequestUri();
+        if($uri != "/login")
+            $app->session->set("previousPage", $uri);
         return $app->redirect('/login');
     }
     return null;
 };
 
-$app->get('/', function(Application $app, Request $request){
-    $view = new View($app, $request);
-    $view->setTemplate("templates/template.php");
-    $view->setParam("content","blazon.php");
-    $view->setParam("primaryHead","Heraldry");
-    $view->setParam("secondaryHead","Engine");
-    $view->setParam("scriptList",[
-        "vendor/path-data-polyfill",
-        "vendor/jquery-3.2.1.min",
-        "cubic",
-        "syntax",
-        "svg",
-        "ui",
-        "blazon",
-        "post",
-        "enable"
-    ]);
-    $view->setParam("cssList",[
-        [
-            "name" => "narrow"
-        ],
-        [
-            "name" => "heraldry-not-shit",
-            "id" => "heraldry-css"
-        ]]);
-    $view->setParam("menuList",[
-        [
-            "href" => "/readme.md",
-            "label" => "What is this?"
-        ],
-        [
-            "href" => "#",
-            "label" => "Example blazons",
-            "expandable" => "demoBlazons.php"
-        ],
-        [
-            "href" => "#",
-            "label" => "Toggle syntax display",
-            "id" => "toggleSyntax",
-            "toggle" => true
-        ],
-        [
-            "href" => "https://github.com/qxzkjp",
-            "label" => "GitHub page"
-        ],
-        [
-            "href" => "/download",
-            "label" => "Download Blazon",
-            "id" => "downloadButton"
-        ]
-    ]);
-    if($app['security']->GetAccessLevel()==ACCESS_LEVEL_ADMIN){
-        $view->appendParam("menuList",[
-            "href" => "/admin",
-            "label" => "Secret admin shit"
-        ]);
+$app->get('/', [HeraldryEngine\MainPage\Controller::class,'Show'])->before($requireLoggedIn);
+
+$app->get('/login', [HeraldryEngine\LogIn\Controller::class,'Show']);
+
+$app->post('/login', [HeraldryEngine\LogIn\Controller::class,'DoLogin']);
+
+$app->post('/logout', function(Application $app){
+    if($app['CSRF']){
+        $app['session']->clear();
+        $app['security'] =  new \HeraldryEngine\SecurityContext($app['clock'], $app['session_lifetime']);
+        $app['security']->StoreContext($app['session']);
+        return $app->redirect('/login');
     }else{
-        $view->appendParam("menuList",[
-            "href" => "/changepassword",
-            "label" => "Change password"
-        ]);
+        return $app->redirect('/');
     }
-    $view->setParam("demoBlazons", [
-        [
-            "label" => "<i>Scrope v Grosvenor</i> (arms of Baron Scrope)",
-            "blazon" => "Azure, a bend Or"
-        ],
-        [
-            "label" => "Arms of the town of Gerville, France",
-            "blazon" => "Argent, on a bend Azure between two phrygian caps Gules three mullets of six points Or"
-        ],
-        [
-            "label" => "Old arms of France",
-            "blazon" => "Azure semy of fleurs-de-lys Or"
-        ],
-        [
-            "blazon" => "Per pale Gules and Azure, on a bend sinister between two fleurs-de-lys Or three keys palewise Purpure"
-        ],
-        [
-            "blazon" => "Per pale Azure on a bend between two mullets Or three roundels Vert and Argent three phrygian caps Gules"
-        ],
-        [
-            "blazon" => "Per pale Sable and Or, three roundels counterchanged"
-        ]
-    ]);
-
-    return $view->render();
-})->before($requireLoggedIn);
-
-$app->get('/login', function(Application $app, Request $request){
-    $view = new View($app, $request);
-    $view->setTemplate("templates/template.php");
-    $view->setParam("content","loginContent.php");
-    $view->setParam("pageName","/login");
-    $view->setParam("primaryHead","Log");
-    $view->setParam("secondaryHead","In");
-    $view->setParam("scriptList",[
-        "vendor/jquery-3.2.1.min",
-        "ui",
-        "enable",
-        "post"
-    ]);
-    $view->setParam("cssList",[
-        [
-            "name" => "narrow"
-        ]
-    ]);
-    $view->setParam("menuList",[]);
-    return $view->render();
-});
-
-$app->post('/login', function(Application $app, Request $request){
-    $controller = new \HeraldryEngine\LogIn\Controller($app['entity_manager'], $request);
-    //we don't need CSRF protection on the login form. at least not yet.
-    $uname = $app['unsafe_post']->get('username');
-    $pword = $app['unsafe_post']->get('password');
-    if(isset($uname) && isset($pword)){
-        $ctx = $controller->authenticateUser($app['clock'], $app['session_lifetime'], $uname, $pword);
-        $app['params'] = array_merge($app['params'], $controller->GetParams());
-        if($ctx->GetUserID() != 0){
-            $app['security'] = $ctx;
-            $app['security']->StoreContext($app['session']);
-            //redirect to the index page
-            return $app->redirect('/');
-        }else{
-            $subRequest = Request::create('/login', 'GET');
-            return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
-        }
-    }else{
-        $subRequest = Request::create('/', 'GET');
-        return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
-    }
-});
-
-$app->get('/logout', function(Application $app){
-    $app['session']->clear();
-    $app['security'] =  new \HeraldryEngine\SecurityContext($app['clock'], $app['session_lifetime']);
-    $app['security']->StoreContext($app['session']);
-    return $app->redirect('/login');
 });
 
 $requireAdmin = function(Request $request, Application $app){
@@ -194,10 +72,8 @@ $requireAdmin = function(Request $request, Application $app){
         $view->setParam("primaryHead","Forbidden");
         $view->setParam("secondaryHead","");
         $view->setParam("scriptList",[
-            "vendor/jquery-3.2.1.min",
             "ui",
             "enable",
-            "post"
         ]);
         $view->setParam("cssList",[
             [
@@ -229,10 +105,8 @@ $adminPages->get('/permissions/view', function(Application $app, Request $reques
     $view->setParam("primaryHead","Log");
     $view->setParam("secondaryHead","In");
     $view->setParam("scriptList",[
-        "vendor/jquery-3.2.1.min",
         "ui",
         "enable",
-        "post"
     ]);
     $view->setParam("cssList",[
         [
@@ -257,10 +131,8 @@ $adminPages->get("/", function(Application $app, Request $request){
     $view->setParam("pageName","admin.php");
     $view->setParam("primaryHead","Secret Admin Shit");
     $view->setParam("scriptList",[
-        "vendor/jquery-3.2.1.min",
         "ui",
         "enable",
-        "post"
     ]);
     $view->setParam("cssList",[
         [
@@ -322,10 +194,8 @@ $app->get('/user/{id}',
     $view->setParam("primaryHead","Log");
     $view->setParam("secondaryHead","In");
     $view->setParam("scriptList",[
-        "vendor/jquery-3.2.1.min",
         "ui",
         "enable",
-        "post"
     ]);
     $view->setParam("cssList",[
         [
@@ -415,7 +285,6 @@ $adminPages->post('/collectgarbage',function(Application $app, Request $request)
 });
 
 $app->post('/download', function(Application $app, Request $request){
-    $blazon="";
     if($app['CSRF'] && $request->request->has('blazon')){
         $blazon = $request->request->get('blazon');
         $response = new Response(

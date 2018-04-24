@@ -102,7 +102,6 @@ class Controller
         $view->setParam("primaryHead","Change");
         $view->setParam("secondaryHead","Password");
         $view->setParam("scriptList",[
-            "vendor/jquery-3.2.1.min",
             "ui",
             "enable"
         ]);
