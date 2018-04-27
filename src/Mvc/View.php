@@ -1,6 +1,5 @@
 <?php
 namespace HeraldryEngine\Mvc;
-use HeraldryEngine\Application;
 use HeraldryEngine\Interfaces\ClockInterface;
 use HeraldryEngine\SecurityContext;
 use Symfony;

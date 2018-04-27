@@ -7,8 +7,8 @@
  */
 
 namespace HeraldryEngine;
-use HeraldryEngine\Http\Session;
 use HeraldryEngine\Http\SessionHandler;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 
 /**

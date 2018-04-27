@@ -11,7 +11,6 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query;
 use Exception;
-use HeraldryEngine\Application;
 use HeraldryEngine\Dbo\FailureLog;
 use HeraldryEngine\Dbo\User;
 use HeraldryEngine\Http\Gpc;

@@ -9,7 +9,6 @@
 namespace HeraldryEngine\LogOut;
 
 
-use HeraldryEngine\Application;
 use HeraldryEngine\Http\Gpc;
 use HeraldryEngine\Http\RequestHandler;
 use HeraldryEngine\Interfaces\ClockInterface;
@@ -19,13 +18,8 @@ use Symfony\Component\HttpFoundation\Session\Session;
 
 class Controller
 {
-    /**
-     * @var Application
-     */
-    private $app;
-    public function __construct(Application $app)
+    public function __construct()
     {
-        $this->app = $app;
     }
 
     public function DoLogout(Request $req,

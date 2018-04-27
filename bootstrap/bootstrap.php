@@ -96,20 +96,26 @@ $app['request_handler'] = function(Application $app){
     return new \HeraldryEngine\Http\RequestHandler($app);
 };
 
-$app['controller.main_page'] = function(Application $app){
-    return new HeraldryEngine\MainPage\Controller($app);
+$app['controller.main_page'] = function(){
+    return new HeraldryEngine\MainPage\Controller();
 };
-$app['controller.logout'] = function(Application $app){
-    return new HeraldryEngine\LogOut\Controller($app);
+$app['controller.logout'] = function(){
+    return new HeraldryEngine\LogOut\Controller();
 };
-$app['controller.login'] = function(Application $app){
-    return new HeraldryEngine\LogIn\Controller($app);
+$app['controller.login'] = function(){
+    return new HeraldryEngine\LogIn\Controller();
 };
 $app['controller.admin_panel'] = function(Application $app){
     return new HeraldryEngine\AdminPanel\Controller($app);
 };
 $app['controller.permissions'] = function(Application $app){
     return new HeraldryEngine\Permissions\DisplayController($app);
+};
+$app['controller.create_user'] = function(Application $app){
+    return new HeraldryEngine\CreateUser\Controller($app);
+};
+$app['controller.view_user'] = function(Application $app){
+    return new HeraldryEngine\ViewUser\ViewUserController();
 };
 
 $app['argument_resolver'] = function(Application $app) {

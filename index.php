@@ -2,6 +2,7 @@
 
 use HeraldryEngine\Application;
 use HeraldryEngine\Dbo\User;
+use HeraldryEngine\Http\RequestHandler;
 use HeraldryEngine\Mvc\View;
 use HeraldryEngine\Utility\DateUtility;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,90 +35,20 @@ $adminPages->before([\HeraldryEngine\Utility\AuthCheck::class,'RequireLoggedIn']
 
 $adminPages->get('/permissions/view', 'controller.permissions:Show');
 
-$app->get('/admin', function(Application $app){
-    return $app->redirect('/admin/');
+$app->get('/admin', function(RequestHandler $handler){
+    return $handler->redirect('/admin/');
 });
 
 $adminPages->get("/", 'controller.admin_panel:Show');
 
-$adminPages->get("/createuser", function(Application $app){
-    $controller = new \HeraldryEngine\CreateUser\Controller($app);
-    return $controller->show();
-});
+$adminPages->get("/createuser", 'controller.create_user:Show');
 
-$adminPages->post("/createuser", function(Application $app, Request $request){
-    $controller = new \HeraldryEngine\CreateUser\Controller($app);
-    if($app['gpc']->PostHas($request, 'newUser')) {
-        if($app['gpc']->PostHas($request, 'newPassword') &&
-            $app['gpc']->PostHas($request, 'checkPassword')){
-            $controller->createUser(
-                $app['gpc']->Post($request, 'newUser'),
-                $app['gpc']->PostHas($request, 'asAdmin') ? ACCESS_LEVEL_ADMIN : ACCESS_LEVEL_USER,
-                $app['gpc']->Post($request, 'newPassword'),
-                $app['gpc']->Post($request, 'checkPassword')
-            );
-        }else{
-            $app->addParam('errorMessage','Something weird went wrong. User not created.');
-        }
-    }
-    return $controller->show();
-})->before([\HeraldryEngine\Utility\AuthCheck::class,'RequireAdmin']);//TODO: change this to a permission-based check
+$adminPages->post("/createuser", 'controller.create_user:Create')
+    ->before([\HeraldryEngine\Utility\AuthCheck::class,'RequireAdmin']);//TODO: change this to a permission-based check
 
-$app->get('/user/{id}',
-    function(Application $app, Request $request, $id) : string {
-    /**
-     * @var User $user
-     * @var User[] $userList
-     */
-    $view = new View();
-    $view->setTemplate("templates/template.php");
-    $view->setParam("content","viewUser.php");
-    $view->setParam("pageName","login");
-    $view->setParam("primaryHead","Log");
-    $view->setParam("secondaryHead","In");
-    $view->setParam("scriptList",[
-        "ui",
-        "enable",
-    ]);
-    $view->setParam("cssList",[
-        [
-            "name" => "narrow"
-        ]
-    ]);
-    if(is_numeric($id)) {
-        $user = $app['entity_manager']->getRepository(User::class)->find((int)$id);
-        $view->setParam("menuList", []);
-    }else if(is_string($id)){
-        $userList = $app['entity_manager']->getRepository(User::class)->findBy(['userName'=>$id]);
-        if(count($userList)==1) {
-            $user = $userList[0];
-        }
-    }
-    if(isset($user)) {
-        $view->setParam('user.exists', true);
-        $view->setParam('user.name', $user->getUserName());
-        switch ($user->getAccessLevel()){
-            case ACCESS_LEVEL_ADMIN:
-                $view->setParam('user.access', 'Administrator');
-                break;
-            case ACCESS_LEVEL_USER:
-                $view->setParam('user.access', 'Standard user');
-                break;
-            case ACCESS_LEVEL_NONE:
-                $view->setParam('user.access', 'Blocked');
-                break;
-            default:
-                $view->setParam('user.access', 'Unknown');
-                break;
-        }
-        $view->setParam('user.permissions', $user->getPermissionNames());
-    }else{
-        $view->setParam('user.exists', false);
-    }
-    return $view->render($request, $app->security, $app->clock, $app->session. $app->params);
-});
+$app->get('/user/{id}','controller.view_user:Show');
 
-$adminPages->get('/changepassword/{id}', function(Application $app, Request $request, $id){
+$adminPages->get('/changepassword/{id}', function(Application $app, $id){
     $controller = new \HeraldryEngine\ChangePassword\Controller($app);
     $app->addParam('changeID', $id);
     return $controller->show(true);
@@ -129,7 +60,7 @@ $adminPages->post('/changepassword/{id}', function(Application $app, Request $re
     return $controller->show(true);
 });
 
-$app->get('/changepassword', function(Application $app, Request $request){
+$app->get('/changepassword', function(Application $app){
     $controller = new \HeraldryEngine\ChangePassword\Controller($app);
     return $controller->show();
 })->before([\HeraldryEngine\Utility\AuthCheck::class,'RequireLoggedIn']);
@@ -158,7 +89,7 @@ $adminPages->post('/deleteuser/{id}', function(Application $app, Request $reques
     return $app->redirect('/admin/');
 });
 
-$adminPages->post('/collectgarbage',function(Application $app, Request $request){
+$adminPages->post('/collectgarbage',function(Application $app){
     if($app['CSRF']) {
         $app['session_handler']->gc(DateUtility::dateIntervalToSeconds($app['session_lifetime']));
         $app->addParam('successMessage', "Garbage collected successfully.");
