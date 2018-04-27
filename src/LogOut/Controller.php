@@ -1,0 +1,47 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: Deus
+ * Date: 24/04/2018
+ * Time: 20:27
+ */
+
+namespace HeraldryEngine\LogOut;
+
+
+use HeraldryEngine\Application;
+use HeraldryEngine\Http\Gpc;
+use HeraldryEngine\Http\RequestHandler;
+use HeraldryEngine\Interfaces\ClockInterface;
+use HeraldryEngine\SecurityContext;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
+
+class Controller
+{
+    /**
+     * @var Application
+     */
+    private $app;
+    public function __construct(Application $app)
+    {
+        $this->app = $app;
+    }
+
+    public function DoLogout(Request $req,
+                             Gpc $gpc,
+                             Session $sesh,
+                             SecurityContext $ctx,
+                             RequestHandler $handler,
+                             ClockInterface $clock,
+                             $session_lifetime){
+        if($gpc->CheckCsrf($req, $sesh)){
+            $sesh->clear();
+            $ctx->clone(new SecurityContext($clock, $session_lifetime));
+            $ctx->StoreContext($sesh);
+            return $handler->redirect('/login');
+        }else{
+            return $handler->redirect('/');
+        }
+    }
+}

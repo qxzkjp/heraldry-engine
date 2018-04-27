@@ -76,8 +76,9 @@
 					<?php
                     /**
                      * @var \Symfony\Component\HttpFoundation\Session\Session $session
+                     * @var \HeraldryEngine\Interfaces\ClockInterface $clock
                      */
-                    $userRepo = $app['entity_manager']->getRepository(\HeraldryEngine\Dbo\User::class);
+                    $userRepo = $params['userRepo'];
 					foreach($params['sessions'] as $id => $session){
 					    $id = $session->getName();
 					    if( $session->has('expiry') && !($session->get('expiry') instanceof \DateTime) ){
@@ -87,7 +88,7 @@
                         }
 						if($session->has('userID')){
 							if(!$session->has('expiry')
-								|| $session->get('expiry')->getTimestamp() >= $app['clock']->__invoke()->getTimestamp()){
+								|| $session->get('expiry')->getTimestamp() >= ($clock)()->getTimestamp()){
 					?>
 					<tr>
 						<td><?=$session->getName()?></td>

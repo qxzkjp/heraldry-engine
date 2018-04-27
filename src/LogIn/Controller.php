@@ -12,26 +12,21 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query;
 use Exception;
 use HeraldryEngine\Application;
-use HeraldryEngine\DatabaseContainer;
 use HeraldryEngine\Dbo\FailureLog;
 use HeraldryEngine\Dbo\User;
+use HeraldryEngine\Http\Gpc;
+use HeraldryEngine\Http\RequestHandler;
+use HeraldryEngine\Interfaces\ClockInterface;
 use HeraldryEngine\Mvc\View;
 use HeraldryEngine\SecurityContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use UAParser\Parser;
 
 class Controller
 {
-    /**
-     * @var DatabaseContainer
-     */
-    private $em;
-    /**
-     * @var Request
-     */
-    private $request;
     /**
      * @var array
      */
@@ -39,30 +34,37 @@ class Controller
 
     /**
      * Controller constructor.
-     * @param EntityManager $em
-     * @param Request $request
      */
-    public function __construct(EntityManager $em, Request $request)
+    public function __construct()
     {
-        $this->em = $em;
-        $this->request = $request;
         $this->params = [];
     }
 
     /**
-     * @param callable $clock
-     * @param \DateInterval $lifetime
-     * @param string $uname
-     * @param string $pword
+     * @param Request $request
+     * @param ClockInterface $clock
+     * @param EntityManager $em
+     * @param Gpc $gpc
+     * @param \DateInterval $session_lifetime
      * @return SecurityContext
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Doctrine\ORM\ORMException
      * @throws Exception
      */
-    public function authenticateUser($clock, \DateInterval $lifetime, $uname, $pword){
+    public function authenticateUser(Request $request, ClockInterface $clock, EntityManager $em, Gpc $gpc, $session_lifetime){
+        /**
+         * @var ClockInterface $clock
+         * @var EntityManager $em
+         * @var \DateInterval $session_lifetime
+         */
+        //we don't need CSRF protection on the login form. at least not yet.
+        $uname = $gpc->UnsafePost($request, 'username');
+        $pword = $gpc->UnsafePost($request, 'password');
         $uname=strtolower($uname);
         /**
          * @var EntityRepository $logRepo
          */
-        $logRepo = $this->em->getRepository('\HeraldryEngine\Dbo\FailureLog');
+        $logRepo = $em->getRepository('\HeraldryEngine\Dbo\FailureLog');
         /**
          * @var \Doctrine\ORM\QueryBuilder $qb
          * @var \DateTime $now
@@ -82,7 +84,7 @@ class Controller
         $query = $qb->getQuery();
         $failureCount = $query->getSingleScalarResult();
         if($failureCount < 50){
-            $userRepo = $this->em->getRepository('\HeraldryEngine\Dbo\User');
+            $userRepo = $em->getRepository('\HeraldryEngine\Dbo\User');
             $qb = $userRepo->createQueryBuilder('u');
             $qb->select()
                 ->where($qb->expr()->eq('u.userName',':name'))
@@ -100,9 +102,9 @@ class Controller
                 $user = $matches[0];
                 if(!$user->checkPassword($pword)){
                     $this->params['errorMessage'] = "Wrong username or password.";
-                    $log = new FailureLog($uname, $now, $this->request->server->get('REMOTE_ADDR'));
-                    $this->em->persist($log);
-                    if(!$this->em-flush()){
+                    $log = new FailureLog($uname, $now, $request->server->get('REMOTE_ADDR'));
+                    $em->persist($log);
+                    if(!$em-flush()){
                         $this->params['errorMessage'] .= "<br/>Database error!";
                     };
                     unset($user);
@@ -117,11 +119,11 @@ class Controller
             $securityInfo['accessLevel'] = $user->getAccessLevel();
             $securityInfo['userName'] = $user->getUserName();
             $securityInfo['startTime'] = ($clock)();
-            $securityInfo['userIP'] = $this->request->server->get('REMOTE_ADDR');
+            $securityInfo['userIP'] = $request->server->get('REMOTE_ADDR');
             try {
                 $parser = Parser::create();
                 $result = $parser->parse(
-                    $this->request->server->get('HTTP_USER_AGENT')
+                    $request->server->get('HTTP_USER_AGENT')
                 );
 
                 $securityInfo['OS'] = $result->os->toString();
@@ -142,9 +144,9 @@ class Controller
             } catch (Exception $e) {
                 error_log($e->getMessage());
             }
-            return new SecurityContext($clock, $lifetime, $securityInfo);
+            return new SecurityContext($clock, $session_lifetime, $securityInfo);
         }else{
-            return new SecurityContext($clock, $lifetime);
+            return new SecurityContext($clock, $session_lifetime);
         }
     }
 
@@ -152,8 +154,8 @@ class Controller
         return $this->params;
     }
 
-    public static function Show(Application $app, Request $req){
-        $view = new View($app, $req);
+    public function Show(Request $req, SecurityContext $ctx, Session $sesh, ClockInterface $clock){
+        $view = new View();
         $view->setTemplate("templates/template.php");
         $view->setParam("content","loginContent.php");
         $view->setParam("pageName","/login");
@@ -169,38 +171,49 @@ class Controller
             ]
         ]);
         $view->setParam("menuList",[]);
-        return new Response($view->render(), Response::HTTP_OK);
+        return new Response($view->render($req, $ctx, $clock, $sesh, $this->params), Response::HTTP_OK);
     }
 
     /**
-     * @param Application $app
      * @param Request $req
+     * @param Gpc $gpc
+     * @param ClockInterface $clock
+     * @param EntityManager $em
+     * @param Session $sesh
+     * @param SecurityContext $ctx
+     * @param $session_lifetime
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Doctrine\ORM\ORMException
      * @throws Exception
      */
-    public static function DoLogin(Application $app, Request $req){
-        $controller = new Controller($app['entity_manager'], $req);
-        //we don't need CSRF protection on the login form. at least not yet.
-        $uname = $app['unsafe_post']->get('username');
-        $pword = $app['unsafe_post']->get('password');
-        if(isset($uname) && isset($pword)){
-            $ctx = $controller->authenticateUser($app['clock'], $app['session_lifetime'], $uname, $pword);
-            $app['params'] = array_merge($app['params'], $controller->GetParams());
-            if($ctx->GetUserID() != 0){
-                $app['security'] = $ctx;
-                $app['security']->StoreContext($app['session']);
+    public function DoLogin(Request $req,
+                            Gpc $gpc,
+                            ClockInterface $clock,
+                            EntityManager $em,
+                            Session $sesh,
+                            SecurityContext $ctx,
+                            RequestHandler $handler,
+                            $session_lifetime){
+
+        if($gpc->UnsafePostHas($req ,'username') &&
+            $gpc->UnsafePostHas($req ,'password')){
+            $newCtx = $this->authenticateUser($req, $clock, $em, $gpc, $session_lifetime);
+            if($newCtx->GetUserID() != 0){
+                $ctx->clone($newCtx);
+                $ctx->StoreContext($sesh);
                 $uri = "/";
-                if($app->session->has("previousPage"))
-                    $uri = $app->session->get("previousPage");
+                if($sesh->has("previousPage"))
+                    $uri = $sesh->get("previousPage");
                 //redirect to the index page
-                return $app->redirect($uri);
+                return $handler->redirect($uri);
             }else{
                 $subRequest = Request::create('/login', 'GET');
-                return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+                return $handler->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
             }
         }else{
             $subRequest = Request::create('/login', 'GET');
-            return $app->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+            return $handler->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
         }
     }
 }

@@ -11,7 +11,10 @@ namespace HeraldryEngine\Permissions;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
+use HeraldryEngine\Application;
 use HeraldryEngine\Dbo\Permission;
+use HeraldryEngine\Mvc\View;
+use Symfony\Component\HttpFoundation\Request;
 
 class DisplayController
 {
@@ -21,10 +24,17 @@ class DisplayController
     private $args;
 
     /**
-     * DisplayController constructor.
+     * @var Application
      */
-    public function __construct()
+    private $app;
+
+    /**
+     * DisplayController constructor.
+     * @param Application $app
+     */
+    public function __construct(Application $app)
     {
+        $this->app = $app;
         $this->args=[];
     }
 
@@ -57,5 +67,27 @@ class DisplayController
     public function getParams()
     {
         return $this->args;
+    }
+
+    public function Show(Request $request){
+        $view = new View();
+        $view->setTemplate("templates/template.php");
+        $view->setParam("content","viewPermissions.php");
+        $view->setParam("pageName","login");
+        $view->setParam("primaryHead","Log");
+        $view->setParam("secondaryHead","In");
+        $view->setParam("scriptList",[
+            "ui",
+            "enable",
+        ]);
+        $view->setParam("cssList",[
+            [
+                "name" => "narrow"
+            ]
+        ]);
+        $view->setParam("menuList",[]);
+        $this->listPermissions($this->app['entity_manager']);
+        $this->app['params'] = array_merge($this->app['params'], $this->getParams());
+        return $view->render($request, $this->app->security, $this->app->clock, $this->app->session, $this->app->params);
     }
 }

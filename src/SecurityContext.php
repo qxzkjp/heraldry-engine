@@ -1,7 +1,6 @@
 <?php
 namespace HeraldryEngine;
 
-use HeraldryEngine\Http\SessionContainer;
 use HeraldryEngine\Interfaces\ClockInterface;
 use HeraldryEngine\Utility\ArrayUtility;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -57,10 +56,15 @@ class SecurityContext {
     private $browser;
 
     /**
+     * @var string
+     */
+    private $CSRF;
+
+    /**
      * SecurityContext constructor.
      * @param ClockInterface $clock
      * @param \DateInterval $lifetime
-     * @param $params array|SessionContainer|Session
+     * @param $params array|Session
      */
     public function __construct($clock, $lifetime, $params =[]){
         $this->id = ArrayUtility::Get('userID', $params);
@@ -75,6 +79,7 @@ class SecurityContext {
         $this->expiry = $this->startTime;
         $this->expiry->add($lifetime);
         $this->clock = $clock;
+        $this->CSRF = ArrayUtility::Get('CSRF', $params);
 	}
 
     /**
@@ -161,7 +166,8 @@ class SecurityContext {
      */
     public function StoreContext(Session $sesh){
         $sesh->set('userID', $this->id);
-        $sesh->set('userName', $this->userName);
+        if(isset($this->userName))
+            $sesh->set('userName', $this->userName);
         $sesh->set('accessLevel', $this->accessLevel);
         $sesh->set('startTime', $this->startTime);
         $sesh->set('userIP', $this->userIP);
@@ -173,6 +179,85 @@ class SecurityContext {
             $sesh->set('OS', $this->OS);
         if(isset($this->browser))
             $sesh->set('browser', $this->browser);
+        if(isset($this->CSRF))
+            $sesh->set('CSRF', $this->CSRF);
         $sesh->set('expiry', $this->expiry);
+    }
+
+    public function clone(SecurityContext $ctx){
+        if(isset($ctx->id))
+			$this->id = $ctx->id;
+        else
+            $this->id = 0;
+        $this->clock = $ctx->clock;
+        $this->startTime = $ctx->startTime;
+        if(isset($ctx->browser))
+			$this->browser = $ctx->browser;
+        else
+            $this->browser = "";
+        if(isset($ctx->accessLevel))
+			$this->accessLevel = $ctx->accessLevel;
+        else
+            $this->accessLevel = ACCESS_LEVEL_NONE;
+        if(isset($ctx->userIP))
+			$this->userIP = $ctx->userIP;
+        else
+            $this->userIP = "";
+        if(isset($ctx->city))
+			$this->city = $ctx->city;
+        else
+            $this->city = "";
+        if(isset($ctx->countryName))
+			$this->countryName = $ctx->countryName;
+        else
+            $this->countryName = "";
+        $this->expiry = $ctx->expiry;
+        if(isset($ctx->userName))
+			$this->userName = $ctx->userName;
+        else
+            $this->userName = "";
+        if(isset($ctx->OS))
+			$this->OS = $ctx->OS;
+        else
+            $this->OS = "";
+        if(isset($ctx->CSRF))
+            $this->CSRF = $ctx->CSRF;
+        else
+            unset($this->CSRF);
+    }
+
+    /**
+     * Taken from http://guid.us/GUID/PHP
+     * @return string
+     */
+    private function getGUID()
+    {
+        if (function_exists('com_create_guid')) {
+            return com_create_guid();
+        } else {
+            $charid = strtoupper(md5(uniqid(rand(), true)));
+            $hyphen = chr(45);// "-"
+            $uuid = chr(123)// "{"
+                . substr($charid, 0, 8) . $hyphen
+                . substr($charid, 8, 4) . $hyphen
+                . substr($charid, 12, 4) . $hyphen
+                . substr($charid, 16, 4) . $hyphen
+                . substr($charid, 20, 12)
+                . chr(125);// "}"
+            return $uuid;
+        }
+    }
+
+    /**
+     * @param Session $sesh
+     * @return string
+     */
+    public function getCSRF(Session $sesh){
+        if(!isset($this->CSRF)) {
+            $guid = $this->getGUID();
+            $this->CSRF = $guid;
+            $this->StoreContext($sesh);
+        }
+        return $this->CSRF;
     }
 }

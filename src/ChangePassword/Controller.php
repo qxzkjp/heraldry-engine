@@ -23,10 +23,6 @@ class Controller
      */
     protected $app;
     /**
-     * @var Request
-     */
-    protected $request;
-    /**
      * @var int
      */
     protected $errorCode;
@@ -42,11 +38,9 @@ class Controller
     /**
      * Controller constructor.
      * @param \HeraldryEngine\Application $app
-     * @param Request $request
      */
-    public function __construct(\HeraldryEngine\Application $app, Request $request){
+    public function __construct(\HeraldryEngine\Application $app){
         $this->app=$app;
-        $this->request=$request;
     }
 
     /**
@@ -91,11 +85,12 @@ class Controller
     }
 
     /**
+     * @param Request $request
      * @param bool $displayUserID
      * @return string | Response
      */
-    public function show($displayUserID = false) {
-        $view = new View($this->app, $this->request);
+    public function show(Request $request, $displayUserID = false) {
+        $view = new View();
         $view->setTemplate("templates/template.php");
         $view->setParam("content","changePasswordContent.php");
         $view->setParam("pageName","/changepassword");
@@ -125,22 +120,23 @@ class Controller
         if( $displayUserID){
             $view->setParam("changeID", $this->id);
         }
-        return $view->render();
+        return $view->render($request, $this->app->security, $this->app->clock, $this->app->session, $this->app->params);
     }
 
     /**
+     * @param Request $request
      * @param int $id
      * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
-    public function doPasswordChange(int $id){
-        if($this->request->request->has('newPassword') && $this->request->request->has('checkPassword')){
+    public function doPasswordChange(Request $request, int $id){
+        if($this->app['gpc']->PostHas($request, 'newPassword') && $this->app['gpc']->postHas($request, 'checkPassword')){
             //TODO: permission-based check
             $this->app->addParam('changeID', $id);
             $success = $this->changeUserPassword(
                 $id,
-                $this->request->request->get('newPassword'),
-                $this->request->request->get('checkPassword')
+                $this->app['gpc']->Post($request, 'newPassword'),
+                $this->app['gpc']->Post($request, 'checkPassword')
             );
             if($success){
                 $this->app->addParam('successMessage', 'Password changed');

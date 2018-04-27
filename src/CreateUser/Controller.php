@@ -10,7 +10,6 @@ namespace HeraldryEngine\CreateUser;
 
 
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\ORMException;
 use HeraldryEngine\Application;
 use HeraldryEngine\Dbo\User;
@@ -27,12 +26,10 @@ class Controller
     /**
      * @var Request
      */
-    protected $request;
 
-    public function __construct(Application $app, Request $request)
+    public function __construct(Application $app)
     {
         $this->app = $app;
-        $this->request = $request;
     }
 
     /**
@@ -72,10 +69,11 @@ class Controller
     }
 
     /**
+     * @param Request $request
      * @return string|Response
      */
-    public function show(){
-        $view = new View($this->app, $this->request);
+    public function show(Request $request){
+        $view = new View();
         $view->setTemplate("templates/template.php");
         $view->setParam("content","createUserContent.php");
         $view->setParam("pageName","/createuser");
@@ -96,6 +94,6 @@ class Controller
             ]
         ]);
         $view->setParam("debug",$this->app['config']['debug']);
-        return $view->render();
+        return $view->render($request, $this->app->security, $this->app->clock, $this->app->session, $this->app->params);
     }
 }

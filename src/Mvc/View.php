@@ -1,8 +1,11 @@
 <?php
 namespace HeraldryEngine\Mvc;
-use HeraldryEngine\Http\Request;
-use Silex;
+use HeraldryEngine\Application;
+use HeraldryEngine\Interfaces\ClockInterface;
+use HeraldryEngine\SecurityContext;
 use Symfony;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 /**
  * A view.
@@ -23,51 +26,49 @@ class View
 	 */
 	private $params;
 
-	/**
-	 * The application object
-	 *
-	 * @var \HeraldryEngine\Application
-	 */
-	protected $app;
-
     /**
      * The request object
      *
      * @var Request
      */
-	protected $request;
+	//protected $request;
 
-	/**
-	 * Create a new view.
-	 *
-	 * @param \HeraldryEngine\Application $model
-	 * @param Symfony\Component\HttpFoundation\Request $request
-	 */
-	public function __construct(&$model, &$request)
+    /**
+     * Create a new view.
+     */
+	public function __construct()
 	{
-		$this->app=&$model;
-		$this->request=&$request;
 		$this->params=[];
 	}
 
-	/**
-	 * Render the template.
-	 */
-	public function render()
+    /**
+     * Render the template.
+     * @param Request $request
+     * @param SecurityContext $ctx
+     * @param ClockInterface $clock
+     * @param Session $sesh
+     * @param $params
+     * @return string
+     */
+	public function render(Request $request, SecurityContext $ctx, ClockInterface $clock, Session $sesh, $params)
 	{
-	    $this->params['CSRF'] = $this->app->getCSRF();
-	    $this->params = array_merge($this->params, $this->app['params']);
-		if("" !== $this->request->cookies->get("nightMode","") ){
+	    $this->params['CSRF'] = $ctx->getCSRF($sesh);
+	    $this->params = array_merge($this->params, $params);
+		if("" !== $request->cookies->get("nightMode","") ){
 			$this->setParam("nightMode","true");
 		}
-		if(null !== $this->app['session']->get('userID')){
+		if($ctx->GetUserID() != 0){
 			$this->setParam("loggedIn","true");
 		}
-		$this->setParam('path', $this->request->getRequestUri());
-		$app = $this->app;
-		$params = $this->params;
+		$this->setParam('path', $request->getRequestUri());
+        /** @noinspection PhpUnusedLocalVariableInspection */
+        $params = $this->params;
+        /** @noinspection PhpUnusedLocalVariableInspection */
+        /** @noinspection PhpSillyAssignmentInspection */
+        $clock = $clock;
 		ob_start();
-		require $this->template;
+        /** @noinspection PhpIncludeInspection */
+        require $this->template;
 		return ob_get_clean();
 	}
 

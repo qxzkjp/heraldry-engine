@@ -10,6 +10,7 @@ namespace HeraldryEngine\MainPage;
 
 
 use HeraldryEngine\Application;
+use HeraldryEngine\Http\Gpc;
 use HeraldryEngine\Mvc\View;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,12 +18,25 @@ use Symfony\Component\HttpFoundation\Response;
 class Controller
 {
     /**
+     * @var Application
+     */
+    private $app;
+
+    /**
+     * Controller constructor.
      * @param Application $app
+     */
+    public function __construct(Application $app){
+        $this->app = $app;
+    }
+
+    /**
      * @param Request $req
+     * @param Gpc $gpc
      * @return Response
      */
-    public static function show(Application $app, Request $req){
-        $view = new View($app, $req);
+    public function Show(Request $req){
+        $view = new View();
         $view->setTemplate("templates/template.php");
         $view->setParam("content","blazon.php");
         $view->setParam("primaryHead","Heraldry");
@@ -70,7 +84,7 @@ class Controller
                 "id" => "downloadButton"
             ]
         ]);
-        if($app['security']->GetAccessLevel()==ACCESS_LEVEL_ADMIN){
+        if($this->app['security']->GetAccessLevel()==ACCESS_LEVEL_ADMIN){
             $view->appendParam("menuList",[
                 "href" => "/admin",
                 "label" => "Secret admin shit"
@@ -104,6 +118,6 @@ class Controller
                 "blazon" => "Per pale Sable and Or, three roundels counterchanged"
             ]
         ]);
-        return new Response($view->render(), Response::HTTP_OK);
+        return new Response($view->render($req, $this->app->security, $this->app->clock, $this->app->session, $this->app->params), Response::HTTP_OK);
     }
 }

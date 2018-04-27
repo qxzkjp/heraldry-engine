@@ -12,6 +12,6 @@ namespace PHPSTORM_META {
             'session_lifetime' => \DateInterval::class,
             'security' => \HeraldryEngine\SecurityContext::class,
             'db' => \HeraldryEngine\DatabaseContainer::class,
-            'unsafe_post' => Symfony\Component\HttpFoundation\ParameterBag::class
+            'gpc' => \HeraldryEngine\Http\Gpc::class
         ]));
 }
