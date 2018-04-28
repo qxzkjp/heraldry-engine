@@ -206,11 +206,11 @@ class SecurityContext {
         if(isset($ctx->city))
 			$this->city = $ctx->city;
         else
-            $this->city = "";
+            $this->city = null;
         if(isset($ctx->countryName))
 			$this->countryName = $ctx->countryName;
         else
-            $this->countryName = "";
+            $this->countryName = null;
         $this->expiry = $ctx->expiry;
         if(isset($ctx->userName))
 			$this->userName = $ctx->userName;
@@ -219,7 +219,7 @@ class SecurityContext {
         if(isset($ctx->OS))
 			$this->OS = $ctx->OS;
         else
-            $this->OS = "";
+            $this->OS = null;
         if(isset($ctx->CSRF))
             $this->CSRF = $ctx->CSRF;
         else

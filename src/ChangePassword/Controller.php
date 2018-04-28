@@ -12,16 +12,16 @@ namespace HeraldryEngine\ChangePassword;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use HeraldryEngine\Dbo\User;
+use HeraldryEngine\Http\Gpc;
+use HeraldryEngine\Interfaces\ClockInterface;
 use HeraldryEngine\Mvc\View;
+use HeraldryEngine\SecurityContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 class Controller
 {
-    /**
-     * @var \HeraldryEngine\Application
-     */
-    protected $app;
     /**
      * @var int
      */
@@ -30,6 +30,10 @@ class Controller
      * @var int
      */
     protected $id = 0;
+    /**
+     * @var array
+     */
+    protected $params;
     const ERROR_SUCCESS = 0;
     const ERROR_BAD_PASSWORD = 1;
     const ERROR_BAD_USER = 2;
@@ -37,13 +41,13 @@ class Controller
 
     /**
      * Controller constructor.
-     * @param \HeraldryEngine\Application $app
      */
-    public function __construct(\HeraldryEngine\Application $app){
-        $this->app=$app;
+    public function __construct(){
+        $this->params = [];
     }
 
     /**
+     * @param EntityManager $em
      * @param int $id
      * @param string $newPassword
      * @param string $checkPassword
@@ -51,7 +55,7 @@ class Controller
      * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
-    public function changeUserPassword(int $id, string $newPassword, string $checkPassword) : bool {
+    public function changeUserPassword(EntityManager $em, int $id, string $newPassword, string $checkPassword) : bool {
         /**
          * @var EntityManager $em
          * @var EntityRepository $userRepo
@@ -62,7 +66,6 @@ class Controller
             $this->errorCode = $this::ERROR_BAD_PASSWORD;
             return false;
         }
-        $em = $this->app['entity_manager'];
         $userRepo = $em->getRepository(User::class);
         $user = $userRepo->find($id);
         if(isset($user)){
@@ -86,10 +89,13 @@ class Controller
 
     /**
      * @param Request $request
-     * @param bool $displayUserID
+     * @param SecurityContext $ctx
+     * @param ClockInterface $clock
+     * @param Session $sesh
+     * @param int|null $id
      * @return string | Response
      */
-    public function show(Request $request, $displayUserID = false) {
+    public function show(Request $request, SecurityContext $ctx, ClockInterface $clock, Session $sesh, $id = null) {
         $view = new View();
         $view->setTemplate("templates/template.php");
         $view->setParam("content","changePasswordContent.php");
@@ -106,7 +112,7 @@ class Controller
             ]
         ]);
 
-        if($this->app['security']->GetAccessLevel() == ACCESS_LEVEL_ADMIN){
+        if($ctx->GetAccessLevel() == ACCESS_LEVEL_ADMIN){
             $view->appendParam("menuList",[
                 "href" => "/admin",
                 "label" => "Secret admin shit"
@@ -117,32 +123,49 @@ class Controller
                 "label" => "Back to blazonry"
             ]);
         }
-        if( $displayUserID){
-            $view->setParam("changeID", $this->id);
+        if( null !== $id ){
+            $view->setParam("changeID", $id);
         }
-        return $view->render($request, $this->app->security, $this->app->clock, $this->app->session, $this->app->params);
+        return $view->render($request, $ctx, $clock, $sesh, $this->params);
     }
 
     /**
-     * @param Request $request
-     * @param int $id
+     * @param Request $req
+     * @param Gpc $gpc
+     * @param EntityManager $em
+     * @param SecurityContext $ctx
+     * @param ClockInterface $clock
+     * @param Session $sesh
+     * @param int|null $id
+     * @return string|Response
      * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      */
-    public function doPasswordChange(Request $request, int $id){
-        if($this->app['gpc']->PostHas($request, 'newPassword') && $this->app['gpc']->postHas($request, 'checkPassword')){
+    public function DoPasswordChange(Request $req,
+                                     Gpc $gpc,
+                                     EntityManager $em,
+                                     SecurityContext $ctx,
+                                     ClockInterface $clock,
+                                     Session $sesh,
+                                     int $id = null){
+        if($gpc->PostHas($req, 'newPassword') && $gpc->postHas($req, 'checkPassword')){
             //TODO: permission-based check
-            $this->app->addParam('changeID', $id);
+            if(null !== $id)
+                $this->params['changeID'] = $id;
+            else
+                $id = $ctx->GetUserID();
             $success = $this->changeUserPassword(
+                $em,
                 $id,
-                $this->app['gpc']->Post($request, 'newPassword'),
-                $this->app['gpc']->Post($request, 'checkPassword')
+                $gpc->Post($req, 'newPassword'),
+                $gpc->Post($req, 'checkPassword')
             );
             if($success){
-                $this->app->addParam('successMessage', 'Password changed');
+                $this->params['successMessage'] = 'Password changed';
             }else{
-                $this->app->addParam('errorMessage', 'Password not changed');
+                $this->params['errorMessage'] = 'Password not changed';
             }
         }
+        return $this->show($req, $ctx, $clock, $sesh, $id);
     }
 }

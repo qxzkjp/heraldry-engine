@@ -14,14 +14,13 @@ use Exception;
 use HeraldryEngine\Dbo\FailureLog;
 use HeraldryEngine\Dbo\User;
 use HeraldryEngine\Http\Gpc;
-use HeraldryEngine\Http\RequestHandler;
 use HeraldryEngine\Interfaces\ClockInterface;
+use HeraldryEngine\Interfaces\RequestHandlerInterface;
 use HeraldryEngine\Mvc\View;
 use HeraldryEngine\SecurityContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
 use UAParser\Parser;
 
 class Controller
@@ -180,11 +179,11 @@ class Controller
      * @param EntityManager $em
      * @param Session $sesh
      * @param SecurityContext $ctx
+     * @param RequestHandlerInterface $handler
      * @param $session_lifetime
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Doctrine\ORM\ORMException
-     * @throws Exception
      */
     public function DoLogin(Request $req,
                             Gpc $gpc,
@@ -192,7 +191,7 @@ class Controller
                             EntityManager $em,
                             Session $sesh,
                             SecurityContext $ctx,
-                            RequestHandler $handler,
+                            RequestHandlerInterface $handler,
                             $session_lifetime){
 
         if($gpc->UnsafePostHas($req ,'username') &&
@@ -207,12 +206,10 @@ class Controller
                 //redirect to the index page
                 return $handler->redirect($uri);
             }else{
-                $subRequest = Request::create('/login', 'GET');
-                return $handler->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+                return $this->Show($req, $ctx, $sesh, $clock);
             }
         }else{
-            $subRequest = Request::create('/login', 'GET');
-            return $handler->handle($subRequest, HttpKernelInterface::SUB_REQUEST);
+            return $this->Show($req, $ctx, $sesh, $clock);
         }
     }
 }

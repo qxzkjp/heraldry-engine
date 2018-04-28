@@ -10,8 +10,8 @@ namespace HeraldryEngine\LogOut;
 
 
 use HeraldryEngine\Http\Gpc;
-use HeraldryEngine\Http\RequestHandler;
 use HeraldryEngine\Interfaces\ClockInterface;
+use HeraldryEngine\Interfaces\RequestHandlerInterface;
 use HeraldryEngine\SecurityContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -26,7 +26,7 @@ class Controller
                              Gpc $gpc,
                              Session $sesh,
                              SecurityContext $ctx,
-                             RequestHandler $handler,
+                             RequestHandlerInterface $handler,
                              ClockInterface $clock,
                              $session_lifetime){
         if($gpc->CheckCsrf($req, $sesh)){

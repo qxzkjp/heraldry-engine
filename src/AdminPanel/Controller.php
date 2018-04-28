@@ -12,10 +12,10 @@ namespace HeraldryEngine\AdminPanel;
 use Doctrine\ORM\EntityRepository;
 use HeraldryEngine\Application;
 use HeraldryEngine\Dbo\User;
-use HeraldryEngine\Http\Request;
 use HeraldryEngine\Interfaces\ClockInterface;
 use HeraldryEngine\Mvc\View;
 use HeraldryEngine\SecurityContext;
+use Symfony\Component\HttpFoundation\Request;
 
 class Controller
 {

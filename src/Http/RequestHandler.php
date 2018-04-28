@@ -10,9 +10,11 @@ namespace HeraldryEngine\Http;
 
 
 use HeraldryEngine\Application;
+use HeraldryEngine\Interfaces\RequestHandlerInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
-class RequestHandler
+class RequestHandler implements RequestHandlerInterface
 {
     /**
      * @var Application
@@ -37,7 +39,7 @@ class RequestHandler
      */
     public function Handle(\Symfony\Component\HttpFoundation\Request $req,
                            $type = HttpKernelInterface::MASTER_REQUEST,
-                           $catch = true){
+                           $catch = true) : Response{
         return $this->app->handle($req, $type, $catch);
     }
 
@@ -46,7 +48,7 @@ class RequestHandler
      * @param int $status
      * @return \Symfony\Component\HttpFoundation\RedirectResponse
      */
-    public function Redirect($url, $status = 302){
+    public function Redirect($url, $status = 302) : Response{
         return $this->app->redirect($url, $status);
     }
 }

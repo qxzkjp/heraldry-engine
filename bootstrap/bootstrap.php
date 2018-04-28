@@ -114,8 +114,17 @@ $app['controller.permissions'] = function(Application $app){
 $app['controller.create_user'] = function(Application $app){
     return new HeraldryEngine\CreateUser\Controller($app);
 };
-$app['controller.view_user'] = function(Application $app){
+$app['controller.view_user'] = function(){
     return new HeraldryEngine\ViewUser\ViewUserController();
+};
+$app['controller.change_password'] = function(){
+    return new HeraldryEngine\ChangePassword\Controller();
+};
+$app['controller.download_blazon'] = function(){
+    return new HeraldryEngine\Controllers\DownloadBlazonController();
+};
+$app['controller.collect_garbage'] = function(){
+    return new HeraldryEngine\Controllers\CollectGarbageController();
 };
 
 $app['argument_resolver'] = function(Application $app) {
@@ -131,6 +140,7 @@ $app['argument_resolver'] = function(Application $app) {
             new \HeraldryEngine\Resolvers\EntityManagerResolver($app),
             new \HeraldryEngine\Resolvers\SessionResolver($app),
             new \HeraldryEngine\Resolvers\RequestHandlerResolver($app),
+            new \HeraldryEngine\Resolvers\SessionHandlerResolver($app),
             new \HeraldryEngine\Resolvers\ApplicationParameterResolver($app)
         )
     );
