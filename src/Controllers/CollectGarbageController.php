@@ -20,16 +20,15 @@ class CollectGarbageController
 {
     /**
      * @param Gpc $gpc
-     * @param Session $sesh
      * @param SessionHandler $shandle
      * @param RequestHandlerInterface $handler
      * @param \DateInterval $session_lifetime
      * @param Request $req
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function CollectGarbage(Gpc $gpc, Session $sesh, SessionHandler $shandle, RequestHandlerInterface $handler, \DateInterval $session_lifetime, Request $req){
+    public function CollectGarbage(Gpc $gpc, SessionHandler $shandle, RequestHandlerInterface $handler, \DateInterval $session_lifetime, Request $req){
 
-        if($gpc->CheckCsrf($req, $sesh)) {
+        if($gpc->CheckCsrf($req)) {
             $shandle->gc(DateUtility::dateIntervalToSeconds($session_lifetime));
             //$app->addParam('successMessage', "Garbage collected successfully.");
         }

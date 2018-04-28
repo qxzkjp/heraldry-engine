@@ -9,44 +9,41 @@
 namespace HeraldryEngine\CreateUser;
 
 
+use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMException;
-use HeraldryEngine\Application;
 use HeraldryEngine\Dbo\User;
 use HeraldryEngine\Http\Gpc;
+use HeraldryEngine\Interfaces\ClockInterface;
 use HeraldryEngine\Mvc\View;
+use HeraldryEngine\SecurityContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 class Controller
 {
     /**
-     * @var Application
+     * @var array
      */
-    protected $app;
-    /**
-     * @var Request
-     */
+    protected $params;
 
-    public function __construct(Application $app)
+    public function __construct()
     {
-        $this->app = $app;
+        $this->params = [];
     }
 
     /**
+     * @param EntityManager $em
      * @param string $name
      * @param int $accessLevel
      * @param string $password
      * @param string|null $checkPassword
      * @return bool
      */
-    public function createUser($name, $accessLevel, $password, $checkPassword = null){
-        /**
-         * @var EntityManager $em
-         */
-        $em = $this->app['entity_manager'];
+    public function createUser(EntityManager $em, $name, $accessLevel, $password, $checkPassword = null){
         if(strlen($password)<6){
-            $this->app->addParam(
+            $this->addParam(
                 'errorMessage',
                 'User not created: password too weak');
             return false;
@@ -57,23 +54,36 @@ class Controller
                 $em->persist($user);
                 $em->flush();
             } catch (ORMException $e) {
-                $this->app->addParam(
+                $this->addParam(
                     'errorMessage',
                     'User not created: A user with that name already exists');
                 return false;
             }
+            /** @noinspection PhpRedundantCatchClauseInspection
+             *
+             * This exception is in fact thrown, there must be a bug in the docs
+             *
+             */ catch (DriverException $e){
+                $this->addParam(
+                    'errorMessage',
+                    'User not created: database error');
+                return false;
+            }
         }
-        $this->app->addParam(
+        $this->addParam(
             'successMessage',
             "User '$name' created");
         return true;
     }
 
     /**
+     * @param SecurityContext $ctx
+     * @param ClockInterface $clock
+     * @param Session $sesh
      * @param Request $request
      * @return string|Response
      */
-    public function Show(Request $request){
+    public function Show(SecurityContext $ctx, ClockInterface $clock, Session $sesh, Request $request){
         $view = new View();
         $view->setTemplate("templates/template.php");
         $view->setParam("content","createUserContent.php");
@@ -94,24 +104,37 @@ class Controller
                 "label" => "Secret admin shit"
             ]
         ]);
-        $view->setParam("debug",$this->app['config']['debug']);
-        return $view->render($request, $this->app->security, $this->app->clock, $this->app->session, $this->app->params);
+        return $view->render($request, $ctx, $clock, $sesh, $this->params);
     }
 
-    public function Create( Gpc $gpc, Request $req, Application $app){
+    public function Create( Gpc $gpc,
+                            SecurityContext $ctx,
+                            ClockInterface $clock,
+                            Session $sesh,
+                            EntityManager $em,
+                            Request $req){
         if($gpc->PostHas($req, 'newUser')) {
             if($gpc->PostHas($req, 'newPassword') &&
                 $gpc->PostHas($req, 'checkPassword')){
                 $this->createUser(
+                    $em,
                     $gpc->Post($req, 'newUser'),
                     $gpc->PostHas($req, 'asAdmin') ? ACCESS_LEVEL_ADMIN : ACCESS_LEVEL_USER,
                     $gpc->Post($req, 'newPassword'),
                     $gpc->Post($req, 'checkPassword')
                 );
             }else{
-                $app->addParam('errorMessage','Something weird went wrong. User not created.');
+                $this->addParam('errorMessage','Something weird went wrong. User not created.');
             }
         }
-        return $this->Show($req);
+        return $this->Show($ctx, $clock, $sesh, $req);
+    }
+
+    /**
+     * @param $key
+     * @param $value
+     */
+    protected function addParam($key, $value){
+        $this->params[$key] = $value;
     }
 }

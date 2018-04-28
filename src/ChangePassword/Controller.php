@@ -152,11 +152,9 @@ class Controller
             //TODO: permission-based check
             if(null !== $id)
                 $this->params['changeID'] = $id;
-            else
-                $id = $ctx->GetUserID();
             $success = $this->changeUserPassword(
                 $em,
-                $id,
+                isset($id)?$id:$ctx->GetUserID(),
                 $gpc->Post($req, 'newPassword'),
                 $gpc->Post($req, 'checkPassword')
             );

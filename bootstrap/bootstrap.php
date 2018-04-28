@@ -3,16 +3,17 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Setup;
-use HeraldryEngine\DatabaseContainer;
 use HeraldryEngine\Http\Session;
 use HeraldryEngine\SecurityContext;
 use HeraldryEngine\Http\SessionHandler;
 use HeraldryEngine\Application;
+use Pimple\Exception\FrozenServiceException;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver\DefaultValueResolver;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver\RequestAttributeValueResolver;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver\RequestValueResolver;
-use Symfony\Component\HttpKernel\Controller\ArgumentResolver\SessionValueResolver;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver\VariadicValueResolver;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
@@ -45,32 +46,28 @@ $app['session_handler'] = function (Application $app){
 };
 $app['session'] = function(Application $app){
     return new Session(
-    $app,
-    new NativeSessionStorage([
-        'serialize_handler' => 'php_serialize',
-        'cookie_httponly' => true,
-        'cookie_secure' => true,
-        'cookie_domain' => '.'.$app['domain']
-    ],
-    $app['session_handler']
-    )
-);
+        $app,
+        new NativeSessionStorage([
+            'serialize_handler' => 'php_serialize',
+            'cookie_httponly' => true,
+            'cookie_secure' => true,
+            'cookie_domain' => '.'.$app['domain']
+        ],
+        $app['session_handler']
+        )
+    );
 };
-//unnecessary, session starts on demand
-//$app['session']->start();
 
 $app['gpc'] = function(Application $app){
-    return new \HeraldryEngine\Http\Gpc($app);
+    return new \HeraldryEngine\Http\Gpc($app->security, $app->session);
 };
 
 $app['security'] = function(Application $app){
     return new SecurityContext($app['clock'], $app['session_lifetime'], $app['session']);
 };
 
-$isDevMode = $app['config']['debug'];
-
 // database stuff
-$app['db_config'] = Setup::createAnnotationMetadataConfiguration(array(__DIR__."/../src"), $isDevMode);
+$app['db_config'] = Setup::createAnnotationMetadataConfiguration(array(__DIR__."/../src"), $app['config']['debug']);
 
 $app['conn'] = array(
     'dbname' => $app['config']['db.name'],
@@ -82,9 +79,6 @@ $app['conn'] = array(
 $app['entity_manager'] = function (Application $app){
     return EntityManager::create($app['conn'], $app['db_config']);
 };
-
-//TODO: remove this
-$app['db'] = new DatabaseContainer($app);
 
 $app['params'] = [];
 
@@ -105,14 +99,14 @@ $app['controller.logout'] = function(){
 $app['controller.login'] = function(){
     return new HeraldryEngine\LogIn\Controller();
 };
-$app['controller.admin_panel'] = function(Application $app){
-    return new HeraldryEngine\AdminPanel\Controller($app);
+$app['controller.admin_panel'] = function(){
+    return new HeraldryEngine\AdminPanel\Controller();
 };
-$app['controller.permissions'] = function(Application $app){
-    return new HeraldryEngine\Permissions\DisplayController($app);
+$app['controller.permissions'] = function(){
+    return new HeraldryEngine\Permissions\DisplayController();
 };
-$app['controller.create_user'] = function(Application $app){
-    return new HeraldryEngine\CreateUser\Controller($app);
+$app['controller.create_user'] = function(){
+    return new HeraldryEngine\CreateUser\Controller();
 };
 $app['controller.view_user'] = function(){
     return new HeraldryEngine\ViewUser\ViewUserController();
@@ -126,14 +120,18 @@ $app['controller.download_blazon'] = function(){
 $app['controller.collect_garbage'] = function(){
     return new HeraldryEngine\Controllers\CollectGarbageController();
 };
+$app['controller.set_access'] = function(){
+    return new HeraldryEngine\Controllers\SetAccessController();
+};
+$app['controller.delete_user'] = function(){
+    return new HeraldryEngine\Controllers\DeleteUserController();
+};
 
 $app['argument_resolver'] = function(Application $app) {
     return new ArgumentResolver( null,  array(
             new RequestAttributeValueResolver(),
             new RequestValueResolver(),
-            new SessionValueResolver(),
-            new DefaultValueResolver(),
-            new VariadicValueResolver(),
+            //new SessionValueResolver(),
             new \HeraldryEngine\Resolvers\GpcResolver($app),
             new \HeraldryEngine\Resolvers\SecurityContextResolver($app),
             new \HeraldryEngine\Resolvers\ClockResolver($app),
@@ -141,7 +139,10 @@ $app['argument_resolver'] = function(Application $app) {
             new \HeraldryEngine\Resolvers\SessionResolver($app),
             new \HeraldryEngine\Resolvers\RequestHandlerResolver($app),
             new \HeraldryEngine\Resolvers\SessionHandlerResolver($app),
-            new \HeraldryEngine\Resolvers\ApplicationParameterResolver($app)
+            new \HeraldryEngine\Resolvers\UserObjectResolver($app),
+            new \HeraldryEngine\Resolvers\ApplicationParameterResolver($app),
+            new DefaultValueResolver(),
+            new VariadicValueResolver(),
         )
     );
 };
@@ -156,5 +157,22 @@ $app['kernel'] = function(Application $app){
 };
 
 $app->register(new Silex\Provider\ServiceControllerServiceProvider());
+
+/**
+ * This middleware checks if the entity manager has been instantiated and flushes it if so.
+ * The noinspection doc is there because the container expects there to be two parameters on the callback.
+ */
+$app->finish(
+    function(
+        /** @noinspection PhpUnusedParameterInspection */ Request $req,
+        /** @noinspection PhpUnusedParameterInspection */ Response $resp
+        ) use ($app) {
+        //we check if the entity manager has been  used. What an ugly hack for what should be simple functionality.
+        try{
+            $app->extend('entity_manager', function($dummy){});
+        }catch(FrozenServiceException $e){
+            $app['entity_manager']->flush();
+        }
+});
 
 return $app;

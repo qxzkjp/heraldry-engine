@@ -13,29 +13,25 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use HeraldryEngine\Application;
 use HeraldryEngine\Dbo\Permission;
+use HeraldryEngine\Interfaces\ClockInterface;
 use HeraldryEngine\Mvc\View;
+use HeraldryEngine\SecurityContext;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 class DisplayController
 {
     /**
      * @var array
      */
-    private $args;
-
-    /**
-     * @var Application
-     */
-    private $app;
+    private $params;
 
     /**
      * DisplayController constructor.
-     * @param Application $app
      */
-    public function __construct(Application $app)
+    public function __construct()
     {
-        $this->app = $app;
-        $this->args=[];
+        $this->params=[];
     }
 
     /**
@@ -58,7 +54,7 @@ class DisplayController
         foreach($permissions as $permission){
             $names[] = $permission->getName();
         }
-        $this->args['permission_names'] = $names;
+        $this->params['permission_names'] = $names;
     }
 
     /**
@@ -66,10 +62,10 @@ class DisplayController
      */
     public function getParams()
     {
-        return $this->args;
+        return $this->params;
     }
 
-    public function Show(Request $request){
+    public function Show(EntityManager $em, SecurityContext $ctx, ClockInterface $clock, Session $sesh, Request $request){
         $view = new View();
         $view->setTemplate("templates/template.php");
         $view->setParam("content","viewPermissions.php");
@@ -86,8 +82,7 @@ class DisplayController
             ]
         ]);
         $view->setParam("menuList",[]);
-        $this->listPermissions($this->app['entity_manager']);
-        $this->app['params'] = array_merge($this->app['params'], $this->getParams());
-        return $view->render($request, $this->app->security, $this->app->clock, $this->app->session, $this->app->params);
+        $this->listPermissions($em);
+        return $view->render($request, $ctx, $clock, $sesh, $this->params);
     }
 }

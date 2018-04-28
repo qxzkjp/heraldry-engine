@@ -18,14 +18,6 @@ use Symfony\Component\HttpFoundation\Request;
 class Controller
 {
     /**
-     * @var Application
-     */
-    private $app;
-    /**
-     * @var Request
-     */
-    private $request;
-    /**
      * @var int
      */
     private $error = 0;
@@ -33,30 +25,23 @@ class Controller
     const ERROR_BAD_USER = 1;
     const ERROR_BAD_DB = 2;
     const ERROR_UNKNOWN = 3;
+
     /**
      * Controller constructor.
-     * @param Application $app
-     * @param Request $request
      */
-    public function __construct(Application $app, Request $request)
+    public function __construct()
     {
-        $this->app = $app;
-        $this->request = $request;
     }
 
     /**
+     * @param EntityManager $em
      * @param int $id
      * @return bool
      */
-    public function deleteUser($id){
-        /**
-         * @var EntityManager $em;
-         */
-        $em = $this->app['entity_manager'];
+    public function DeleteUser(EntityManager $em, $id){
         try {
             $user = $em->getReference(User::class, $id);
             $em->remove($user);
-            $em->flush();
         } catch (ORMException $e) {
             $this->error = $this::ERROR_BAD_DB;
             return false;

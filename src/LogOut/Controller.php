@@ -29,7 +29,7 @@ class Controller
                              RequestHandlerInterface $handler,
                              ClockInterface $clock,
                              $session_lifetime){
-        if($gpc->CheckCsrf($req, $sesh)){
+        if($gpc->CheckCsrf($req)){
             $sesh->clear();
             $ctx->clone(new SecurityContext($clock, $session_lifetime));
             $ctx->StoreContext($sesh);

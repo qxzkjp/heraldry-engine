@@ -20,14 +20,6 @@ use Symfony\Component\HttpFoundation\Request;
 class Controller
 {
     /**
-     * @var Application
-     */
-    private $app;
-    /**
-     * @var Request
-     */
-    private $request;
-    /**
      * @var int
      */
     private $error;
@@ -35,38 +27,22 @@ class Controller
     const ERROR_USER_NOT_FOUND = 1;
     const ERROR_DATABASE = 2;
     const ERROR_UNKNOWN = 3;
+
     /**
      * Controller constructor.
-     * @param Application $app
-     * @param Request $request
      */
-    public function __construct(Application $app, Request $request)
+    public function __construct()
     {
-        $this->app = $app;
-        $this->request = $request;
     }
 
     /**
-     * @param $id
+     * @param User|null $user
      * @param $al
      * @return bool
      */
-    public function setAccess($id, $al){
-        /**
-         * @var EntityManager $em
-         * @var User $user
-         */
-        $em = $this->app['entity_manager'];
-        $userRepo = $em->getRepository(User::class);
-        $user = $userRepo->find($id);
+    public function setAccess(User $user = null, $al){
         if(isset($user)){
             $user->setAccessLevel($al);
-            try {
-                $em->flush();
-            } catch (Exception $e) {
-                $this->error = $this::ERROR_DATABASE;
-                return false;
-            }
         }else{
             $this->error = $this::ERROR_USER_NOT_FOUND;
             return false;

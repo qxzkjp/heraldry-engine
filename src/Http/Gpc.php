@@ -8,25 +8,28 @@
 
 namespace HeraldryEngine\Http;
 
-
-use HeraldryEngine\Application;
+use HeraldryEngine\SecurityContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 
 class Gpc
 {
     /**
-     * @var Application
+     * @var SecurityContext
      */
-    private $app;
-
-    public function __construct(Application $app)
+    private $ctx;
+    /**
+     * @var Session
+     */
+    private $sesh;
+    public function __construct(SecurityContext $ctx, Session $sesh)
     {
-        $this->app = $app;
+        $this->ctx = $ctx;
+        $this->sesh = $sesh;
     }
 
-    public function CheckCsrf(Request $req, Session $sesh){
-        return ($this->app->security->getCSRF($sesh) == $req->request->get('CSRF'));
+    public function CheckCsrf(Request $req){
+        return ($this->ctx->getCSRF($this->sesh) == $req->request->get('CSRF'));
     }
 
     /**
@@ -35,7 +38,7 @@ class Gpc
      * @return mixed|null
      */
     public function Post(Request $req, string $key){
-        if($this->app->session->get('CSRF') == $req->request->get('CSRF'))
+        if($this->sesh->get('CSRF') == $req->request->get('CSRF'))
             return $req->request->get($key);
         else
             return null;
@@ -47,7 +50,7 @@ class Gpc
      * @return bool
      */
     public function PostHas(Request $req, string $key){
-        if($this->app->session->get('CSRF') == $req->request->get('CSRF'))
+        if($this->sesh->get('CSRF') == $req->request->get('CSRF'))
             return $req->request->has($key);
         else
             return false;

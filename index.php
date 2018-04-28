@@ -1,10 +1,6 @@
 <?php
 
-use HeraldryEngine\Application;
 use HeraldryEngine\Interfaces\RequestHandlerInterface;
-use HeraldryEngine\Utility\DateUtility;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @var HeraldryEngine\Application $app
@@ -56,23 +52,9 @@ $app->get('/changepassword', 'controller.change_password:Show')
 $app->post('/changepassword', 'controller.change_password:DoPasswordChange')
     ->before([\HeraldryEngine\Utility\AuthCheck::class,'RequireLoggedIn']);
 
-$adminPages->post('/setaccess/{al}/{id}', function(Application $app, Request $request, $al, $id){
-    $controller = new \HeraldryEngine\SetAccess\Controller($app, $request);
-    //TODO: permission-based check
-    if($app['CSRF']){
-        $controller->setAccess($id, $al);
-    }
-    return $app->redirect('/admin/');
-});
+$adminPages->post('/setaccess/{al}/{id}', 'controller.set_access:SetAccess');
 
-$adminPages->post('/deleteuser/{id}', function(Application $app, Request $request, $id){
-    $controller = new \HeraldryEngine\DeleteUser\Controller($app, $request);
-    //TODO: permission-based check
-    if($app['CSRF']){
-        $controller->deleteUser($id);
-    }
-    return $app->redirect('/admin/');
-});
+$adminPages->post('/deleteuser/{id}', 'controller.delete_user:DeleteUser');
 
 $adminPages->post('/collectgarbage', 'controller.collect_garbage:CollectGarbage');
 
