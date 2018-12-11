@@ -2,30 +2,27 @@
 /**
  * Created by PhpStorm.
  * User: Deus
- * Date: 27/04/2018
- * Time: 19:36
+ * Date: 17/05/2018
+ * Time: 21:45
  */
 
 namespace HeraldryEngine\Resolvers;
 
 
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityManagerInterface;
 use HeraldryEngine\Application;
 use HeraldryEngine\Utility\ResolverUtility;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Controller\ArgumentValueResolverInterface;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 
-class EntityManagerResolver implements ArgumentValueResolverInterface
+class ApplicationResolver
 {
     /**
      * @var Application
      */
-    public $app;
+    private $app;
 
     /**
-     * EntityManagerResolver constructor.
+     * ClockResolver constructor.
      * @param Application $app
      */
     public function __construct(Application $app)
@@ -35,12 +32,14 @@ class EntityManagerResolver implements ArgumentValueResolverInterface
 
     public function supports(Request $request, ArgumentMetadata $argument)
     {
-        return ResolverUtility::TypeCheck($argument, EntityManagerInterface::class) &&
-            $this->app['entity_manager'] instanceof EntityManager;
+        // TODO: Implement supports() method.
+        if(!(ResolverUtility::TypeCheck($argument, Application::class)))
+            return false;
+        return $this->app instanceof Application;
     }
 
     public function resolve(Request $request, ArgumentMetadata $argument)
     {
-        yield $this->app['entity_manager'];
+        yield $this->app;
     }
 }

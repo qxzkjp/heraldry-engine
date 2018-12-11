@@ -8,12 +8,12 @@
 
 namespace HeraldryEngine;
 use HeraldryEngine\Http\SessionHandler;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 
 
 /**
  * Application object for HE. Mainly exists for type annotations.
- * @property DatabaseContainer db
  * @property callable clock
  * @property Session session
  * @property int session_lifetime
@@ -32,6 +32,14 @@ class Application extends \Silex\Application
 
     public function addParam($name, $value){
         $this['params'] = array_merge($this['params'],[$name => $value]);
+    }
+
+    public function run(Request $request = null){
+        if(!isset($request))
+            $request = Request::createFromGlobals();
+        if( !$request->hasSession() && isset($this['session']))
+            $request->setSession($this['session']);
+        parent::run($request);
     }
 
     public function __get($name)

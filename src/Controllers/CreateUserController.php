@@ -6,7 +6,7 @@
  * Time: 21:36
  */
 
-namespace HeraldryEngine\CreateUser;
+namespace HeraldryEngine\Controllers;
 
 
 use Doctrine\DBAL\Exception\DriverException;
@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 
-class Controller
+class CreateUserController
 {
     /**
      * @var array

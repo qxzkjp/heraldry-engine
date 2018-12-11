@@ -11,6 +11,10 @@ namespace HeraldryEngine\Utility;
 
 class RandomString
 {
+    /**
+     * @param int $length
+     * @return string
+     */
     public static function generate($length = 10) {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ,;:.';
         $charactersLength = strlen($characters);

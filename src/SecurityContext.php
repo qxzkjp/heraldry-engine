@@ -249,14 +249,12 @@ class SecurityContext {
     }
 
     /**
-     * @param Session $sesh
      * @return string
      */
-    public function getCSRF(Session $sesh){
+    public function getCSRF(){
         if(!isset($this->CSRF)) {
             $guid = $this->getGUID();
             $this->CSRF = $guid;
-            $this->StoreContext($sesh);
         }
         return $this->CSRF;
     }

@@ -6,7 +6,7 @@
  * Time: 22:44
  */
 
-namespace HeraldryEngine\Permissions;
+namespace HeraldryEngine\Controllers;
 
 
 use Doctrine\ORM\EntityManager;
@@ -19,7 +19,7 @@ use HeraldryEngine\SecurityContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 
-class DisplayController
+class PermissionsDisplayController
 {
     /**
      * @var array

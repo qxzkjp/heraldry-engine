@@ -17,7 +17,7 @@ use HeraldryEngine\Application;
 use HeraldryEngine\Dbo\User;
 use Symfony\Component\HttpFoundation\Request;
 
-class Controller
+class SetAccessController
 {
     /**
      * @var int

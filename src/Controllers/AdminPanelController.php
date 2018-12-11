@@ -6,7 +6,7 @@
  * Time: 19:49
  */
 
-namespace HeraldryEngine\AdminPanel;
+namespace HeraldryEngine\Controllers;
 
 
 use Doctrine\ORM\EntityManager;
@@ -19,7 +19,7 @@ use HeraldryEngine\SecurityContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 
-class Controller
+class AdminPanelController
 {
     /**
      * Controller constructor.

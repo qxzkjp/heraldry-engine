@@ -6,7 +6,7 @@
  * Time: 22:28
  */
 
-namespace HeraldryEngine\ViewUser;
+namespace HeraldryEngine\Controllers;
 
 
 use Doctrine\ORM\EntityManager;

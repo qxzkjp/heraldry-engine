@@ -6,7 +6,7 @@
  * Time: 20:27
  */
 
-namespace HeraldryEngine\LogOut;
+namespace HeraldryEngine\Controllers;
 
 
 use HeraldryEngine\Http\Gpc;
@@ -16,7 +16,7 @@ use HeraldryEngine\SecurityContext;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 
-class Controller
+class LogoutController
 {
     public function __construct()
     {

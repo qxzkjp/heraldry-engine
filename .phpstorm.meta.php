@@ -12,6 +12,7 @@ namespace PHPSTORM_META {
             'session_lifetime' => \DateInterval::class,
             'security' => \HeraldryEngine\SecurityContext::class,
             'db' => \HeraldryEngine\DatabaseContainer::class,
-            'gpc' => \HeraldryEngine\Http\Gpc::class
+            'gpc' => \HeraldryEngine\Http\Gpc::class,
+            'service_factory' => \HeraldryEngine\ServiceFactory::class
         ]));
 }

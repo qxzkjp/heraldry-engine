@@ -6,7 +6,7 @@
  * Time: 19:37
  */
 
-namespace HeraldryEngine\ChangePassword;
+namespace HeraldryEngine\Controllers;
 
 
 use Doctrine\ORM\EntityManager;
@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 
-class Controller
+class ChangePasswordController
 {
     /**
      * @var int

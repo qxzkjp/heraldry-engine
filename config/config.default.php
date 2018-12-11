@@ -5,5 +5,7 @@ return [
 	'db.pass' => '',
 	'db.name' => 'heraldry',
     'db.driver' => 'pdo_mysql',
-	'session.dir' => 'heraldry-engine'
+	'session.dir' => 'heraldry-engine',
+    'domain' =>'localhost',
+    'cookie_secure' => true,
 ];

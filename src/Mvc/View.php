@@ -51,7 +51,7 @@ class View
      */
 	public function render(Request $request, SecurityContext $ctx, ClockInterface $clock, Session $sesh, $params)
 	{
-	    $this->params['CSRF'] = $ctx->getCSRF($sesh);
+	    $this->params['CSRF'] = $ctx->getCSRF();
 	    $this->params = array_merge($this->params, $params);
 		if("" !== $request->cookies->get("nightMode","") ){
 			$this->setParam("nightMode","true");

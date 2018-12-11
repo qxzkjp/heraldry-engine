@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver\DefaultValueResolver;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver\RequestAttributeValueResolver;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver\RequestValueResolver;
+use Symfony\Component\HttpKernel\Controller\ArgumentResolver\SessionValueResolver;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver\VariadicValueResolver;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
@@ -30,7 +31,14 @@ if (file_exists(__DIR__ . '/../config/config.php'))
 
 $app['config'] = $config;
 unset($config);
-$app['clock'] = function(){ return new \HeraldryEngine\Clock(); };
+
+$app['service_factory'] = function($app){
+    return new \HeraldryEngine\ServiceFactory($app);
+};
+
+//$app['clock'] = function(){ return new \HeraldryEngine\Clock(); };
+
+$app['service_factory']->register('clock', \HeraldryEngine\Clock::class);
 
 //session setup
 
@@ -50,8 +58,8 @@ $app['session'] = function(Application $app){
         new NativeSessionStorage([
             'serialize_handler' => 'php_serialize',
             'cookie_httponly' => true,
-            'cookie_secure' => true,
-            'cookie_domain' => '.'.$app['domain']
+            'cookie_secure' => $app['config']['cookie_secure'],
+            'cookie_domain' => '.'.$app['config']['domain']
         ],
         $app['session_handler']
         )
@@ -59,7 +67,7 @@ $app['session'] = function(Application $app){
 };
 
 $app['gpc'] = function(Application $app){
-    return new \HeraldryEngine\Http\Gpc($app->security, $app->session);
+    return new \HeraldryEngine\Http\Gpc($app->security);
 };
 
 $app['security'] = function(Application $app){
@@ -76,6 +84,7 @@ $app['conn'] = array(
     'host' => $app['config']['db.host'],
     'driver' => $app['config']['db.driver'],
 );
+
 $app['entity_manager'] = function (Application $app){
     return EntityManager::create($app['conn'], $app['db_config']);
 };
@@ -86,33 +95,39 @@ if($app['config']['debug']){
     unset($app['exception_handler']);
 }
 
-$app['request_handler'] = function(Application $app){
-    return new \HeraldryEngine\Http\RequestHandler($app);
+//$app['request_handler'] = function(Application $app){
+//    return new \HeraldryEngine\Http\RequestHandler($app);
+//};
+
+$app['service_factory']->register('request_handler', \HeraldryEngine\Http\RequestHandler::class);
+
+$app['entity_logger'] = function(Application $app){
+    return new \HeraldryEngine\Logger($app['entity_manager']);
 };
 
 $app['controller.main_page'] = function(){
-    return new HeraldryEngine\MainPage\Controller();
+    return new HeraldryEngine\Controllers\MainPageController();
 };
 $app['controller.logout'] = function(){
-    return new HeraldryEngine\LogOut\Controller();
+    return new HeraldryEngine\Controllers\LogoutController();
 };
 $app['controller.login'] = function(){
-    return new HeraldryEngine\LogIn\Controller();
+    return new HeraldryEngine\Controllers\LoginController();
 };
 $app['controller.admin_panel'] = function(){
-    return new HeraldryEngine\AdminPanel\Controller();
+    return new HeraldryEngine\Controllers\AdminPanelController();
 };
 $app['controller.permissions'] = function(){
-    return new HeraldryEngine\Permissions\DisplayController();
+    return new HeraldryEngine\Controllers\PermissionsDisplayController();
 };
 $app['controller.create_user'] = function(){
-    return new HeraldryEngine\CreateUser\Controller();
+    return new HeraldryEngine\Controllers\CreateUserController();
 };
 $app['controller.view_user'] = function(){
-    return new HeraldryEngine\ViewUser\ViewUserController();
+    return new HeraldryEngine\Controllers\ViewUserController();
 };
 $app['controller.change_password'] = function(){
-    return new HeraldryEngine\ChangePassword\Controller();
+    return new HeraldryEngine\Controllers\ChangePasswordController();
 };
 $app['controller.download_blazon'] = function(){
     return new HeraldryEngine\Controllers\DownloadBlazonController();
@@ -131,16 +146,18 @@ $app['argument_resolver'] = function(Application $app) {
     return new ArgumentResolver( null,  array(
             new RequestAttributeValueResolver(),
             new RequestValueResolver(),
-            //new SessionValueResolver(),
+            new SessionValueResolver(),
+            new \HeraldryEngine\Resolvers\ApplicationResolver($app),
             new \HeraldryEngine\Resolvers\GpcResolver($app),
             new \HeraldryEngine\Resolvers\SecurityContextResolver($app),
             new \HeraldryEngine\Resolvers\ClockResolver($app),
             new \HeraldryEngine\Resolvers\EntityManagerResolver($app),
-            new \HeraldryEngine\Resolvers\SessionResolver($app),
             new \HeraldryEngine\Resolvers\RequestHandlerResolver($app),
             new \HeraldryEngine\Resolvers\SessionHandlerResolver($app),
             new \HeraldryEngine\Resolvers\UserObjectResolver($app),
             new \HeraldryEngine\Resolvers\ApplicationParameterResolver($app),
+            new \HeraldryEngine\Resolvers\LoggerResolver($app),
+            new \HeraldryEngine\Resolvers\RepositoryResolver($app),
             new DefaultValueResolver(),
             new VariadicValueResolver(),
         )
@@ -164,8 +181,9 @@ $app->register(new Silex\Provider\ServiceControllerServiceProvider());
  */
 $app->finish(
     function(
-        /** @noinspection PhpUnusedParameterInspection */ Request $req,
-        /** @noinspection PhpUnusedParameterInspection */ Response $resp
+        /** @noinspection PhpUnusedParameterInspection */
+        Request $req,
+        Response $resp
         ) use ($app) {
         //we check if the entity manager has been  used. What an ugly hack for what should be simple functionality.
         try{
@@ -173,6 +191,9 @@ $app->finish(
         }catch(FrozenServiceException $e){
             $app['entity_manager']->flush();
         }
+
+        //save the security context into the session
+        $app->security->StoreContext($app->session);
 });
 
 return $app;

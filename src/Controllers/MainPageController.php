@@ -6,7 +6,7 @@
  * Time: 19:30
  */
 
-namespace HeraldryEngine\MainPage;
+namespace HeraldryEngine\Controllers;
 
 use HeraldryEngine\Interfaces\ClockInterface;
 use HeraldryEngine\Mvc\View;
@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 
-class Controller
+class MainPageController
 {
     /**
      * Controller constructor.
